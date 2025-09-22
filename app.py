@@ -29,6 +29,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
             border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center; max-width: 400px; width: 100%;
+            position: relative;
         }
         .title { color: #333; font-size: 24px; font-weight: 700; margin-bottom: 10px;
             background: linear-gradient(45deg, #f39c12, #d35400); -webkit-background-clip: text;
@@ -78,7 +79,23 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .status.success { background: #2ecc71; color: white; }
         .status.error { background: #e74c3c; color: white; }
         .last-update { color: #666; font-size: 12px; margin-bottom: 15px; }
-        .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .controls button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         button {
             background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none;
             padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600;
@@ -141,16 +158,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         <!-- Portfolio Details - Ana Görünüm -->
         <div class="portfolio-details" id="portfolioDetailsMain">
             <div class="portfolio-item">
-                <span class="metal-name">🏆 Altın Değeri:</span>
+                <span class="metal-name">🏆 Altın:</span>
+                <span class="metal-value" id="goldGramMain">0 gram</span>
+            </div>
+            <div class="portfolio-item">
+                <span class="metal-name">🥈 Gümüş:</span>
+                <span class="metal-value" id="silverGramMain">0 gram</span>
+            </div>
+            <div class="portfolio-item">
+                <span class="metal-name">💰 Altın Değeri:</span>
                 <span class="metal-value" id="goldValueMain">0,00 TL</span>
             </div>
             <div class="portfolio-item">
-                <span class="metal-name">🥈 Gümüş Değeri:</span>
+                <span class="metal-name">💰 Gümüş Değeri:</span>
                 <span class="metal-value" id="silverValueMain">0,00 TL</span>
-            </div>
-            <div class="portfolio-item">
-                <span class="metal-name">📊 Toplam Gram:</span>
-                <span class="metal-value" id="totalGramMain">0 gram</span>
             </div>
         </div>
         
@@ -171,8 +192,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         <div class="last-update" id="lastUpdate">Son güncelleme: Henüz yok</div>
         
         <div class="controls">
-            <button onclick="fetchPrice()" id="refreshBtn">🔄 Yenile</button>
-            <button onclick="togglePortfolio()" id="portfolioBtn">⚙️ Portföy Ayarı</button>
+            <button onclick="fetchPrice()" id="refreshBtn" title="Yenile">🔄</button>
+            <button onclick="togglePortfolio()" id="portfolioBtn" title="Portföy Ayarları">⚙️</button>
         </div>
         
         <!-- Simplified Portfolio Input -->
@@ -200,16 +221,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         </div>
         
         <div class="footer">
-            API Endpoints: /api/gold-price | /api/silver-price
-            
-            <div class="version-info">
-                <div class="version-title">📋 Sistem Bilgileri</div>
-                <div>📱 Versiyon: v2.2.0</div>
-                <div>🗓️ Son Güncelleme: 21.09.2025</div>
-                <div>⚡ Flask 3.0.0 | Python 3.13.4</div>
-                <div>🏗️ Hosted on Render.com</div>
-                <div>💾 LocalStorage: <span id="storageStatus">Kontrol ediliyor...</span></div>
-            </div>
+            Versiyon: v2.2.0
         </div>
     </div>
 
@@ -289,10 +301,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             if (inputSection.style.display === 'none') {
                 inputSection.style.display = 'block';
-                portfolioBtn.textContent = '📊 Kapat';
+                // Buton metnini değiştirmiyoruz, sadece ikon
             } else {
                 inputSection.style.display = 'none';
-                portfolioBtn.textContent = '⚙️ Portföy Ayarı';
+                // Buton metnini değiştirmiyoruz, sadece ikon
             }
         }
 
@@ -303,7 +315,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const goldValue = goldAmount * currentGoldPrice;
             const silverValue = silverAmount * currentSilverPrice;
             const totalValue = goldValue + silverValue;
-            const totalGram = goldAmount + silverAmount;
             
             // Ana sayfada göster
             const portfolioTotalMain = document.getElementById('portfolioTotalMain');
@@ -314,9 +325,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 portfolioDetailsMain.style.display = 'block';
                 
                 document.getElementById('totalValueMain').textContent = formatCurrency(totalValue);
+                document.getElementById('goldGramMain').textContent = goldAmount.toFixed(1) + ' gram';
+                document.getElementById('silverGramMain').textContent = silverAmount.toFixed(1) + ' gram';
                 document.getElementById('goldValueMain').textContent = formatCurrency(goldValue);
                 document.getElementById('silverValueMain').textContent = formatCurrency(silverValue);
-                document.getElementById('totalGramMain').textContent = totalGram.toFixed(1) + ' gram';
             } else {
                 portfolioTotalMain.style.display = 'none';
                 portfolioDetailsMain.style.display = 'none';
@@ -366,16 +378,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         window.onload = function() {
-            const storageStatusEl = document.getElementById('storageStatus');
-            if (typeof(Storage) !== "undefined") {
-                storageStatusEl.textContent = 'Aktif ✅';
-                storageStatusEl.style.color = '#2ecc71';
-                loadPortfolio();
-            } else {
-                storageStatusEl.textContent = 'Desteklenmiyor ❌';
-                storageStatusEl.style.color = '#e74c3c';
-            }
-            
+            loadPortfolio();
             fetchPrice();
         };
     </script>
