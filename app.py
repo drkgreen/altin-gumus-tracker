@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Metal Fiyat Takipçisi v2.2.0
+# Metal Fiyat Takipçisi v2.3.0
 # Son Güncelleme: 21.09.2025
 # Python 3.13.4 | Flask 3.0.0
 
@@ -17,234 +17,237 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Fiyat Takipçisi v2.2.0</title>
+    <title>Metal Fiyat Takipçisi</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
+            min-height: 100vh; padding: 20px; overflow-x: hidden;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-            border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center; max-width: 400px; width: 100%;
-            position: relative;
+        .app-container {
+            max-width: 380px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 20px;
         }
-        .title { color: #333; font-size: 24px; font-weight: 700; margin-bottom: 10px;
-            background: linear-gradient(45deg, #f39c12, #d35400); -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
         
-        /* Portfolio Total Display */
-        .portfolio-total-main {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        /* Header */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo { font-size: 20px; font-weight: 700; color: white; }
+        .actions {
+            display: flex; gap: 10px;
+        }
+        .action-btn {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2); border: none;
+            color: white; font-size: 18px; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
+        
+        /* Portfolio Summary */
+        .portfolio-summary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 20px; padding: 24px; color: white;
+            box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
             display: none;
         }
-        .portfolio-total-main .total-label {
-            font-size: 14px; opacity: 0.9; margin-bottom: 5px;
-            text-transform: uppercase; letter-spacing: 1px;
+        .portfolio-title { font-size: 14px; opacity: 0.9; margin-bottom: 8px; font-weight: 500; }
+        .portfolio-amount { font-size: 32px; font-weight: 800; margin-bottom: 16px; }
+        .portfolio-breakdown {
+            display: flex; justify-content: space-between; gap: 16px;
         }
-        .portfolio-total-main .total-value {
-            font-size: 36px; font-weight: 900;
-            animation: pulse 2s infinite;
+        .breakdown-item { flex: 1; text-align: center; }
+        .breakdown-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
+        .breakdown-value { font-size: 16px; font-weight: 600; }
+        
+        /* Price Cards */
+        .price-cards { display: flex; flex-direction: column; gap: 16px; }
+        .price-card {
+            background: rgba(255, 255, 255, 0.95); border-radius: 16px;
+            padding: 20px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .price-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .metal-info { display: flex; align-items: center; gap: 12px; }
+        .metal-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 18px;
+        }
+        .metal-icon.gold { background: linear-gradient(135deg, #f39c12, #d35400); color: white; }
+        .metal-icon.silver { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
+        .metal-details h3 { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
+        .metal-details p { font-size: 12px; color: #7f8c8d; }
+        .price-value { font-size: 24px; font-weight: 800; color: #2c3e50; }
+        .price-change {
+            display: flex; align-items: center; gap: 4px; margin-top: 8px;
+            font-size: 12px; font-weight: 500;
         }
         
-        /* Portfolio Details */
-        .portfolio-details {
-            background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px;
-            margin-bottom: 20px; display: none;
-        }
-        .portfolio-item {
+        /* Status */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
+            border-radius: 12px; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.1);
         }
-        .portfolio-item:last-child { border-bottom: none; }
-        .metal-name { font-weight: 600; color: #333; font-size: 14px; }
-        .metal-value { font-weight: 700; color: #f39c12; font-size: 14px; }
+        .status-text { color: white; font-size: 14px; font-weight: 500; }
+        .status-time { color: rgba(255, 255, 255, 0.8); font-size: 12px; }
         
-        .price-display {
-            background: linear-gradient(135deg, #f39c12, #d35400); color: white;
-            padding: 20px; border-radius: 15px; margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.3);
+        /* Portfolio Input Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
+            padding: 20px;
         }
-        .price-display.silver { background: linear-gradient(135deg, #95a5a6, #7f8c8d); box-shadow: 0 10px 25px rgba(149, 165, 166, 0.3); }
-        .price-value { font-size: 32px; font-weight: 900; margin-bottom: 5px; animation: pulse 2s infinite; }
-        .price-label { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
-        .status { padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
-        .status.loading { background: #3498db; color: white; }
-        .status.success { background: #2ecc71; color: white; }
-        .status.error { background: #e74c3c; color: white; }
-        .last-update { color: #666; font-size: 12px; margin-bottom: 15px; }
-        .controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
+        .modal-content {
+            background: white; border-radius: 20px; padding: 24px;
+            width: 100%; max-width: 340px; position: relative;
         }
-        .controls button {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            padding: 0;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
-        button {
-            background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none;
-            padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease;
+        .modal-title { font-size: 20px; font-weight: 700; color: #2c3e50; }
+        .close-btn {
+            width: 32px; height: 32px; border-radius: 8px; background: #f8f9fa;
+            border: none; font-size: 16px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
-        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .loading-spinner {
-            width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;
-            display: inline-block; margin-right: 10px;
+        .input-group { margin-bottom: 20px; }
+        .input-label {
+            display: block; margin-bottom: 8px; font-weight: 600;
+            color: #2c3e50; font-size: 14px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .input-field {
+            width: 100%; padding: 14px; border: 2px solid #e9ecef;
+            border-radius: 12px; font-size: 16px; transition: border-color 0.3s;
+            background: #f8f9fa;
+        }
+        .input-field:focus {
+            outline: none; border-color: #667eea; background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        .modal-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+        }
+        .btn {
+            padding: 12px 20px; border-radius: 10px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; border: none; font-size: 14px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #e9ecef; color: #6c757d; }
+        .btn:hover { transform: translateY(-1px); }
         
-        /* Simplified Portfolio Input Section */
-        .portfolio-input-section {
-            margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px; border: 2px solid rgba(102, 126, 234, 0.2);
-            animation: slideDown 0.3s ease; display: none;
-        }
-        .portfolio-header { text-align: center; margin-bottom: 20px; }
-        .portfolio-header h3 { color: #333; font-size: 18px; margin-bottom: 5px; }
-        .portfolio-header p { color: #666; font-size: 12px; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; font-size: 14px; }
-        .input-group input {
-            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 16px; transition: border-color 0.3s ease; background: white;
-        }
-        .input-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        .portfolio-controls { text-align: center; margin-top: 15px; }
-        .clear-btn {
-            background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; border: none;
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease;
-        }
-        .clear-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4); }
+        /* Loading States */
+        .loading { opacity: 0.6; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .footer { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); font-size: 12px; color: #999; }
-        .version-info {
-            margin-top: 15px; padding: 15px; background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px; font-size: 11px; color: #667eea; line-height: 1.5;
+        /* Responsive */
+        @media (max-width: 400px) {
+            .app-container { max-width: 100%; }
+            .portfolio-breakdown { flex-direction: column; gap: 12px; }
         }
-        .version-title { font-weight: 600; margin-bottom: 8px; color: #333; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <p class="subtitle">Canlı Piyasa Verileri</p>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">Metal Tracker</div>
+            <div class="actions">
+                <button class="action-btn" onclick="fetchPrice()" id="refreshBtn" title="Yenile">⟳</button>
+                <button class="action-btn" onclick="togglePortfolio()" title="Portföy">⚙</button>
+            </div>
+        </div>
         
-        <!-- Simplified Portfolio Input - En Üstte -->
-        <div class="portfolio-input-section" id="portfolioInputSection">
-            <div class="portfolio-header">
-                <h3>⚙️ Portföy Ayarları</h3>
-                <p>Elinizdeki metal miktarlarını girin</p>
+        <!-- Portfolio Summary -->
+        <div class="portfolio-summary" id="portfolioSummary">
+            <div class="portfolio-title">Toplam Portföy Değeri</div>
+            <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
+            <div class="portfolio-breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Altın</div>
+                    <div class="breakdown-value" id="goldBreakdown">0g • 0₺</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Gümüş</div>
+                    <div class="breakdown-value" id="silverBreakdown">0g • 0₺</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price Cards -->
+        <div class="price-cards">
+            <div class="price-card">
+                <div class="price-header">
+                    <div class="metal-info">
+                        <div class="metal-icon gold">Au</div>
+                        <div class="metal-details">
+                            <h3>Altın</h3>
+                            <p>Yapı Kredi • Gram</p>
+                        </div>
+                    </div>
+                    <div class="price-value" id="goldPrice">-.--₺</div>
+                </div>
+                <div class="price-change">
+                    <span id="goldChange">Son güncelleme bekleniyor</span>
+                </div>
+            </div>
+            
+            <div class="price-card">
+                <div class="price-header">
+                    <div class="metal-info">
+                        <div class="metal-icon silver">Ag</div>
+                        <div class="metal-details">
+                            <h3>Gümüş</h3>
+                            <p>Vakıfbank • Gram</p>
+                        </div>
+                    </div>
+                    <div class="price-value" id="silverPrice">-.--₺</div>
+                </div>
+                <div class="price-change">
+                    <span id="silverChange">Son güncelleme bekleniyor</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-text" id="statusText">Veriler yükleniyor...</div>
+            <div class="status-time" id="statusTime">--:--</div>
+        </div>
+    </div>
+    
+    <!-- Portfolio Modal -->
+    <div class="modal-overlay" id="portfolioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Portföy Ayarları</div>
+                <button class="close-btn" onclick="closePortfolioModal()">×</button>
             </div>
             
             <div class="input-group">
-                <label for="goldAmount">🏆 Altın Miktarı (gram):</label>
-                <input type="number" id="goldAmount" placeholder="0" step="0.1" min="0" 
-                       oninput="calculatePortfolio(); savePortfolio()">
+                <label class="input-label" for="goldAmount">Altın Miktarı (gram)</label>
+                <input type="number" class="input-field" id="goldAmount" placeholder="0.0" 
+                       step="0.1" min="0" oninput="updatePortfolio()">
             </div>
             
             <div class="input-group">
-                <label for="silverAmount">🥈 Gümüş Miktarı (gram):</label>
-                <input type="number" id="silverAmount" placeholder="0" step="0.1" min="0" 
-                       oninput="calculatePortfolio(); savePortfolio()">
+                <label class="input-label" for="silverAmount">Gümüş Miktarı (gram)</label>
+                <input type="number" class="input-field" id="silverAmount" placeholder="0.0" 
+                       step="0.1" min="0" oninput="updatePortfolio()">
             </div>
             
-            <div class="portfolio-controls">
-                <button onclick="clearPortfolio()" class="clear-btn">🗑️ Sıfırla</button>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="clearPortfolio()">Sıfırla</button>
+                <button class="btn btn-primary" onclick="closePortfolioModal()">Tamam</button>
             </div>
-        </div>
-        
-        <!-- Portfolio Total - Ana Görünüm -->
-        <div class="portfolio-total-main" id="portfolioTotalMain">
-            <div class="total-label">💎 PORTFÖY TOPLAM DEĞERİ</div>
-            <div class="total-value" id="totalValueMain">0,00 TL</div>
-        </div>
-        
-        <!-- Portfolio Details - Ana Görünüm -->
-        <div class="portfolio-details" id="portfolioDetailsMain">
-            <div class="portfolio-item">
-                <span class="metal-name">🏆 Altın:</span>
-                <span class="metal-value" id="goldGramMain">0 gram</span>
-            </div>
-            <div class="portfolio-item">
-                <span class="metal-name">🥈 Gümüş:</span>
-                <span class="metal-value" id="silverGramMain">0 gram</span>
-            </div>
-            <div class="portfolio-item">
-                <span class="metal-name">💰 Altın Değeri:</span>
-                <span class="metal-value" id="goldValueMain">0,00 TL</span>
-            </div>
-            <div class="portfolio-item">
-                <span class="metal-name">💰 Gümüş Değeri:</span>
-                <span class="metal-value" id="silverValueMain">0,00 TL</span>
-            </div>
-        </div>
-        
-        <div class="price-display">
-            <div class="price-value" id="goldPrice">---.-- TL</div>
-            <div class="price-label">Yapı Kredi - Gram Altın</div>
-        </div>
-        
-        <div class="price-display silver">
-            <div class="price-value" id="silverPrice">---.-- TL</div>
-            <div class="price-label">Vakıfbank - Gram Gümüş</div>
-        </div>
-        
-        <div class="status loading" id="status">
-            <span class="loading-spinner"></span>Fiyatlar alınıyor...
-        </div>
-        
-        <div class="last-update" id="lastUpdate">Son güncelleme: Henüz yok</div>
-        
-        <div class="controls">
-            <button onclick="fetchPrice()" id="refreshBtn" title="Yenile">🔄</button>
-            <button onclick="togglePortfolio()" id="portfolioBtn" title="Portföy Ayarları">⚙️</button>
-        </div>
-        
-        <!-- Simplified Portfolio Input -->
-        <div class="portfolio-input-section" id="portfolioInputSection">
-            <div class="portfolio-header">
-                <h3>⚙️ Portföy Ayarları</h3>
-                <p>Elinizdeki metal miktarlarını girin</p>
-            </div>
-            
-            <div class="input-group">
-                <label for="goldAmount">🏆 Altın Miktarı (gram):</label>
-                <input type="number" id="goldAmount" placeholder="0" step="0.1" min="0" 
-                       oninput="calculatePortfolio(); savePortfolio()">
-            </div>
-            
-            <div class="input-group">
-                <label for="silverAmount">🥈 Gümüş Miktarı (gram):</label>
-                <input type="number" id="silverAmount" placeholder="0" step="0.1" min="0" 
-                       oninput="calculatePortfolio(); savePortfolio()">
-            </div>
-            
-            <div class="portfolio-controls">
-                <button onclick="clearPortfolio()" class="clear-btn">🗑️ Sıfırla</button>
-            </div>
-        </div>
-        
-        <div class="footer">
-            Versiyon: v2.2.0
         </div>
     </div>
 
@@ -253,16 +256,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentSilverPrice = 0;
 
         async function fetchPrice() {
-            const statusEl = document.getElementById('status');
-            const goldPriceEl = document.getElementById('goldPrice');
-            const silverPriceEl = document.getElementById('silverPrice');
-            const lastUpdateEl = document.getElementById('lastUpdate');
             const refreshBtn = document.getElementById('refreshBtn');
+            const statusText = document.getElementById('statusText');
             
             try {
-                statusEl.className = 'status loading';
-                statusEl.innerHTML = '<span class="loading-spinner"></span>Fiyatlar alınıyor...';
-                refreshBtn.disabled = true;
+                refreshBtn.style.transform = 'rotate(360deg)';
+                refreshBtn.style.transition = 'transform 0.5s ease';
+                statusText.textContent = 'Güncelleştiriliyor...';
                 
                 const [goldResponse, silverResponse] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -275,63 +275,45 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 let successCount = 0;
                 
                 if (goldData.success) {
-                    goldPriceEl.textContent = goldData.price + ' TL';
+                    document.getElementById('goldPrice').textContent = goldData.price + '₺';
+                    document.getElementById('goldChange').textContent = 'Güncel veri';
                     let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
                     successCount++;
-                } else {
-                    goldPriceEl.textContent = 'Veri alınamadı';
-                    currentGoldPrice = 0;
                 }
                 
                 if (silverData.success) {
-                    silverPriceEl.textContent = silverData.price + ' TL';
+                    document.getElementById('silverPrice').textContent = silverData.price + '₺';
+                    document.getElementById('silverChange').textContent = 'Güncel veri';
                     let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                     successCount++;
-                } else {
-                    silverPriceEl.textContent = 'Veri alınamadı';
-                    currentSilverPrice = 0;
                 }
                 
-                if (successCount === 2) {
-                    statusEl.className = 'status success';
-                    statusEl.textContent = '✅ Tüm fiyatlar güncellendi';
-                } else if (successCount === 1) {
-                    statusEl.className = 'status success';
-                    statusEl.textContent = '⚠️ Kısmi güncelleme başarılı';
-                } else {
-                    statusEl.className = 'status error';
-                    statusEl.textContent = '❌ Fiyatlar alınamadı';
-                }
+                statusText.textContent = successCount === 2 ? 'Tüm veriler güncel' : 'Kısmi güncelleme';
+                document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 
-                lastUpdateEl.textContent = `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR')}`;
-                calculatePortfolio();
+                updatePortfolio();
                 
             } catch (error) {
-                statusEl.className = 'status error';
-                statusEl.textContent = `❌ Hata: ${error.message}`;
-                goldPriceEl.textContent = 'Veri alınamadı';
-                silverPriceEl.textContent = 'Veri alınamadı';
+                statusText.textContent = 'Güncelleme hatası';
+                console.error('Fetch error:', error);
             } finally {
-                refreshBtn.disabled = false;
+                setTimeout(() => {
+                    refreshBtn.style.transform = 'rotate(0deg)';
+                }, 500);
             }
         }
 
         function togglePortfolio() {
-            const inputSection = document.getElementById('portfolioInputSection');
-            const portfolioBtn = document.getElementById('portfolioBtn');
-            
-            if (inputSection.style.display === 'none') {
-                inputSection.style.display = 'block';
-                // Buton metnini değiştirmiyoruz, sadece ikon
-            } else {
-                inputSection.style.display = 'none';
-                // Buton metnini değiştirmiyoruz, sadece ikon
-            }
+            document.getElementById('portfolioModal').style.display = 'flex';
         }
 
-        function calculatePortfolio() {
+        function closePortfolioModal() {
+            document.getElementById('portfolioModal').style.display = 'none';
+        }
+
+        function updatePortfolio() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
@@ -339,44 +321,33 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const silverValue = silverAmount * currentSilverPrice;
             const totalValue = goldValue + silverValue;
             
-            // Ana sayfada göster
-            const portfolioTotalMain = document.getElementById('portfolioTotalMain');
-            const portfolioDetailsMain = document.getElementById('portfolioDetailsMain');
+            const portfolioSummary = document.getElementById('portfolioSummary');
             
             if (totalValue > 0) {
-                portfolioTotalMain.style.display = 'block';
-                portfolioDetailsMain.style.display = 'block';
-                
-                document.getElementById('totalValueMain').textContent = formatCurrency(totalValue);
-                document.getElementById('goldGramMain').textContent = goldAmount.toFixed(1) + ' gram';
-                document.getElementById('silverGramMain').textContent = silverAmount.toFixed(1) + ' gram';
-                document.getElementById('goldValueMain').textContent = formatCurrency(goldValue);
-                document.getElementById('silverValueMain').textContent = formatCurrency(silverValue);
+                portfolioSummary.style.display = 'block';
+                document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
+                document.getElementById('goldBreakdown').textContent = goldAmount.toFixed(1) + 'g • ' + formatCurrency(goldValue);
+                document.getElementById('silverBreakdown').textContent = silverAmount.toFixed(1) + 'g • ' + formatCurrency(silverValue);
             } else {
-                portfolioTotalMain.style.display = 'none';
-                portfolioDetailsMain.style.display = 'none';
+                portfolioSummary.style.display = 'none';
             }
+            
+            savePortfolio();
         }
 
         function savePortfolio() {
             try {
-                const goldAmount = document.getElementById('goldAmount').value;
-                const silverAmount = document.getElementById('silverAmount').value;
-                localStorage.setItem('portfolioGold', goldAmount);
-                localStorage.setItem('portfolioSilver', silverAmount);
+                localStorage.setItem('goldAmount', document.getElementById('goldAmount').value);
+                localStorage.setItem('silverAmount', document.getElementById('silverAmount').value);
             } catch (e) {}
         }
 
         function loadPortfolio() {
             try {
-                const savedGold = localStorage.getItem('portfolioGold');
-                const savedSilver = localStorage.getItem('portfolioSilver');
-                if (savedGold && savedGold !== 'null' && savedGold !== '') {
-                    document.getElementById('goldAmount').value = savedGold;
-                }
-                if (savedSilver && savedSilver !== 'null' && savedSilver !== '') {
-                    document.getElementById('silverAmount').value = savedSilver;
-                }
+                const goldAmount = localStorage.getItem('goldAmount');
+                const silverAmount = localStorage.getItem('silverAmount');
+                if (goldAmount) document.getElementById('goldAmount').value = goldAmount;
+                if (silverAmount) document.getElementById('silverAmount').value = silverAmount;
             } catch (e) {}
         }
 
@@ -385,24 +356,32 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('goldAmount').value = '';
                 document.getElementById('silverAmount').value = '';
                 try {
-                    localStorage.removeItem('portfolioGold');
-                    localStorage.removeItem('portfolioSilver');
+                    localStorage.removeItem('goldAmount');
+                    localStorage.removeItem('silverAmount');
                 } catch (e) {}
-                calculatePortfolio();
+                updatePortfolio();
             }
         }
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('tr-TR', {
                 style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + ' TL';
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount) + '₺';
         }
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('portfolioModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePortfolioModal();
+            }
+        });
 
         window.onload = function() {
             loadPortfolio();
             fetchPrice();
+            updatePortfolio();
         };
     </script>
 </body>
@@ -511,12 +490,11 @@ def api_silver_price():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("🏆 Metal Fiyat Takipçisi v2.2.0")
-    print("📅 Son Güncelleme: 21.09.2025")
+    print("🏆 Metal Fiyat Takipçisi v2.3.0")
+    print("📅 Modern Card-Based UI")
     print(f"📱 URL: http://localhost:{port}")
-    print("🔄 Yeniden tasarlanmış layout")
+    print("🎨 Kullanıcı dostu tasarım")
     print("⚡ Flask 3.0.0 | Python 3.13.4")
-    print("📊 Portföy bilgileri ana sayfada")
     print("⏹️  Durdurmak için Ctrl+C")
     print("-" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
