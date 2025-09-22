@@ -55,6 +55,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border: 1px solid rgba(255, 255, 255, 0.2); display: none;
         }
         .stats-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 16px; }
+        .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .time-selector { display: flex; gap: 4px; }
+        .time-btn {
+            padding: 6px 12px; border: 1px solid #e9ecef; background: white;
+            border-radius: 6px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; color: #6c757d;
+        }
+        .time-btn:hover { border-color: #667eea; color: #667eea; }
+        .time-btn.active { background: #667eea; color: white; border-color: #667eea; }
         .chart-container { position: relative; height: 200px; margin-bottom: 16px; }
         .stats-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .stat-item { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; }
@@ -144,7 +153,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         </div>
         
         <div class="stats-card" id="statsCard">
-            <div class="stats-title">Son 24 Saat</div>
+            <div class="stats-header">
+                <div class="stats-title" id="statsTitle">Son 24 Saat</div>
+                <div class="time-selector">
+                    <button class="time-btn active" onclick="selectTimeRange('24h')" data-range="24h">24S</button>
+                    <button class="time-btn" onclick="selectTimeRange('7d')" data-range="7d">7G</button>
+                    <button class="time-btn" onclick="selectTimeRange('30d')" data-range="30d">30G</button>
+                    <button class="time-btn" onclick="selectTimeRange('1y')" data-range="1y">1Y</button>
+                </div>
+            </div>
             <div class="chart-container">
                 <canvas id="priceChart"></canvas>
             </div>
@@ -218,6 +235,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
         let priceChart = null;
+        let currentTimeRange = '24h';
+        let historicalData = null;
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -263,13 +282,72 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         async function loadHistoricalData() {
+            if (historicalData) return historicalData;
+            
             try {
                 const response = await fetch('/api/historical-data');
                 const data = await response.json();
-                return data.success ? data.data : null;
+                if (data.success) {
+                    historicalData = data.data;
+                    return data.data;
+                }
             } catch (error) {
-                return null;
+                console.error('Historical data load error:', error);
             }
+            return null;
+        }
+
+        function selectTimeRange(range) {
+            currentTimeRange = range;
+            
+            // Buton durumlarını güncelle
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.range === range) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Başlığı güncelle
+            const titles = {
+                '24h': 'Son 24 Saat',
+                '7d': 'Son 7 Gün',
+                '30d': 'Son 30 Gün',
+                '1y': 'Son 1 Yıl'
+            };
+            document.getElementById('statsTitle').textContent = titles[range];
+            
+            // Grafik ve istatistikleri yenile
+            loadAndDisplayStats();
+        }
+
+        function filterDataByRange(data, range) {
+            if (!data || !data.prices) return [];
+            
+            const now = new Date();
+            let cutoffDate;
+            
+            switch (range) {
+                case '24h':
+                    cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case '7d':
+                    cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case '30d':
+                    cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
+                case '1y':
+                    cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                    break;
+                default:
+                    cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            }
+            
+            return data.prices.filter(price => {
+                const priceDate = new Date(price.timestamp);
+                return priceDate >= cutoffDate;
+            });
         }
 
         function toggleStats() {
@@ -289,13 +367,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
 
-            const last24h = data.prices.slice(-24);
-            if (last24h.length === 0) return;
-
-            createPriceChart(last24h);
+            const filteredData = filterDataByRange(data, currentTimeRange);
             
-            const goldPrices = last24h.filter(p => p.gold_price).map(p => p.gold_price);
-            const silverPrices = last24h.filter(p => p.silver_price).map(p => p.silver_price);
+            if (filteredData.length === 0) {
+                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Bu dönem için veri yok</div>';
+                return;
+            }
+
+            createPriceChart(filteredData);
+            
+            const goldPrices = filteredData.filter(p => p.gold_price).map(p => p.gold_price);
+            const silverPrices = filteredData.filter(p => p.silver_price).map(p => p.silver_price);
             
             const goldStats = calculateStats(goldPrices);
             const silverStats = calculateStats(silverPrices);
@@ -332,7 +414,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const ctx = document.getElementById('priceChart').getContext('2d');
             if (priceChart) priceChart.destroy();
             
-            const labels = data.map(d => new Date(d.timestamp).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}));
+            // Zaman aralığına göre label formatını ayarla
+            let timeFormat;
+            switch (currentTimeRange) {
+                case '24h':
+                    timeFormat = {hour: '2-digit', minute: '2-digit'};
+                    break;
+                case '7d':
+                    timeFormat = {month: 'short', day: 'numeric', hour: '2-digit'};
+                    break;
+                case '30d':
+                    timeFormat = {month: 'short', day: 'numeric'};
+                    break;
+                case '1y':
+                    timeFormat = {month: 'short', year: '2-digit'};
+                    break;
+                default:
+                    timeFormat = {hour: '2-digit', minute: '2-digit'};
+            }
+            
+            const labels = data.map(d => new Date(d.timestamp).toLocaleString('tr-TR', timeFormat));
             
             priceChart = new Chart(ctx, {
                 type: 'line',
