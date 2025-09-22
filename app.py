@@ -181,7 +181,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="price-value" id="goldPrice">-.--₺</div>
                 </div>
                 <div class="price-change">
-                    <span id="goldChange">Son güncelleme bekleniyor</span>
+                    <span id="goldChange">Günlük veriler yükleniyor...</span>
                 </div>
             </div>
             
@@ -197,7 +197,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="price-value" id="silverPrice">-.--₺</div>
                 </div>
                 <div class="price-change">
-                    <span id="silverChange">Son güncelleme bekleniyor</span>
+                    <span id="silverChange">Günlük veriler yükleniyor...</span>
                 </div>
             </div>
         </div>
@@ -237,6 +237,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let priceChart = null;
         let currentTimeRange = '24h';
         let historicalData = null;
+        let dailyStats = { gold: { min: 0, max: 0 }, silver: { min: 0, max: 0 } };
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -272,12 +273,54 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 statusText.textContent = successCount === 2 ? 'Tüm veriler güncel' : 'Kısmi güncelleme';
                 document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                
+                // Günlük min/max verilerini güncelle
+                await updateDailyStats();
+                updatePriceCards();
                 updatePortfolio();
                 
             } catch (error) {
                 statusText.textContent = 'Güncelleme hatası';
             } finally {
                 setTimeout(() => { refreshBtn.style.transform = 'rotate(0deg)'; }, 500);
+            }
+        }
+
+        async function updateDailyStats() {
+            const data = await loadHistoricalData();
+            if (!data || !data.prices) return;
+            
+            // Bugünün verilerini al
+            const today = new Date().toISOString().split('T')[0];
+            const todayPrices = data.prices.filter(p => p.date === today);
+            
+            if (todayPrices.length === 0) return;
+            
+            const goldPrices = todayPrices.filter(p => p.gold_price).map(p => p.gold_price);
+            const silverPrices = todayPrices.filter(p => p.silver_price).map(p => p.silver_price);
+            
+            if (goldPrices.length > 0) {
+                dailyStats.gold.min = Math.min(...goldPrices);
+                dailyStats.gold.max = Math.max(...goldPrices);
+            }
+            
+            if (silverPrices.length > 0) {
+                dailyStats.silver.min = Math.min(...silverPrices);
+                dailyStats.silver.max = Math.max(...silverPrices);
+            }
+        }
+
+        function updatePriceCards() {
+            // Altın kartı güncelle
+            if (dailyStats.gold.min > 0 && dailyStats.gold.max > 0) {
+                document.getElementById('goldChange').innerHTML = 
+                    `Bugün: ${dailyStats.gold.min.toFixed(2)}₺ - ${dailyStats.gold.max.toFixed(2)}₺`;
+            }
+            
+            // Gümüş kartı güncelle
+            if (dailyStats.silver.min > 0 && dailyStats.silver.max > 0) {
+                document.getElementById('silverChange').innerHTML = 
+                    `Bugün: ${dailyStats.silver.min.toFixed(2)}₺ - ${dailyStats.silver.max.toFixed(2)}₺`;
             }
         }
 
