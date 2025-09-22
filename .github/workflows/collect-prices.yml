@@ -1,1 +1,43 @@
-a
+# .github/workflows/collect-prices.yml
+name: Metal Price Collection
+
+on:
+  schedule:
+    # Her saat başı çalış (UTC)
+    - cron: '0 * * * *'
+  workflow_dispatch:  # Manuel tetikleme için
+
+jobs:
+  collect-prices:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Dosya yazma yetkisi
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4
+        
+    - name: Collect metal prices
+      run: |
+        python scripts/collect_prices.py
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/
+        if ! git diff --cached --quiet; then
+          git commit -m "Update metal prices - $(date '+%Y-%m-%d %H:%M UTC')"
+          git push
+        else
+          echo "No changes to commit"
+        fi
