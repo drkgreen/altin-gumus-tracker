@@ -146,8 +146,31 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">🏆 METAL FİYATLARI</h1>
         <p class="subtitle">Canlı Piyasa Verileri</p>
+        
+        <!-- Simplified Portfolio Input - En Üstte -->
+        <div class="portfolio-input-section" id="portfolioInputSection">
+            <div class="portfolio-header">
+                <h3>⚙️ Portföy Ayarları</h3>
+                <p>Elinizdeki metal miktarlarını girin</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="goldAmount">🏆 Altın Miktarı (gram):</label>
+                <input type="number" id="goldAmount" placeholder="0" step="0.1" min="0" 
+                       oninput="calculatePortfolio(); savePortfolio()">
+            </div>
+            
+            <div class="input-group">
+                <label for="silverAmount">🥈 Gümüş Miktarı (gram):</label>
+                <input type="number" id="silverAmount" placeholder="0" step="0.1" min="0" 
+                       oninput="calculatePortfolio(); savePortfolio()">
+            </div>
+            
+            <div class="portfolio-controls">
+                <button onclick="clearPortfolio()" class="clear-btn">🗑️ Sıfırla</button>
+            </div>
+        </div>
         
         <!-- Portfolio Total - Ana Görünüm -->
         <div class="portfolio-total-main" id="portfolioTotalMain">
