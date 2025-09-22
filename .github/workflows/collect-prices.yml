@@ -1,17 +1,15 @@
-# .github/workflows/collect-prices.yml
 name: Metal Price Collection
 
 on:
   schedule:
-    # Her saat başı çalış (UTC)
     - cron: '0 * * * *'
-  workflow_dispatch:  # Manuel tetikleme için
+  workflow_dispatch:
 
 jobs:
   collect-prices:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Dosya yazma yetkisi
+      contents: write
     
     steps:
     - name: Checkout repository
@@ -28,7 +26,7 @@ jobs:
         
     - name: Collect metal prices
       run: |
-        python scripts/collect_prices.py
+        python collect_prices.py
         
     - name: Commit and push changes
       run: |
