@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-# Metal Fiyat Takipçisi v2.3.0
-# Son Güncelleme: 21.09.2025
-# Python 3.13.4 | Flask 3.0.0
+# Metal Fiyat Takipçisi v2.4.0
+# Son Güncelleme: 22.09.2025
+# GitHub Actions entegrasyonlu
 
 from flask import Flask, jsonify, render_template_string
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import os
+import json
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +20,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metal Fiyat Takipçisi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -89,7 +92,30 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-size: 12px; font-weight: 500;
         }
         
-        /* Status */
+        /* Stats Card */
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95); border-radius: 16px;
+            padding: 20px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+        .stats-header {
+            display: flex; justify-content: between; align-items: center; margin-bottom: 16px;
+        }
+        .stats-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+        .chart-container {
+            position: relative; height: 200px; margin-bottom: 16px;
+        }
+        .stats-summary {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        .stat-item {
+            background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center;
+        }
+        .stat-label { font-size: 11px; color: #6c757d; margin-bottom: 4px; }
+        .stat-value { font-size: 16px; font-weight: 600; color: #2c3e50; }
+        
+        /* Status Bar */
         .status-bar {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
             border-radius: 12px; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.2);
@@ -98,7 +124,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .status-text { color: white; font-size: 14px; font-weight: 500; }
         .status-time { color: rgba(255, 255, 255, 0.8); font-size: 12px; }
         
-        /* Portfolio Input Modal */
+        /* Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
@@ -143,16 +169,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .btn-secondary { background: #e9ecef; color: #6c757d; }
         .btn:hover { transform: translateY(-1px); }
         
-        /* Loading States */
+        /* Loading */
         .loading { opacity: 0.6; }
         .pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        
-        /* Responsive */
-        @media (max-width: 400px) {
-            .app-container { max-width: 100%; }
-            .portfolio-breakdown { flex-direction: column; gap: 12px; }
-        }
     </style>
 </head>
 <body>
@@ -162,6 +182,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="logo">Metal Tracker</div>
             <div class="actions">
                 <button class="action-btn" onclick="fetchPrice()" id="refreshBtn" title="Yenile">⟳</button>
+                <button class="action-btn" onclick="toggleStats()" id="statsBtn" title="İstatistikler">📊</button>
                 <button class="action-btn" onclick="togglePortfolio()" title="Portföy">⚙</button>
             </div>
         </div>
@@ -179,6 +200,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="breakdown-label">Gümüş</div>
                     <div class="breakdown-value" id="silverBreakdown">0g • 0₺</div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Stats Card -->
+        <div class="stats-card" id="statsCard">
+            <div class="stats-header">
+                <div class="stats-title">Son 24 Saat</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div class="stats-summary" id="statsSummary">
+                <!-- Stats will be inserted here -->
             </div>
         </div>
         
@@ -254,6 +288,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
+        let priceChart = null;
+        let historicalData = null;
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -303,6 +339,152 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     refreshBtn.style.transform = 'rotate(0deg)';
                 }, 500);
             }
+        }
+
+        async function loadHistoricalData() {
+            try {
+                const response = await fetch('/api/historical-data');
+                const data = await response.json();
+                if (data.success) {
+                    historicalData = data.data;
+                    return data.data;
+                }
+            } catch (error) {
+                console.error('Historical data load error:', error);
+            }
+            return null;
+        }
+
+        function toggleStats() {
+            const statsCard = document.getElementById('statsCard');
+            const statsBtn = document.getElementById('statsBtn');
+            
+            if (statsCard.style.display === 'none') {
+                statsCard.style.display = 'block';
+                loadAndDisplayStats();
+            } else {
+                statsCard.style.display = 'none';
+            }
+        }
+
+        async function loadAndDisplayStats() {
+            const data = await loadHistoricalData();
+            if (!data || !data.prices || data.prices.length === 0) {
+                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Henüz yeterli veri yok</div>';
+                return;
+            }
+
+            // Son 24 saatlik veri
+            const last24h = data.prices.slice(-24);
+            
+            if (last24h.length === 0) return;
+
+            // Chart oluştur
+            createPriceChart(last24h);
+            
+            // İstatistikler hesapla
+            const goldPrices = last24h.filter(p => p.gold_price).map(p => p.gold_price);
+            const silverPrices = last24h.filter(p => p.silver_price).map(p => p.silver_price);
+            
+            const goldStats = calculateStats(goldPrices);
+            const silverStats = calculateStats(silverPrices);
+            
+            // İstatistikleri göster
+            const summaryHtml = `
+                <div class="stat-item">
+                    <div class="stat-label">Altın Ortalama</div>
+                    <div class="stat-value">${goldStats.avg.toFixed(2)}₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Gümüş Ortalama</div>
+                    <div class="stat-value">${silverStats.avg.toFixed(2)}₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Altın Min/Max</div>
+                    <div class="stat-value">${goldStats.min.toFixed(2)} / ${goldStats.max.toFixed(2)}₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Gümüş Min/Max</div>
+                    <div class="stat-value">${silverStats.min.toFixed(2)} / ${silverStats.max.toFixed(2)}₺</div>
+                </div>
+            `;
+            
+            document.getElementById('statsSummary').innerHTML = summaryHtml;
+        }
+
+        function calculateStats(prices) {
+            if (prices.length === 0) return { avg: 0, min: 0, max: 0 };
+            
+            const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            
+            return { avg, min, max };
+        }
+
+        function createPriceChart(data) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            if (priceChart) {
+                priceChart.destroy();
+            }
+            
+            const labels = data.map(d => new Date(d.timestamp).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}));
+            const goldData = data.map(d => d.gold_price);
+            const silverData = data.map(d => d.silver_price);
+            
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Altın',
+                            data: goldData,
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Gümüş',
+                            data: silverData,
+                            borderColor: '#95a5a6',
+                            backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
         }
 
         function togglePortfolio() {
@@ -459,11 +641,35 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Gümüş veri çekme hatası: {str(e)}")
 
+def load_historical_data():
+    """GitHub'dan toplanan geçmiş verileri yükle"""
+    try:
+        # GitHub Raw URL
+        github_url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/data/prices.json"
+        
+        response = requests.get(github_url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            # Yerel dosya varsa onu kullan
+            if os.path.exists('data/prices.json'):
+                with open('data/prices.json', 'r', encoding='utf-8') as f:
+                    return json.load(f)
+    except Exception as e:
+        print(f"Historical data load error: {e}")
+    
+    return {"prices": [], "last_updated": None}
+
 @app.route('/')
 def index():
     """Ana sayfa"""
     return render_template_string(HTML_TEMPLATE)
 
+@app.route('/api/gold-price')
+def api_gold_price():
+    """Altın fiyatı API endpoint"""
+    try:
 @app.route('/api/gold-price')
 def api_gold_price():
     """Altın fiyatı API endpoint"""
@@ -488,12 +694,24 @@ def api_silver_price():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/historical-data')
+def api_historical_data():
+    """Geçmiş veriler API endpoint"""
+    try:
+        data = load_historical_data()
+        if data and 'prices' in data:
+            return jsonify({'success': True, 'data': data})
+        else:
+            return jsonify({'success': False, 'error': 'Geçmiş veri bulunamadı'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("🏆 Metal Fiyat Takipçisi v2.3.0")
-    print("📅 Modern Card-Based UI")
+    print("🏆 Metal Fiyat Takipçisi v2.4.0")
+    print("📊 GitHub Actions entegrasyonlu")
+    print("📈 İstatistik ve grafik özellikleri")
     print(f"📱 URL: http://localhost:{port}")
-    print("🎨 Kullanıcı dostu tasarım")
     print("⚡ Flask 3.0.0 | Python 3.13.4")
     print("⏹️  Durdurmak için Ctrl+C")
     print("-" * 50)
