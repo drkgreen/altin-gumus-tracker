@@ -15,7 +15,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metal Fiyat Takipçisi</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -56,19 +55,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .stats-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 16px; }
         .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .portfolio-list { display: flex; flex-direction: column; gap: 12px; }
-        .portfolio-list-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px; background: #f8f9fa; border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .list-item-left { display: flex; flex-direction: column; }
-        .list-item-time { font-size: 11px; color: #6c757d; margin-bottom: 2px; }
-        .list-item-date { font-size: 13px; font-weight: 600; color: #2c3e50; }
-        .list-item-right { display: flex; flex-direction: column; align-items: flex-end; }
-        .list-item-gold { font-size: 12px; color: #f39c12; margin-bottom: 2px; }
-        .list-item-silver { font-size: 12px; color: #95a5a6; margin-bottom: 2px; }
-        .list-item-total { font-size: 14px; font-weight: 700; color: #2c3e50; }
         .time-selector { display: flex; gap: 4px; }
         .time-btn {
             padding: 6px 12px; border: 1px solid #e9ecef; background: white;
@@ -77,11 +63,29 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .time-btn:hover { border-color: #667eea; color: #667eea; }
         .time-btn.active { background: #667eea; color: white; border-color: #667eea; }
-        .chart-container { position: relative; height: 200px; margin-bottom: 16px; }
-        .stats-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-item { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; }
-        .stat-label { font-size: 11px; color: #6c757d; margin-bottom: 4px; }
-        .stat-value { font-size: 16px; font-weight: 600; color: #2c3e50; }
+        
+        /* Liste Stilleri */
+        .stats-list { margin-top: 20px; }
+        .stats-section { margin-bottom: 20px; }
+        .stats-section-title {
+            font-size: 16px; font-weight: 600; color: #2c3e50;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 2px solid #f39c12;
+        }
+        .stats-section-title.silver { border-bottom-color: #95a5a6; }
+        .stats-item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid #f8f9fa;
+        }
+        .stats-item-row:last-child { border-bottom: none; }
+        .stats-item-label { font-size: 14px; color: #6c757d; font-weight: 500; }
+        .stats-item-value { 
+            font-size: 14px; font-weight: 700; color: #2c3e50;
+            text-align: right;
+        }
+        .stats-item-value.highlight { color: #667eea; font-size: 15px; }
+        .no-data { text-align: center; color: #6c757d; padding: 20px; font-style: italic; }
+        
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
         .price-card {
             background: rgba(255, 255, 255, 0.95); border-radius: 16px;
@@ -167,7 +171,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <div class="stats-card" id="statsCard">
             <div class="stats-header">
-                <div class="stats-title" id="statsTitle">Son 24 Saat</div>
+                <div class="stats-title" id="statsTitle">İstatistikler - Son 24 Saat</div>
                 <div class="time-selector">
                     <button class="time-btn active" onclick="selectTimeRange('24h')" data-range="24h">24S</button>
                     <button class="time-btn" onclick="selectTimeRange('7d')" data-range="7d">7G</button>
@@ -175,10 +179,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="time-btn" onclick="selectTimeRange('1y')" data-range="1y">1Y</button>
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="priceChart"></canvas>
+            
+            <div class="stats-list" id="statsList">
+                <div class="no-data">Veri yükleniyor...</div>
             </div>
-            <div class="stats-summary" id="statsSummary"></div>
         </div>
         
         <div class="price-cards">
@@ -247,7 +251,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
-        let priceChart = null;
         let currentTimeRange = '24h';
         let historicalData = null;
         let dailyStats = { gold: { min: 0, max: 0 }, silver: { min: 0, max: 0 } };
@@ -287,7 +290,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 statusText.textContent = successCount === 2 ? 'Tüm veriler güncel' : 'Kısmi güncelleme';
                 document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 
-                // Günlük min/max verilerini güncelle
                 await updateDailyStats();
                 updatePriceCards();
                 updatePortfolio();
@@ -299,11 +301,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
+        async function loadHistoricalData() {
+            if (historicalData) return historicalData;
+            
+            try {
+                const response = await fetch('/api/historical-data');
+                const data = await response.json();
+                if (data.success) {
+                    historicalData = data.data;
+                    return data.data;
+                }
+            } catch (error) {
+                console.error('Historical data load error:', error);
+            }
+            return null;
+        }
+
         async function updateDailyStats() {
             const data = await loadHistoricalData();
             if (!data || !data.prices) return;
             
-            // Bugünün verilerini al
             const today = new Date().toISOString().split('T')[0];
             const todayPrices = data.prices.filter(p => p.date === today);
             
@@ -324,39 +341,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function updatePriceCards() {
-            // Altın kartı güncelle
             if (dailyStats.gold.min > 0 && dailyStats.gold.max > 0) {
                 document.getElementById('goldChange').innerHTML = 
                     `Bugün: ${dailyStats.gold.min.toFixed(2)}₺ - ${dailyStats.gold.max.toFixed(2)}₺`;
             }
             
-            // Gümüş kartı güncelle
             if (dailyStats.silver.min > 0 && dailyStats.silver.max > 0) {
                 document.getElementById('silverChange').innerHTML = 
                     `Bugün: ${dailyStats.silver.min.toFixed(2)}₺ - ${dailyStats.silver.max.toFixed(2)}₺`;
             }
         }
 
-        async function loadHistoricalData() {
-            if (historicalData) return historicalData;
-            
-            try {
-                const response = await fetch('/api/historical-data');
-                const data = await response.json();
-                if (data.success) {
-                    historicalData = data.data;
-                    return data.data;
-                }
-            } catch (error) {
-                console.error('Historical data load error:', error);
-            }
-            return null;
-        }
-
         function selectTimeRange(range) {
             currentTimeRange = range;
             
-            // Buton durumlarını güncelle
             document.querySelectorAll('.time-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.range === range) {
@@ -364,16 +362,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 }
             });
             
-            // Başlığı güncelle
             const titles = {
-                '24h': 'Portföy - Son 24 Saat',
-                '7d': 'Portföy - Son 7 Gün',
-                '30d': 'Portföy - Son 30 Gün',
-                '1y': 'Portföy - Son 1 Yıl'
+                '24h': 'İstatistikler - Son 24 Saat',
+                '7d': 'İstatistikler - Son 7 Gün',
+                '30d': 'İstatistikler - Son 30 Gün',
+                '1y': 'İstatistikler - Son 1 Yıl'
             };
             document.getElementById('statsTitle').textContent = titles[range];
             
-            // Grafik ve istatistikleri yenile
             loadAndDisplayStats();
         }
 
@@ -419,208 +415,88 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         async function loadAndDisplayStats() {
             const data = await loadHistoricalData();
             if (!data || !data.prices || data.prices.length === 0) {
-                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Henüz yeterli veri yok</div>';
+                document.getElementById('statsList').innerHTML = '<div class="no-data">Henüz yeterli veri yok</div>';
                 return;
             }
 
             const filteredData = filterDataByRange(data, currentTimeRange);
             
             if (filteredData.length === 0) {
-                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Bu dönem için veri yok</div>';
+                document.getElementById('statsList').innerHTML = '<div class="no-data">Bu dönem için veri yok</div>';
                 return;
             }
 
-            // Kullanıcının mevcut portföy miktarlarını al
+            const goldPrices = filteredData.filter(p => p.gold_price).map(p => p.gold_price);
+            const silverPrices = filteredData.filter(p => p.silver_price).map(p => p.silver_price);
+            
+            const goldStats = calculateStats(goldPrices);
+            const silverStats = calculateStats(silverPrices);
+            
+            // Kullanıcının gram miktarları
             const userGoldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const userSilverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            if (userGoldAmount === 0 && userSilverAmount === 0) {
-                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Portföy grafiği için metal miktarlarını girin</div>';
-                return;
-            }
-
-            // Her veri noktası için altın ve gümüş değerlerini ayrı hesapla
-            const portfolioData = filteredData.map(point => ({
-                ...point,
-                gold_value: userGoldAmount * (point.gold_price || 0),
-                silver_value: userSilverAmount * (point.silver_price || 0),
-                total_value: (userGoldAmount * (point.gold_price || 0)) + (userSilverAmount * (point.silver_price || 0))
-            }));
-
-            createSeparatePortfolioChart(portfolioData);
-            
-            const goldValues = portfolioData.map(p => p.gold_value).filter(v => v > 0);
-            const silverValues = portfolioData.map(p => p.silver_value).filter(v => v > 0);
-            const totalValues = portfolioData.map(p => p.total_value).filter(v => v > 0);
-            
-            if (totalValues.length === 0) {
-                document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Bu dönem için portföy verisi hesaplanamadı</div>';
-                return;
-            }
-            
-            const goldStats = calculateStats(goldValues);
-            const silverStats = calculateStats(silverValues);
-            const totalStats = calculateStats(totalValues);
-            
-            // Metal fiyatlarının min/max değerlerini hesapla
-            const goldPrices = filteredData.filter(p => p.gold_price).map(p => p.gold_price);
-            const silverPrices = filteredData.filter(p => p.silver_price).map(p => p.silver_price);
-            const goldPriceStats = calculateStats(goldPrices);
-            const silverPriceStats = calculateStats(silverPrices);
-            
-            const firstTotal = totalValues[0];
-            const lastTotal = totalValues[totalValues.length - 1];
-            const totalChange = lastTotal - firstTotal;
-            const changePercent = firstTotal > 0 ? ((totalChange / firstTotal) * 100) : 0;
-            
-            const summaryHtml = `
-                <div class="stat-item">
-                    <div class="stat-label">Altın Ortalama</div>
-                    <div class="stat-value">${formatCurrency(goldStats.avg)}</div>
+            const listHtml = `
+                <div class="stats-section">
+                    <div class="stats-section-title">Altın İstatistikleri</div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Yüksek Fiyat</div>
+                        <div class="stats-item-value highlight">${goldStats.max.toFixed(2)}₺</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Düşük Fiyat</div>
+                        <div class="stats-item-value">${goldStats.min.toFixed(2)}₺</div>
+                    </div>
+                    ${userGoldAmount > 0 ? `
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">Portföy Miktarı</div>
+                        <div class="stats-item-value">${userGoldAmount.toFixed(1)} gram</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Yüksek Değer</div>
+                        <div class="stats-item-value highlight">${formatCurrency(userGoldAmount * goldStats.max)}</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Düşük Değer</div>
+                        <div class="stats-item-value">${formatCurrency(userGoldAmount * goldStats.min)}</div>
+                    </div>
+                    ` : ''}
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">Gümüş Ortalama</div>
-                    <div class="stat-value">${formatCurrency(silverStats.avg)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Toplam Değişim</div>
-                    <div class="stat-value" style="color: ${totalChange >= 0 ? '#2ecc71' : '#e74c3c'}">${totalChange >= 0 ? '+' : ''}${formatCurrency(totalChange)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Yüzde Değişim</div>
-                    <div class="stat-value" style="color: ${changePercent >= 0 ? '#2ecc71' : '#e74c3c'}">${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%</div>
-                </div>
-                <div class="stat-item" style="grid-column: 1/-1; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef;">
-                    <div class="stat-label">Altın Portföy Aralığı</div>
-                    <div class="stat-value">${formatCurrency(goldStats.min)} - ${formatCurrency(goldStats.max)}</div>
-                </div>
-                <div class="stat-item" style="grid-column: 1/-1;">
-                    <div class="stat-label">Gümüş Portföy Aralığı</div>
-                    <div class="stat-value">${formatCurrency(silverStats.min)} - ${formatCurrency(silverStats.max)}</div>
+                
+                <div class="stats-section">
+                    <div class="stats-section-title silver">Gümüş İstatistikleri</div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Yüksek Fiyat</div>
+                        <div class="stats-item-value highlight">${silverStats.max.toFixed(2)}₺</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Düşük Fiyat</div>
+                        <div class="stats-item-value">${silverStats.min.toFixed(2)}₺</div>
+                    </div>
+                    ${userSilverAmount > 0 ? `
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">Portföy Miktarı</div>
+                        <div class="stats-item-value">${userSilverAmount.toFixed(1)} gram</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Yüksek Değer</div>
+                        <div class="stats-item-value highlight">${formatCurrency(userSilverAmount * silverStats.max)}</div>
+                    </div>
+                    <div class="stats-item-row">
+                        <div class="stats-item-label">En Düşük Değer</div>
+                        <div class="stats-item-value">${formatCurrency(userSilverAmount * silverStats.min)}</div>
+                    </div>
+                    ` : ''}
                 </div>
             `;
             
-            document.getElementById('statsSummary').innerHTML = summaryHtml;
+            document.getElementById('statsList').innerHTML = listHtml;
         }
 
         function calculateStats(prices) {
             if (prices.length === 0) return { avg: 0, min: 0, max: 0 };
             const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
             return { avg, min: Math.min(...prices), max: Math.max(...prices) };
-        }
-
-        function createSeparatePortfolioChart(data) {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            if (priceChart) priceChart.destroy();
-            
-            // Zaman aralığına göre label formatını ayarla
-            let timeFormat;
-            switch (currentTimeRange) {
-                case '24h':
-                    timeFormat = {hour: '2-digit', minute: '2-digit'};
-                    break;
-                case '7d':
-                    timeFormat = {month: 'short', day: 'numeric', hour: '2-digit'};
-                    break;
-                case '30d':
-                    timeFormat = {month: 'short', day: 'numeric'};
-                    break;
-                case '1y':
-                    timeFormat = {month: 'short', year: '2-digit'};
-                    break;
-                default:
-                    timeFormat = {hour: '2-digit', minute: '2-digit'};
-            }
-            
-            const labels = data.map(d => new Date(d.timestamp).toLocaleString('tr-TR', timeFormat));
-            
-            // Gradientler oluştur
-            const goldGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            goldGradient.addColorStop(0, 'rgba(243, 156, 18, 0.3)');
-            goldGradient.addColorStop(1, 'rgba(243, 156, 18, 0.05)');
-            
-            const silverGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            silverGradient.addColorStop(0, 'rgba(149, 165, 166, 0.3)');
-            silverGradient.addColorStop(1, 'rgba(149, 165, 166, 0.05)');
-            
-            priceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Altın Portföyü',
-                            data: data.map(d => d.gold_value),
-                            borderColor: '#f39c12',
-                            backgroundColor: goldGradient,
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3,
-                            pointBackgroundColor: '#f39c12',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Gümüş Portföyü',
-                            data: data.map(d => d.silver_value),
-                            borderColor: '#95a5a6',
-                            backgroundColor: silverGradient,
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3,
-                            pointBackgroundColor: '#95a5a6',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            display: true, 
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('tr-TR', {
-                                        style: 'decimal',
-                                        minimumFractionDigits: 0,
-                                        maximumFractionDigits: 0
-                                    }).format(value) + '₺';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            }
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    }
-                }
-            });
         }
 
         function togglePortfolio() { document.getElementById('portfolioModal').style.display = 'flex'; }
@@ -771,7 +647,7 @@ def api_historical_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.4.0")
-    print("GitHub Actions entegrasyonlu")
-    print("İstatistik ve grafik özellikleri")
+    print("Metal Fiyat Takipçisi v2.5.0")
+    print("Liste tabanlı istatistikler")
+    print("Portföy odaklı analiz")
     app.run(host='0.0.0.0', port=port, debug=False)
