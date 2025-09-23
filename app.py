@@ -449,6 +449,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const silverStats = calculateStats(silverValues);
             const totalStats = calculateStats(totalValues);
             
+            // Metal fiyatlarının min/max değerlerini hesapla
+            const goldPrices = filteredData.filter(p => p.gold_price).map(p => p.gold_price);
+            const silverPrices = filteredData.filter(p => p.silver_price).map(p => p.silver_price);
+            const goldPriceStats = calculateStats(goldPrices);
+            const silverPriceStats = calculateStats(silverPrices);
+            
             const firstTotal = totalValues[0];
             const lastTotal = totalValues[totalValues.length - 1];
             const totalChange = lastTotal - firstTotal;
@@ -470,6 +476,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <div class="stat-item">
                     <div class="stat-label">Yüzde Değişim</div>
                     <div class="stat-value" style="color: ${changePercent >= 0 ? '#2ecc71' : '#e74c3c'}">${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%</div>
+                </div>
+                <div class="stat-item" style="grid-column: 1/-1; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef;">
+                    <div class="stat-label">Altın Portföy Aralığı</div>
+                    <div class="stat-value">${formatCurrency(goldStats.min)} - ${formatCurrency(goldStats.max)}</div>
+                </div>
+                <div class="stat-item" style="grid-column: 1/-1;">
+                    <div class="stat-label">Gümüş Portföy Aralığı</div>
+                    <div class="stat-value">${formatCurrency(silverStats.min)} - ${formatCurrency(silverStats.max)}</div>
                 </div>
             `;
             
