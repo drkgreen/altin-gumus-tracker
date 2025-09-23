@@ -426,39 +426,46 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
 
-            // Her veri noktası için portföy değerini hesapla
+            // Her veri noktası için altın ve gümüş değerlerini ayrı hesapla
             const portfolioData = filteredData.map(point => ({
                 ...point,
-                portfolio_value: (userGoldAmount * (point.gold_price || 0)) + (userSilverAmount * (point.silver_price || 0))
+                gold_value: userGoldAmount * (point.gold_price || 0),
+                silver_value: userSilverAmount * (point.silver_price || 0),
+                total_value: (userGoldAmount * (point.gold_price || 0)) + (userSilverAmount * (point.silver_price || 0))
             }));
 
-            createPortfolioChart(portfolioData);
+            createSeparatePortfolioChart(portfolioData);
             
-            const portfolioValues = portfolioData.map(p => p.portfolio_value).filter(v => v > 0);
+            const goldValues = portfolioData.map(p => p.gold_value).filter(v => v > 0);
+            const silverValues = portfolioData.map(p => p.silver_value).filter(v => v > 0);
+            const totalValues = portfolioData.map(p => p.total_value).filter(v => v > 0);
             
-            if (portfolioValues.length === 0) {
+            if (totalValues.length === 0) {
                 document.getElementById('statsSummary').innerHTML = '<div style="text-align: center; color: #6c757d; grid-column: 1/-1;">Bu dönem için portföy verisi hesaplanamadı</div>';
                 return;
             }
             
-            const portfolioStats = calculateStats(portfolioValues);
-            const firstValue = portfolioValues[0];
-            const lastValue = portfolioValues[portfolioValues.length - 1];
-            const change = lastValue - firstValue;
-            const changePercent = firstValue > 0 ? ((change / firstValue) * 100) : 0;
+            const goldStats = calculateStats(goldValues);
+            const silverStats = calculateStats(silverValues);
+            const totalStats = calculateStats(totalValues);
+            
+            const firstTotal = totalValues[0];
+            const lastTotal = totalValues[totalValues.length - 1];
+            const totalChange = lastTotal - firstTotal;
+            const changePercent = firstTotal > 0 ? ((totalChange / firstTotal) * 100) : 0;
             
             const summaryHtml = `
                 <div class="stat-item">
-                    <div class="stat-label">Ortalama Değer</div>
-                    <div class="stat-value">${formatCurrency(portfolioStats.avg)}</div>
+                    <div class="stat-label">Altın Ortalama</div>
+                    <div class="stat-value">${formatCurrency(goldStats.avg)}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Değer Değişimi</div>
-                    <div class="stat-value" style="color: ${change >= 0 ? '#2ecc71' : '#e74c3c'}">${change >= 0 ? '+' : ''}${formatCurrency(change)}</div>
+                    <div class="stat-label">Gümüş Ortalama</div>
+                    <div class="stat-value">${formatCurrency(silverStats.avg)}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Min / Max Değer</div>
-                    <div class="stat-value">${formatCurrency(portfolioStats.min)} / ${formatCurrency(portfolioStats.max)}</div>
+                    <div class="stat-label">Toplam Değişim</div>
+                    <div class="stat-value" style="color: ${totalChange >= 0 ? '#2ecc71' : '#e74c3c'}">${totalChange >= 0 ? '+' : ''}${formatCurrency(totalChange)}</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">Yüzde Değişim</div>
@@ -475,7 +482,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             return { avg, min: Math.min(...prices), max: Math.max(...prices) };
         }
 
-        function createPortfolioChart(data) {
+        function createSeparatePortfolioChart(data) {
             const ctx = document.getElementById('priceChart').getContext('2d');
             if (priceChart) priceChart.destroy();
             
@@ -499,12 +506,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             const labels = data.map(d => new Date(d.timestamp).toLocaleString('tr-TR', timeFormat));
-            const portfolioValues = data.map(d => d.portfolio_value);
             
-            // Gradient oluştur
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
-            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
+            // Gradientler oluştur
+            const goldGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            goldGradient.addColorStop(0, 'rgba(243, 156, 18, 0.3)');
+            goldGradient.addColorStop(1, 'rgba(243, 156, 18, 0.05)');
+            
+            const silverGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            silverGradient.addColorStop(0, 'rgba(149, 165, 166, 0.3)');
+            silverGradient.addColorStop(1, 'rgba(149, 165, 166, 0.05)');
             
             priceChart = new Chart(ctx, {
                 type: 'line',
@@ -512,14 +522,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Portföy Değeri',
-                            data: portfolioValues,
-                            borderColor: '#667eea',
-                            backgroundColor: gradient,
+                            label: 'Altın Portföyü',
+                            data: data.map(d => d.gold_value),
+                            borderColor: '#f39c12',
+                            backgroundColor: goldGradient,
                             borderWidth: 3,
                             fill: true,
                             tension: 0.3,
-                            pointBackgroundColor: '#667eea',
+                            pointBackgroundColor: '#f39c12',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Gümüş Portföyü',
+                            data: data.map(d => d.silver_value),
+                            borderColor: '#95a5a6',
+                            backgroundColor: silverGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#95a5a6',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
                             pointRadius: 4,
