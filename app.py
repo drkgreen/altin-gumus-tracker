@@ -56,6 +56,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .stats-title { font-size: 18px; font-weight: 700; color: #2c3e50; margin-bottom: 16px; }
         .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .portfolio-list { display: flex; flex-direction: column; gap: 12px; }
+        .portfolio-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; background: #f8f9fa; border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .list-item-left { display: flex; flex-direction: column; }
+        .list-item-time { font-size: 11px; color: #6c757d; margin-bottom: 2px; }
+        .list-item-date { font-size: 13px; font-weight: 600; color: #2c3e50; }
+        .list-item-right { display: flex; flex-direction: column; align-items: flex-end; }
+        .list-item-gold { font-size: 12px; color: #f39c12; margin-bottom: 2px; }
+        .list-item-silver { font-size: 12px; color: #95a5a6; margin-bottom: 2px; }
+        .list-item-total { font-size: 14px; font-weight: 700; color: #2c3e50; }
         .time-selector { display: flex; gap: 4px; }
         .time-btn {
             padding: 6px 12px; border: 1px solid #e9ecef; background: white;
