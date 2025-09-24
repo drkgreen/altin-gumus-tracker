@@ -56,13 +56,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: none;
         }
         .portfolio-title { font-size: 14px; opacity: 0.9; margin-bottom: 8px; font-weight: 500; }
-        .portfolio-amount { font-size: 32px; font-weight: 800; margin-bottom: 16px; }
+        .portfolio-amount { font-size: 28px; font-weight: 800; margin-bottom: 16px; text-align: center; }
         .portfolio-breakdown {
             display: flex; justify-content: space-between; gap: 16px;
         }
         .breakdown-item { flex: 1; text-align: center; }
         .breakdown-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
-        .breakdown-value { font-size: 16px; font-weight: 600; }
+        .breakdown-value { font-size: 18px; font-weight: 600; }
         
         /* Price Cards */
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
@@ -326,8 +326,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-                document.getElementById('goldBreakdown').textContent = goldAmount.toFixed(1) + 'g • ' + formatCurrency(goldValue);
-                document.getElementById('silverBreakdown').textContent = silverAmount.toFixed(1) + 'g • ' + formatCurrency(silverValue);
+                document.getElementById('goldBreakdown').textContent = formatCurrency(goldValue);
+                document.getElementById('silverBreakdown').textContent = formatCurrency(silverValue);
             } else {
                 portfolioSummary.style.display = 'none';
             }
