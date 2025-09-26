@@ -1,0 +1,18 @@
+{
+  "records": [
+    {
+      "timestamp": 1758909542.494096,
+      "date": "2025-09-26",
+      "time": "17:59:02",
+      "gold_price": 4911.44,
+      "silver_price": 58.21,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    }
+  ],
+  "last_update": "2025-09-26T17:59:02.494515+00:00",
+  "total_records": 1,
+  "bot_version": "1.0.0"
+}
