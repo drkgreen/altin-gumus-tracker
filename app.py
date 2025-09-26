@@ -163,16 +163,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .tab-btn.active { background: white; color: #2c3e50; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-card {
-            background: rgba(255, 255, 255, 0.15); border-radius: 12px; 
-            padding: 16px; text-align: center;
+        .stats-content { display: flex; flex-direction: column; gap: 16px; }
+        .stat-row {
+            background: rgba(255, 255, 255, 0.15); border-radius: 16px; 
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
         }
-        .stat-title { color: white; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
-        .stat-price { color: white; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .stat-portfolio { 
-            font-size: 18px; font-weight: 800; margin-top: 6px; color: #4ade80;
-        }
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-title { color: white; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .stat-subtitle { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
+        .stat-values { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .stat-high { color: #4ade80; font-size: 18px; font-weight: 800; }
+        .stat-low { color: #f87171; font-size: 18px; font-weight: 800; }
+        .stat-range { color: rgba(255, 255, 255, 0.6); font-size: 10px; }
         
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
         .price-card {
@@ -261,7 +263,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <button class="tab-btn" onclick="switchTab('weekly')" id="weeklyTab">Haftalık</button>
                 <button class="tab-btn" onclick="switchTab('monthly')" id="monthlyTab">Aylık</button>
             </div>
-            <div class="stats-grid" id="statsGrid"></div>
+            <div class="stats-content" id="statsContent"></div>
         </div>
         
         <div class="price-cards">
@@ -384,39 +386,92 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function updateStatsDisplay() {
-            const statsGrid = document.getElementById('statsGrid');
+            const statsContent = document.getElementById('statsContent');
             const stats = allStats[currentTab];
             
             if (!stats) {
-                statsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.7);">Veri yok</div>';
+                statsContent.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">Veri bulunamadı</div>';
                 return;
             }
             
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">Altın Yüksek</div>
-                    <div class="stat-price">${formatPrice(stats.gold_high)}</div>
-                    ${goldAmount > 0 ? `<div class="stat-portfolio">${formatCurrency(goldAmount * stats.gold_high)}</div>` : ''}
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Altın Düşük</div>
-                    <div class="stat-price">${formatPrice(stats.gold_low)}</div>
-                    ${goldAmount > 0 ? `<div class="stat-portfolio">${formatCurrency(goldAmount * stats.gold_low)}</div>` : ''}
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Gümüş Yüksek</div>
-                    <div class="stat-price">${formatPrice(stats.silver_high)}</div>
-                    ${silverAmount > 0 ? `<div class="stat-portfolio">${formatCurrency(silverAmount * stats.silver_high)}</div>` : ''}
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Gümüş Düşük</div>
-                    <div class="stat-price">${formatPrice(stats.silver_low)}</div>
-                    ${silverAmount > 0 ? `<div class="stat-portfolio">${formatCurrency(silverAmount * stats.silver_low)}</div>` : ''}
-                </div>
-            `;
+            let periodText = '';
+            if (currentTab === 'daily') periodText = 'Bugün';
+            else if (currentTab === 'weekly') periodText = 'Bu Hafta';
+            else if (currentTab === 'monthly') periodText = 'Bu Ay';
+            
+            let content = '';
+            
+            // Altın portföyü varsa göster
+            if (goldAmount > 0) {
+                const goldHigh = goldAmount * stats.gold_high;
+                const goldLow = goldAmount * stats.gold_low;
+                const difference = goldHigh - goldLow;
+                
+                content += `
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <div class="stat-title">Altın Portföyü</div>
+                            <div class="stat-subtitle">${goldAmount.toFixed(1)}g • ${periodText}</div>
+                        </div>
+                        <div class="stat-values">
+                            <div class="stat-high">${formatCurrency(goldHigh)}</div>
+                            <div class="stat-low">${formatCurrency(goldLow)}</div>
+                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Gümüş portföyü varsa göster
+            if (silverAmount > 0) {
+                const silverHigh = silverAmount * stats.silver_high;
+                const silverLow = silverAmount * stats.silver_low;
+                const difference = silverHigh - silverLow;
+                
+                content += `
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <div class="stat-title">Gümüş Portföyü</div>
+                            <div class="stat-subtitle">${silverAmount.toFixed(1)}g • ${periodText}</div>
+                        </div>
+                        <div class="stat-values">
+                            <div class="stat-high">${formatCurrency(silverHigh)}</div>
+                            <div class="stat-low">${formatCurrency(silverLow)}</div>
+                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Toplam portföy varsa göster
+            if (goldAmount > 0 && silverAmount > 0) {
+                const totalHigh = (goldAmount * stats.gold_high) + (silverAmount * stats.silver_high);
+                const totalLow = (goldAmount * stats.gold_low) + (silverAmount * stats.silver_low);
+                const difference = totalHigh - totalLow;
+                
+                content += `
+                    <div class="stat-row" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));">
+                        <div class="stat-info">
+                            <div class="stat-title">Toplam Portföy</div>
+                            <div class="stat-subtitle">Altın + Gümüş • ${periodText}</div>
+                        </div>
+                        <div class="stat-values">
+                            <div class="stat-high">${formatCurrency(totalHigh)}</div>
+                            <div class="stat-low">${formatCurrency(totalLow)}</div>
+                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (!content) {
+                content = '<div style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">Portföy girin</div>';
+            }
+            
+            statsContent.innerHTML = content;
         }
 
         function togglePortfolio() {
