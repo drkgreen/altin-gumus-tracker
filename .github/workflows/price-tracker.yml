@@ -1,0 +1,39 @@
+name: Metal Price Tracker
+
+on:
+  schedule:
+    # Her 30 dakikada bir çalışır (UTC)
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Manuel tetikleme için
+
+jobs:
+  track-prices:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4
+        
+    - name: Create data directory
+      run: |
+        mkdir -p data
+        
+    - name: Run price tracker
+      run: |
+        python scripts/price_tracker.py
+        
+    - name: Commit and push data
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/price-history.json
+        git diff --staged --quiet || (git commit -m "Auto-update price data $(date '+%Y-%m-%d %H:%M:%S UTC')" && git push)
