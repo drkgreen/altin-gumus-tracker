@@ -54,9 +54,20 @@
         "gold": true,
         "silver": true
       }
+    },
+    {
+      "timestamp": 1758917539.031118,
+      "date": "2025-09-26",
+      "time": "20:12:19",
+      "gold_price": 4905.67,
+      "silver_price": 58.21,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
     }
   ],
-  "last_update": "2025-09-26T19:33:02.246482+00:00",
-  "total_records": 5,
+  "last_update": "2025-09-26T20:12:19.031157+00:00",
+  "total_records": 6,
   "bot_version": "1.0.0"
 }
