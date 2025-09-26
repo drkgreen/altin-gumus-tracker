@@ -173,8 +173,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .stat-subtitle { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
         .stat-values { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .stat-high { color: #4ade80; font-size: 18px; font-weight: 800; }
-        .stat-low { color: #f87171; font-size: 18px; font-weight: 800; }
-        .stat-range { color: rgba(255, 255, 255, 0.6); font-size: 10px; }
         
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
         .price-card {
@@ -407,8 +405,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             // Altın portföyü varsa göster
             if (goldAmount > 0) {
                 const goldHigh = goldAmount * stats.gold_high;
-                const goldLow = goldAmount * stats.gold_low;
-                const difference = goldHigh - goldLow;
                 
                 content += `
                     <div class="stat-row">
@@ -418,8 +414,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         </div>
                         <div class="stat-values">
                             <div class="stat-high">${formatCurrency(goldHigh)}</div>
-                            <div class="stat-low">${formatCurrency(goldLow)}</div>
-                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
                         </div>
                     </div>
                 `;
@@ -428,8 +422,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             // Gümüş portföyü varsa göster
             if (silverAmount > 0) {
                 const silverHigh = silverAmount * stats.silver_high;
-                const silverLow = silverAmount * stats.silver_low;
-                const difference = silverHigh - silverLow;
                 
                 content += `
                     <div class="stat-row">
@@ -439,8 +431,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         </div>
                         <div class="stat-values">
                             <div class="stat-high">${formatCurrency(silverHigh)}</div>
-                            <div class="stat-low">${formatCurrency(silverLow)}</div>
-                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
                         </div>
                     </div>
                 `;
@@ -449,8 +439,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             // Toplam portföy varsa göster
             if (goldAmount > 0 && silverAmount > 0) {
                 const totalHigh = (goldAmount * stats.gold_high) + (silverAmount * stats.silver_high);
-                const totalLow = (goldAmount * stats.gold_low) + (silverAmount * stats.silver_low);
-                const difference = totalHigh - totalLow;
                 
                 content += `
                     <div class="stat-row" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));">
@@ -460,8 +448,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         </div>
                         <div class="stat-values">
                             <div class="stat-high">${formatCurrency(totalHigh)}</div>
-                            <div class="stat-low">${formatCurrency(totalLow)}</div>
-                            <div class="stat-range">Fark: ${formatCurrency(difference)}</div>
                         </div>
                     </div>
                 `;
@@ -537,7 +523,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR').format(amount) + '₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
         }
 
         function formatPrice(price) {
