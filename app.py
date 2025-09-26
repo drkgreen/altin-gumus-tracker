@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Metal Fiyat Takipçisi v2.3.0
+# Metal Fiyat Takipçisi v2.4.0
 # Son Güncelleme: 21.09.2025
 # Python 3.13.4 | Flask 3.0.0
 
@@ -8,6 +8,8 @@ from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import os
+import json
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 CORS(app)
@@ -55,7 +57,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
             display: none;
         }
-        .portfolio-title { font-size: 14px; opacity: 0.9; margin-bottom: 8px; font-weight: 500; }
         .portfolio-amount { font-size: 34px; font-weight: 800; margin-bottom: 16px; text-align: center; }
         .portfolio-breakdown {
             display: flex; justify-content: space-between; gap: 16px;
@@ -63,6 +64,23 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .breakdown-item { flex: 1; text-align: center; }
         .breakdown-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
         .breakdown-value { font-size: 20px; font-weight: 600; }
+        
+        /* Daily Stats */
+        .daily-stats {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+        .stats-title { color: white; font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 12px; text-align: center;
+        }
+        .stat-label { color: rgba(255, 255, 255, 0.8); font-size: 11px; margin-bottom: 4px; }
+        .stat-value { color: white; font-size: 14px; font-weight: 600; }
+        .stat-change { font-size: 10px; margin-top: 2px; }
+        .stat-change.up { color: #4ade80; }
+        .stat-change.down { color: #f87171; }
         
         /* Price Cards */
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
@@ -168,16 +186,42 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <!-- Portfolio Summary -->
         <div class="portfolio-summary" id="portfolioSummary">
-            <div class="portfolio-title">Toplam Portföy Değeri</div>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-breakdown">
                 <div class="breakdown-item">
                     <div class="breakdown-label">Altın</div>
-                    <div class="breakdown-value" id="goldBreakdown">0g • 0₺</div>
+                    <div class="breakdown-value" id="goldBreakdown">0₺</div>
                 </div>
                 <div class="breakdown-item">
                     <div class="breakdown-label">Gümüş</div>
-                    <div class="breakdown-value" id="silverBreakdown">0g • 0₺</div>
+                    <div class="breakdown-value" id="silverBreakdown">0₺</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Daily Stats -->
+        <div class="daily-stats" id="dailyStats">
+            <div class="stats-title">Günlük İstatistikler</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Altın En Yüksek</div>
+                    <div class="stat-value" id="goldHigh">-₺</div>
+                    <div class="stat-change" id="goldHighPortfolio">-₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Altın En Düşük</div>
+                    <div class="stat-value" id="goldLow">-₺</div>
+                    <div class="stat-change" id="goldLowPortfolio">-₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Gümüş En Yüksek</div>
+                    <div class="stat-value" id="silverHigh">-₺</div>
+                    <div class="stat-change" id="silverHighPortfolio">-₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Gümüş En Düşük</div>
+                    <div class="stat-value" id="silverLow">-₺</div>
+                    <div class="stat-change" id="silverLowPortfolio">-₺</div>
                 </div>
             </div>
         </div>
@@ -254,6 +298,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
+        let dailyStats = null;
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -264,13 +309,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 refreshBtn.style.transition = 'transform 0.5s ease';
                 statusText.textContent = 'Güncelleştiriliyor...';
                 
-                const [goldResponse, silverResponse] = await Promise.all([
+                const [goldResponse, silverResponse, statsResponse] = await Promise.all([
                     fetch('/api/gold-price'),
-                    fetch('/api/silver-price')
+                    fetch('/api/silver-price'),
+                    fetch('/api/daily-stats')
                 ]);
                 
                 const goldData = await goldResponse.json();
                 const silverData = await silverResponse.json();
+                const statsData = await statsResponse.json();
                 
                 let successCount = 0;
                 
@@ -290,6 +337,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     successCount++;
                 }
                 
+                if (statsData.success) {
+                    dailyStats = statsData.data;
+                    updateDailyStats();
+                }
+                
                 statusText.textContent = successCount === 2 ? 'Tüm veriler güncel' : 'Kısmi güncelleme';
                 document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 
@@ -302,6 +354,41 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 setTimeout(() => {
                     refreshBtn.style.transform = 'rotate(0deg)';
                 }, 500);
+            }
+        }
+
+        function updateDailyStats() {
+            if (!dailyStats) return;
+            
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            
+            // Günlük istatistikleri göster
+            document.getElementById('goldHigh').textContent = formatPrice(dailyStats.gold_high);
+            document.getElementById('goldLow').textContent = formatPrice(dailyStats.gold_low);
+            document.getElementById('silverHigh').textContent = formatPrice(dailyStats.silver_high);
+            document.getElementById('silverLow').textContent = formatPrice(dailyStats.silver_low);
+            
+            // Portföy değerlerini hesapla
+            if (goldAmount > 0) {
+                const goldHighValue = goldAmount * dailyStats.gold_high;
+                const goldLowValue = goldAmount * dailyStats.gold_low;
+                document.getElementById('goldHighPortfolio').textContent = formatCurrency(goldHighValue);
+                document.getElementById('goldLowPortfolio').textContent = formatCurrency(goldLowValue);
+            }
+            
+            if (silverAmount > 0) {
+                const silverHighValue = silverAmount * dailyStats.silver_high;
+                const silverLowValue = silverAmount * dailyStats.silver_low;
+                document.getElementById('silverHighPortfolio').textContent = formatCurrency(silverHighValue);
+                document.getElementById('silverLowPortfolio').textContent = formatCurrency(silverLowValue);
+            }
+            
+            // Stats panelini göster
+            if (goldAmount > 0 || silverAmount > 0) {
+                document.getElementById('dailyStats').style.display = 'block';
+            } else {
+                document.getElementById('dailyStats').style.display = 'none';
             }
         }
 
@@ -332,6 +419,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 portfolioSummary.style.display = 'none';
             }
             
+            updateDailyStats();
             savePortfolio();
         }
 
@@ -371,6 +459,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }).format(amount) + '₺';
         }
 
+        function formatPrice(price) {
+            if (!price) return '-₺';
+            return new Intl.NumberFormat('tr-TR', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + '₺';
+        }
+
         // Modal dışına tıklayınca kapat
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -386,6 +483,54 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     </script>
 </body>
 </html>'''
+
+def load_price_history():
+    """GitHub'dan fiyat geçmişini yükler"""
+    try:
+        # GitHub raw URL
+        url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/data/price-history.json"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        return {"records": []}
+    except Exception as e:
+        print(f"Price history yükleme hatası: {e}")
+        return {"records": []}
+
+def calculate_daily_stats():
+    """Günlük min/max fiyatları hesaplar"""
+    try:
+        history = load_price_history()
+        records = history.get("records", [])
+        
+        if not records:
+            return None
+        
+        # Bugünün tarihi
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # Bugünün kayıtlarını filtrele
+        today_records = [r for r in records if r.get("date") == today and r.get("gold_price") and r.get("silver_price")]
+        
+        if not today_records:
+            return None
+        
+        gold_prices = [r["gold_price"] for r in today_records]
+        silver_prices = [r["silver_price"] for r in today_records]
+        
+        return {
+            "gold_high": max(gold_prices),
+            "gold_low": min(gold_prices),
+            "silver_high": max(silver_prices),
+            "silver_low": min(silver_prices),
+            "records_count": len(today_records),
+            "last_update": today_records[-1].get("time", ""),
+            "date": today
+        }
+        
+    except Exception as e:
+        print(f"Daily stats hesaplama hatası: {e}")
+        return None
 
 def get_gold_price():
     """Yapı Kredi altın fiyatını çeker"""
@@ -488,12 +633,24 @@ def api_silver_price():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/daily-stats')
+def api_daily_stats():
+    """Günlük istatistikler API endpoint"""
+    try:
+        stats = calculate_daily_stats()
+        if stats:
+            return jsonify({'success': True, 'data': stats})
+        else:
+            return jsonify({'success': False, 'error': 'Günlük istatistik bulunamadı'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("🏆 Metal Fiyat Takipçisi v2.3.0")
-    print("📅 Modern Card-Based UI")
+    print("🏆 Metal Fiyat Takipçisi v2.4.0")
+    print("📅 GitHub Actions Entegrasyonu")
     print(f"📱 URL: http://localhost:{port}")
-    print("🎨 Kullanıcı dostu tasarım")
+    print("📊 Günlük min/max istatistikleri")
     print("⚡ Flask 3.0.0 | Python 3.13.4")
     print("⏹️  Durdurmak için Ctrl+C")
     print("-" * 50)
