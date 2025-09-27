@@ -179,20 +179,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: none; text-align: center;
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 24px; }
-        .portfolio-metals { display: flex; justify-content: space-between; gap: 20px; }
+        .portfolio-metals { display: flex; justify-content: space-between; gap: 16px; }
         .metal-section {
-            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 20px;
-            backdrop-filter: blur(10px);
+            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
+            backdrop-filter: blur(10px); min-width: 0; /* Prevents overflow */
         }
-        .metal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .metal-icon {
-            width: 40px; height: 40px; border-radius: 10px; display: flex;
-            align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
-            background: rgba(255, 255, 255, 0.2);
+            width: 36px; height: 36px; border-radius: 8px; display: flex;
+            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+            background: rgba(255, 255, 255, 0.2); flex-shrink: 0;
         }
-        .metal-name { font-size: 14px; font-weight: 600; opacity: 0.9; }
-        .metal-price { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .metal-value { font-size: 22px; font-weight: 800; }
+        .metal-name { font-size: 13px; font-weight: 600; opacity: 0.9; }
+        .metal-price { font-size: 14px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metal-value { font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
