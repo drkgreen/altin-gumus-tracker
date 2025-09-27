@@ -21,7 +21,7 @@ def load_price_history():
         print(f"Price history error: {e}")
         return {"records": []}
 
-def calculate_period_stats():
+def get_chart_data():
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -30,40 +30,73 @@ def calculate_period_stats():
             return None
         
         now = datetime.now(timezone.utc)
-        today = now.strftime("%Y-%m-%d")
-        week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
-        month_ago = (now - timedelta(days=30)).strftime("%Y-%m-%d")
         
-        def filter_records(start_date):
-            return [r for r in records 
-                   if r.get("date") >= start_date 
-                   and r.get("gold_price") and r.get("silver_price")]
+        # Son 30 günün verilerini al
+        thirty_days_ago = (now - timedelta(days=30)).timestamp()
+        recent_records = [r for r in records 
+                         if r.get("timestamp", 0) > thirty_days_ago 
+                         and r.get("gold_price") and r.get("silver_price")]
         
-        daily_records = filter_records(today)
-        weekly_records = filter_records(week_ago)
-        monthly_records = filter_records(month_ago)
+        if not recent_records:
+            return None
         
-        def calculate_stats(records_list):
-            if not records_list:
-                return None
-            gold_prices = [r["gold_price"] for r in records_list]
-            silver_prices = [r["silver_price"] for r in records_list]
-            return {
-                "gold_high": max(gold_prices),
-                "gold_low": min(gold_prices),
-                "silver_high": max(silver_prices),
-                "silver_low": min(silver_prices),
-                "records_count": len(records_list)
-            }
+        # Günlük veriler (son 7 gün)
+        daily_data = []
+        for i in range(7):
+            date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+            day_records = [r for r in recent_records if r.get("date") == date]
+            if day_records:
+                avg_gold = sum(r["gold_price"] for r in day_records) / len(day_records)
+                avg_silver = sum(r["silver_price"] for r in day_records) / len(day_records)
+                daily_data.insert(0, {
+                    "date": date,
+                    "gold_price": avg_gold,
+                    "silver_price": avg_silver
+                })
+        
+        # Haftalık veriler (son 4 hafta)
+        weekly_data = []
+        for i in range(4):
+            week_start = (now - timedelta(weeks=i+1)).strftime("%Y-%m-%d")
+            week_end = (now - timedelta(weeks=i)).strftime("%Y-%m-%d")
+            week_records = [r for r in recent_records 
+                           if week_start <= r.get("date", "") <= week_end]
+            if week_records:
+                avg_gold = sum(r["gold_price"] for r in week_records) / len(week_records)
+                avg_silver = sum(r["silver_price"] for r in week_records) / len(week_records)
+                weekly_data.insert(0, {
+                    "week": f"Hafta {4-i}",
+                    "gold_price": avg_gold,
+                    "silver_price": avg_silver
+                })
+        
+        # Aylık veriler (son 3 ay)
+        monthly_data = []
+        for i in range(3):
+            month_date = now - timedelta(days=30*i)
+            month_start = month_date.replace(day=1).strftime("%Y-%m-%d")
+            month_end = (month_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            month_end_str = month_end.strftime("%Y-%m-%d")
+            
+            month_records = [r for r in recent_records 
+                            if month_start <= r.get("date", "") <= month_end_str]
+            if month_records:
+                avg_gold = sum(r["gold_price"] for r in month_records) / len(month_records)
+                avg_silver = sum(r["silver_price"] for r in month_records) / len(month_records)
+                monthly_data.insert(0, {
+                    "month": month_date.strftime("%B"),
+                    "gold_price": avg_gold,
+                    "silver_price": avg_silver
+                })
         
         return {
-            "daily": calculate_stats(daily_records),
-            "weekly": calculate_stats(weekly_records),
-            "monthly": calculate_stats(monthly_records)
+            "daily": daily_data,
+            "weekly": weekly_data,
+            "monthly": monthly_data
         }
         
     except Exception as e:
-        print(f"Stats calculation error: {e}")
+        print(f"Chart data error: {e}")
         return None
 
 def get_gold_price():
@@ -112,6 +145,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metal Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -119,7 +153,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
             min-height: 100vh; padding: 20px;
         }
-        .container { max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
@@ -148,31 +182,39 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .breakdown-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
         .breakdown-value { font-size: 22px; font-weight: 700; }
         
-        .stats-container {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
             display: none;
         }
-        .stats-tabs {
-            display: flex; gap: 8px; margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 4px;
+        .chart-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
-        .tab-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            background: transparent; color: rgba(255, 255, 255, 0.7);
-            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        .chart-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+        .chart-tabs {
+            display: flex; gap: 8px;
+            background: #f8f9fa; border-radius: 10px; padding: 4px;
         }
-        .tab-btn.active { background: white; color: #2c3e50; }
-        .stats-content { display: flex; flex-direction: column; gap: 16px; }
-        .stat-row {
-            background: rgba(255, 255, 255, 0.15); border-radius: 16px; 
-            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+        .chart-tab {
+            padding: 8px 16px; border: none; border-radius: 6px;
+            background: transparent; color: #6c757d;
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
-        .stat-info { display: flex; flex-direction: column; }
-        .stat-title { color: white; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .stat-subtitle { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
-        .stat-values { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .stat-high { color: #4ade80; font-size: 18px; font-weight: 800; }
+        .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .chart-wrapper {
+            position: relative; height: 300px; margin-bottom: 16px;
+        }
+        .chart-legend {
+            display: flex; justify-content: center; gap: 20px; margin-top: 16px;
+        }
+        .legend-item {
+            display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6c757d;
+        }
+        .legend-color {
+            width: 16px; height: 3px; border-radius: 2px;
+        }
+        .legend-color.gold { background: linear-gradient(45deg, #f39c12, #d35400); }
+        .legend-color.silver { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
         
         .price-cards { display: flex; flex-direction: column; gap: 16px; }
         .price-card {
@@ -229,6 +271,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #e9ecef; color: #6c757d; }
+        
+        @media (max-width: 400px) {
+            .container { max-width: 100%; }
+            .chart-header { flex-direction: column; gap: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -255,13 +302,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="stats-container" id="statsContainer">
-            <div class="stats-tabs">
-                <button class="tab-btn active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
-                <button class="tab-btn" onclick="switchTab('weekly')" id="weeklyTab">Haftalık</button>
-                <button class="tab-btn" onclick="switchTab('monthly')" id="monthlyTab">Aylık</button>
+        <div class="chart-container" id="chartContainer">
+            <div class="chart-header">
+                <div class="chart-title">Portföy Grafiği</div>
+                <div class="chart-tabs">
+                    <button class="chart-tab active" onclick="switchChart('daily')" id="dailyChartTab">Günlük</button>
+                    <button class="chart-tab" onclick="switchChart('weekly')" id="weeklyChartTab">Haftalık</button>
+                    <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
+                </div>
             </div>
-            <div class="stats-content" id="statsContent"></div>
+            <div class="chart-wrapper">
+                <canvas id="portfolioChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color gold"></div>
+                    <span>Altın Portföyü</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color silver"></div>
+                    <span>Gümüş Portföyü</span>
+                </div>
+            </div>
         </div>
         
         <div class="price-cards">
@@ -327,8 +389,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
-        let allStats = {};
-        let currentTab = 'daily';
+        let chartData = {};
+        let portfolioChart = null;
+        let currentChartPeriod = 'daily';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -338,15 +401,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 refreshBtn.style.transform = 'rotate(360deg)';
                 statusText.textContent = 'Güncelleniyor...';
                 
-                const [goldRes, silverRes, statsRes] = await Promise.all([
+                const [goldRes, silverRes, chartRes] = await Promise.all([
                     fetch('/api/gold-price'),
                     fetch('/api/silver-price'),
-                    fetch('/api/period-stats')
+                    fetch('/api/chart-data')
                 ]);
                 
                 const goldData = await goldRes.json();
                 const silverData = await silverRes.json();
-                const statsData = await statsRes.json();
+                const chartDataRes = await chartRes.json();
                 
                 if (goldData.success) {
                     document.getElementById('goldPrice').textContent = goldData.price + '₺';
@@ -360,9 +423,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
-                if (statsData.success) {
-                    allStats = statsData.data;
-                    updateStatsDisplay();
+                if (chartDataRes.success) {
+                    chartData = chartDataRes.data;
+                    updateChart();
                 }
                 
                 statusText.textContent = 'Güncel';
@@ -376,88 +439,87 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        function switchTab(period) {
-            currentTab = period;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(period + 'Tab').classList.add('active');
-            updateStatsDisplay();
+        function switchChart(period) {
+            currentChartPeriod = period;
+            document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(period + 'ChartTab').classList.add('active');
+            updateChart();
         }
 
-        function updateStatsDisplay() {
-            const statsContent = document.getElementById('statsContent');
-            const stats = allStats[currentTab];
-            
-            if (!stats) {
-                statsContent.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">Veri bulunamadı</div>';
-                return;
-            }
-            
+        function updateChart() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            let periodText = '';
-            if (currentTab === 'daily') periodText = 'Bugün';
-            else if (currentTab === 'weekly') periodText = 'Bu Hafta';
-            else if (currentTab === 'monthly') periodText = 'Bu Ay';
-            
-            let content = '';
-            
-            // Altın portföyü varsa göster
-            if (goldAmount > 0) {
-                const goldHigh = goldAmount * stats.gold_high;
-                
-                content += `
-                    <div class="stat-row">
-                        <div class="stat-info">
-                            <div class="stat-title">Altın Portföyü</div>
-                            <div class="stat-subtitle">${goldAmount.toFixed(1)}g • ${periodText}</div>
-                        </div>
-                        <div class="stat-values">
-                            <div class="stat-high">${formatCurrency(goldHigh)}</div>
-                        </div>
-                    </div>
-                `;
+            if (!chartData[currentChartPeriod] || (goldAmount === 0 && silverAmount === 0)) {
+                if (portfolioChart) {
+                    portfolioChart.destroy();
+                    portfolioChart = null;
+                }
+                return;
             }
             
-            // Gümüş portföyü varsa göster
-            if (silverAmount > 0) {
-                const silverHigh = silverAmount * stats.silver_high;
-                
-                content += `
-                    <div class="stat-row">
-                        <div class="stat-info">
-                            <div class="stat-title">Gümüş Portföyü</div>
-                            <div class="stat-subtitle">${silverAmount.toFixed(1)}g • ${periodText}</div>
-                        </div>
-                        <div class="stat-values">
-                            <div class="stat-high">${formatCurrency(silverHigh)}</div>
-                        </div>
-                    </div>
-                `;
+            const data = chartData[currentChartPeriod];
+            const labels = data.map(item => {
+                if (currentChartPeriod === 'daily') return new Date(item.date).toLocaleDateString('tr-TR', {month: 'short', day: 'numeric'});
+                if (currentChartPeriod === 'weekly') return item.week;
+                return item.month;
+            });
+            
+            const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
+            const silverPortfolioData = data.map(item => silverAmount * item.silver_price);
+            
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            
+            if (portfolioChart) {
+                portfolioChart.destroy();
             }
             
-            // Toplam portföy varsa göster
-            if (goldAmount > 0 && silverAmount > 0) {
-                const totalHigh = (goldAmount * stats.gold_high) + (silverAmount * stats.silver_high);
-                
-                content += `
-                    <div class="stat-row" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));">
-                        <div class="stat-info">
-                            <div class="stat-title">Toplam Portföy</div>
-                            <div class="stat-subtitle">Altın + Gümüş • ${periodText}</div>
-                        </div>
-                        <div class="stat-values">
-                            <div class="stat-high">${formatCurrency(totalHigh)}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            if (!content) {
-                content = '<div style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">Portföy girin</div>';
-            }
-            
-            statsContent.innerHTML = content;
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Altın Portföyü',
+                            data: goldPortfolioData,
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Gümüş Portföyü',
+                            data: silverPortfolioData,
+                            borderColor: '#95a5a6',
+                            backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('tr-TR').format(value) + '₺';
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: { radius: 4, hoverRadius: 6 }
+                    }
+                }
+            });
         }
 
         function togglePortfolio() {
@@ -477,18 +539,22 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const totalValue = goldValue + silverValue;
             
             const portfolioSummary = document.getElementById('portfolioSummary');
-            const statsContainer = document.getElementById('statsContainer');
+            const chartContainer = document.getElementById('chartContainer');
             
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
-                statsContainer.style.display = 'block';
+                chartContainer.style.display = 'block';
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
                 document.getElementById('goldBreakdown').textContent = formatCurrency(goldValue);
                 document.getElementById('silverBreakdown').textContent = formatCurrency(silverValue);
-                updateStatsDisplay();
+                updateChart();
             } else {
                 portfolioSummary.style.display = 'none';
-                statsContainer.style.display = 'none';
+                chartContainer.style.display = 'none';
+                if (portfolioChart) {
+                    portfolioChart.destroy();
+                    portfolioChart = null;
+                }
             }
             
             savePortfolio();
@@ -523,15 +589,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + '₺';
-        }
-
-        function formatPrice(price) {
-            if (!price) return '-₺';
-            return new Intl.NumberFormat('tr-TR', {minimumFractionDigits: 2}).format(price) + '₺';
+            return new Intl.NumberFormat('tr-TR').format(amount) + '₺';
         }
 
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
@@ -567,16 +625,17 @@ def api_silver_price():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/period-stats')
-def api_period_stats():
+@app.route('/api/chart-data')
+def api_chart_data():
     try:
-        stats = calculate_period_stats()
-        return jsonify({'success': bool(stats), 'data': stats or {}})
+        data = get_chart_data()
+        return jsonify({'success': bool(data), 'data': data or {}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.5.0")
+    print("Metal Fiyat Takipçisi v2.6.0")
+    print("Chart.js Portfolio Graphs")
     print(f"URL: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
