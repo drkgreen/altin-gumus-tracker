@@ -643,11 +643,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 def index():
     return render_template_string(HTML_TEMPLATE)
 
+
 @app.route('/api/gold-price')
 def api_gold_price():
     try:
         price = get_gold_price()
-        return jsonify({'success': False, 'error': str(e)}) bool(price), 'price': price or ''})
+        return jsonify({'success': False, 'error': str(e)})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
