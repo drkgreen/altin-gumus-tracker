@@ -382,6 +382,24 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentChartPeriod = 'daily';
         let currentMetalView = 'both';
 
+        // Sayıları kısaltma ve para birimi formatlaması için yardımcı fonksiyonlar
+        function formatChartValue(value) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(2) + 'M₺';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(2) + 'K₺';
+            } else {
+                return value.toFixed(2) + '₺';
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
+        }
+
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
             const statusText = document.getElementById('statusText');
@@ -508,12 +526,25 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return new Intl.NumberFormat('tr-TR').format(value) + '₺';
+                                    return formatChartValue(value);
                                 }
                             }
                         }
                     },
-                    elements: { point: { radius: 4, hoverRadius: 6 } }
+                    elements: { point: { radius: 4, hoverRadius: 6 } },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -595,10 +626,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR').format(amount) + '₺';
-        }
-
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
@@ -620,7 +647,7 @@ def index():
 def api_gold_price():
     try:
         price = get_gold_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
+        return jsonify({'success': False, 'error': str(e)}) bool(price), 'price': price or ''})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
