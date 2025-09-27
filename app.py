@@ -30,8 +30,6 @@ def get_chart_data():
             return None
         
         now = datetime.now(timezone.utc)
-        
-        # Son 30 günün verilerini al
         thirty_days_ago = (now - timedelta(days=30)).timestamp()
         recent_records = [r for r in records 
                          if r.get("timestamp", 0) > thirty_days_ago 
@@ -44,20 +42,15 @@ def get_chart_data():
         today = now.strftime("%Y-%m-%d")
         today_records = [r for r in recent_records if r.get("date") == today]
         
-        # Saatlik gruplandırma
         hourly_data = {}
         for record in today_records:
             timestamp = record.get("timestamp", 0)
             hour = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%H:00")
             if hour not in hourly_data:
-                hourly_data[hour] = {
-                    "gold_prices": [],
-                    "silver_prices": []
-                }
+                hourly_data[hour] = {"gold_prices": [], "silver_prices": []}
             hourly_data[hour]["gold_prices"].append(record["gold_price"])
             hourly_data[hour]["silver_prices"].append(record["silver_price"])
         
-        # Saatlik ortalamalar
         daily_data = []
         for hour in sorted(hourly_data.keys()):
             gold_avg = sum(hourly_data[hour]["gold_prices"]) / len(hourly_data[hour]["gold_prices"])
@@ -102,11 +95,7 @@ def get_chart_data():
                     "silver_price": avg_silver
                 })
         
-        return {
-            "daily": daily_data,
-            "weekly": weekly_data,
-            "monthly": monthly_data
-        }
+        return {"daily": daily_data, "weekly": weekly_data, "monthly": monthly_data}
         
     except Exception as e:
         print(f"Chart data error: {e}")
@@ -183,17 +172,27 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
         
-        .portfolio-summary {
+        .portfolio-main {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             border-radius: 24px; padding: 28px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
-        .portfolio-breakdown { display: flex; justify-content: space-between; gap: 20px; }
-        .breakdown-item { flex: 1; text-align: center; }
-        .breakdown-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
-        .breakdown-value { font-size: 22px; font-weight: 700; }
+        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 24px; }
+        .portfolio-metals { display: flex; justify-content: space-between; gap: 20px; }
+        .metal-section {
+            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .metal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .metal-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .metal-name { font-size: 14px; font-weight: 600; opacity: 0.9; }
+        .metal-price { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .metal-value { font-size: 22px; font-weight: 800; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -214,9 +213,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .chart-wrapper {
-            position: relative; height: 300px; margin-bottom: 16px;
+        .chart-wrapper { position: relative; height: 300px; margin-bottom: 16px; }
+        .chart-controls {
+            display: flex; justify-content: center; gap: 12px; margin-bottom: 16px;
         }
+        .chart-toggle {
+            padding: 8px 16px; border: 2px solid #e9ecef; border-radius: 10px;
+            background: white; color: #6c757d; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .chart-toggle.active { border-color: #667eea; background: #667eea; color: white; }
         .chart-legend {
             display: flex; justify-content: center; gap: 20px; margin-top: 16px;
         }
@@ -228,23 +234,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .legend-color.gold { background: linear-gradient(45deg, #f39c12, #d35400); }
         .legend-color.silver { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
-        
-        .price-cards { display: flex; flex-direction: column; gap: 16px; }
-        .price-card {
-            background: rgba(255, 255, 255, 0.95); border-radius: 18px;
-            padding: 22px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-        }
-        .price-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .metal-info { display: flex; align-items: center; gap: 14px; }
-        .metal-icon {
-            width: 44px; height: 44px; border-radius: 12px; display: flex;
-            align-items: center; justify-content: center; font-size: 18px; font-weight: 700;
-        }
-        .metal-icon.gold { background: linear-gradient(135deg, #f39c12, #d35400); color: white; }
-        .metal-icon.silver { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
-        .metal-details h3 { font-size: 17px; font-weight: 700; color: #2c3e50; margin-bottom: 4px; }
-        .metal-details p { font-size: 13px; color: #7f8c8d; }
-        .price-value { font-size: 26px; font-weight: 800; color: #2c3e50; }
         
         .status-bar {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
@@ -288,6 +277,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         @media (max-width: 400px) {
             .container { max-width: 100%; }
             .chart-header { flex-direction: column; gap: 12px; }
+            .portfolio-metals { flex-direction: column; gap: 16px; }
         }
     </style>
 </head>
@@ -301,16 +291,24 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="portfolio-summary" id="portfolioSummary">
+        <div class="portfolio-main" id="portfolioMain">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
-            <div class="portfolio-breakdown">
-                <div class="breakdown-item">
-                    <div class="breakdown-label">Altın</div>
-                    <div class="breakdown-value" id="goldBreakdown">0₺</div>
+            <div class="portfolio-metals">
+                <div class="metal-section">
+                    <div class="metal-header">
+                        <div class="metal-icon">Au</div>
+                        <div class="metal-name">Altın</div>
+                    </div>
+                    <div class="metal-price" id="currentGoldPrice">-.-- ₺</div>
+                    <div class="metal-value" id="goldValue">0 ₺</div>
                 </div>
-                <div class="breakdown-item">
-                    <div class="breakdown-label">Gümüş</div>
-                    <div class="breakdown-value" id="silverBreakdown">0₺</div>
+                <div class="metal-section">
+                    <div class="metal-header">
+                        <div class="metal-icon">Ag</div>
+                        <div class="metal-name">Gümüş</div>
+                    </div>
+                    <div class="metal-price" id="currentSilverPrice">-.-- ₺</div>
+                    <div class="metal-value" id="silverValue">0 ₺</div>
                 </div>
             </div>
         </div>
@@ -324,10 +322,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
                 </div>
             </div>
+            <div class="chart-controls">
+                <button class="chart-toggle active" onclick="toggleMetal('both')" id="bothToggle">İkisi</button>
+                <button class="chart-toggle" onclick="toggleMetal('gold')" id="goldToggle">Altın</button>
+                <button class="chart-toggle" onclick="toggleMetal('silver')" id="silverToggle">Gümüş</button>
+            </div>
             <div class="chart-wrapper">
                 <canvas id="portfolioChart"></canvas>
             </div>
-            <div class="chart-legend">
+            <div class="chart-legend" id="chartLegend">
                 <div class="legend-item">
                     <div class="legend-color gold"></div>
                     <span>Altın Portföyü</span>
@@ -335,34 +338,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <div class="legend-item">
                     <div class="legend-color silver"></div>
                     <span>Gümüş Portföyü</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="price-cards">
-            <div class="price-card">
-                <div class="price-header">
-                    <div class="metal-info">
-                        <div class="metal-icon gold">Au</div>
-                        <div class="metal-details">
-                            <h3>Altın</h3>
-                            <p>Yapı Kredi</p>
-                        </div>
-                    </div>
-                    <div class="price-value" id="goldPrice">-.--₺</div>
-                </div>
-            </div>
-            
-            <div class="price-card">
-                <div class="price-header">
-                    <div class="metal-info">
-                        <div class="metal-icon silver">Ag</div>
-                        <div class="metal-details">
-                            <h3>Gümüş</h3>
-                            <p>Vakıfbank</p>
-                        </div>
-                    </div>
-                    <div class="price-value" id="silverPrice">-.--₺</div>
                 </div>
             </div>
         </div>
@@ -405,6 +380,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let chartData = {};
         let portfolioChart = null;
         let currentChartPeriod = 'daily';
+        let currentMetalView = 'both';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -425,13 +401,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const chartDataRes = await chartRes.json();
                 
                 if (goldData.success) {
-                    document.getElementById('goldPrice').textContent = goldData.price + '₺';
+                    document.getElementById('currentGoldPrice').textContent = goldData.price + ' ₺';
                     let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
                 if (silverData.success) {
-                    document.getElementById('silverPrice').textContent = silverData.price + '₺';
+                    document.getElementById('currentSilverPrice').textContent = silverData.price + ' ₺';
                     let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
@@ -459,6 +435,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateChart();
         }
 
+        function toggleMetal(metal) {
+            currentMetalView = metal;
+            document.querySelectorAll('.chart-toggle').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(metal + 'Toggle').classList.add('active');
+            updateChart();
+            updateLegend();
+        }
+
         function updateChart() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
@@ -478,8 +462,33 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return item.period;
             });
             
-            const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
-            const silverPortfolioData = data.map(item => silverAmount * item.silver_price);
+            const datasets = [];
+            
+            if (currentMetalView === 'both' || currentMetalView === 'gold') {
+                const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
+                datasets.push({
+                    label: 'Altın Portföyü',
+                    data: goldPortfolioData,
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                });
+            }
+            
+            if (currentMetalView === 'both' || currentMetalView === 'silver') {
+                const silverPortfolioData = data.map(item => silverAmount * item.silver_price);
+                datasets.push({
+                    label: 'Gümüş Portföyü',
+                    data: silverPortfolioData,
+                    borderColor: '#95a5a6',
+                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                });
+            }
             
             const ctx = document.getElementById('portfolioChart').getContext('2d');
             
@@ -489,35 +498,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             portfolioChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Altın Portföyü',
-                            data: goldPortfolioData,
-                            borderColor: '#f39c12',
-                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Gümüş Portföyü',
-                            data: silverPortfolioData,
-                            borderColor: '#95a5a6',
-                            backgroundColor: 'rgba(149, 165, 166, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
+                data: { labels: labels, datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -528,11 +513,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                             }
                         }
                     },
-                    elements: {
-                        point: { radius: 4, hoverRadius: 6 }
-                    }
+                    elements: { point: { radius: 4, hoverRadius: 6 } }
                 }
             });
+        }
+
+        function updateLegend() {
+            const legend = document.getElementById('chartLegend');
+            if (currentMetalView === 'gold') {
+                legend.innerHTML = '<div class="legend-item"><div class="legend-color gold"></div><span>Altın Portföyü</span></div>';
+            } else if (currentMetalView === 'silver') {
+                legend.innerHTML = '<div class="legend-item"><div class="legend-color silver"></div><span>Gümüş Portföyü</span></div>';
+            } else {
+                legend.innerHTML = '<div class="legend-item"><div class="legend-color gold"></div><span>Altın Portföyü</span></div><div class="legend-item"><div class="legend-color silver"></div><span>Gümüş Portföyü</span></div>';
+            }
         }
 
         function togglePortfolio() {
@@ -551,18 +545,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const silverValue = silverAmount * currentSilverPrice;
             const totalValue = goldValue + silverValue;
             
-            const portfolioSummary = document.getElementById('portfolioSummary');
+            const portfolioMain = document.getElementById('portfolioMain');
             const chartContainer = document.getElementById('chartContainer');
             
             if (totalValue > 0) {
-                portfolioSummary.style.display = 'block';
+                portfolioMain.style.display = 'block';
                 chartContainer.style.display = 'block';
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-                document.getElementById('goldBreakdown').textContent = formatCurrency(goldValue);
-                document.getElementById('silverBreakdown').textContent = formatCurrency(silverValue);
+                document.getElementById('goldValue').textContent = formatCurrency(goldValue);
+                document.getElementById('silverValue').textContent = formatCurrency(silverValue);
                 updateChart();
             } else {
-                portfolioSummary.style.display = 'none';
+                portfolioMain.style.display = 'none';
                 chartContainer.style.display = 'none';
                 if (portfolioChart) {
                     portfolioChart.destroy();
@@ -648,7 +642,7 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.6.0")
-    print("Chart.js Portfolio Graphs")
+    print("Metal Fiyat Takipçisi v3.0.0")
+    print("Redesigned Portfolio Interface")
     print(f"URL: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
