@@ -189,14 +189,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 16px; }
-        .portfolio-prices {
-            display: flex; justify-content: center; gap: 20px; margin-bottom: 16px;
-            font-size: 12px; opacity: 0.9;
-        }
-        .price-item { display: flex; align-items: center; gap: 6px; }
-        .price-label { font-weight: 500; }
-        .price-value { font-weight: 700; }
+        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-breakdown { display: flex; justify-content: space-between; gap: 20px; }
         .breakdown-item { flex: 1; text-align: center; }
         .breakdown-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
@@ -310,16 +303,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <div class="portfolio-summary" id="portfolioSummary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
-            <div class="portfolio-prices">
-                <div class="price-item">
-                    <span class="price-label">Au:</span>
-                    <span class="price-value" id="goldPriceSmall">-.--₺</span>
-                </div>
-                <div class="price-item">
-                    <span class="price-label">Ag:</span>
-                    <span class="price-value" id="silverPriceSmall">-.--₺</span>
-                </div>
-            </div>
             <div class="portfolio-breakdown">
                 <div class="breakdown-item">
                     <div class="breakdown-label">Altın</div>
@@ -341,11 +324,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
                 </div>
             </div>
-            <div class="chart-filter">
-                <button class="filter-btn active" onclick="switchChartFilter('both')" id="bothFilterBtn">İkisi</button>
-                <button class="filter-btn" onclick="switchChartFilter('gold')" id="goldFilterBtn">Altın</button>
-                <button class="filter-btn" onclick="switchChartFilter('silver')" id="silverFilterBtn">Gümüş</button>
-            </div>
             <div class="chart-wrapper">
                 <canvas id="portfolioChart"></canvas>
             </div>
@@ -357,6 +335,34 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <div class="legend-item">
                     <div class="legend-color silver"></div>
                     <span>Gümüş Portföyü</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="price-cards">
+            <div class="price-card">
+                <div class="price-header">
+                    <div class="metal-info">
+                        <div class="metal-icon gold">Au</div>
+                        <div class="metal-details">
+                            <h3>Altın</h3>
+                            <p>Yapı Kredi</p>
+                        </div>
+                    </div>
+                    <div class="price-value" id="goldPrice">-.--₺</div>
+                </div>
+            </div>
+            
+            <div class="price-card">
+                <div class="price-header">
+                    <div class="metal-info">
+                        <div class="metal-icon silver">Ag</div>
+                        <div class="metal-details">
+                            <h3>Gümüş</h3>
+                            <p>Vakıfbank</p>
+                        </div>
+                    </div>
+                    <div class="price-value" id="silverPrice">-.--₺</div>
                 </div>
             </div>
         </div>
@@ -399,8 +405,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let chartData = {};
         let portfolioChart = null;
         let currentChartPeriod = 'daily';
-
-        let currentChartFilter = 'both';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -455,13 +459,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateChart();
         }
 
-        function switchChartFilter(filter) {
-            currentChartFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(filter + 'FilterBtn').classList.add('active');
-            updateChart();
-        }
-
         function updateChart() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
@@ -490,37 +487,30 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 portfolioChart.destroy();
             }
             
-            const datasets = [];
-            
-            if (currentChartFilter === 'both' || currentChartFilter === 'gold') {
-                datasets.push({
-                    label: 'Altın Portföyü',
-                    data: goldPortfolioData,
-                    borderColor: '#f39c12',
-                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                });
-            }
-            
-            if (currentChartFilter === 'both' || currentChartFilter === 'silver') {
-                datasets.push({
-                    label: 'Gümüş Portföyü',
-                    data: silverPortfolioData,
-                    borderColor: '#95a5a6',
-                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                });
-            }
-            
             portfolioChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: datasets
+                    datasets: [
+                        {
+                            label: 'Altın Portföyü',
+                            data: goldPortfolioData,
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Gümüş Portföyü',
+                            data: silverPortfolioData,
+                            borderColor: '#95a5a6',
+                            backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -564,7 +554,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const portfolioSummary = document.getElementById('portfolioSummary');
             const chartContainer = document.getElementById('chartContainer');
             
-            // Portföy summary güncelle
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
                 chartContainer.style.display = 'block';
@@ -579,26 +568,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     portfolioChart.destroy();
                     portfolioChart = null;
                 }
-            }
-            
-            // Card'lardaki portföy bilgilerini güncelle
-            const goldPortfolioInfo = document.getElementById('goldPortfolioInfo');
-            const silverPortfolioInfo = document.getElementById('silverPortfolioInfo');
-            
-            if (goldAmount > 0) {
-                goldPortfolioInfo.style.display = 'block';
-                document.getElementById('goldAmountDisplay').textContent = goldAmount.toFixed(1) + ' gram';
-                document.getElementById('goldValueDisplay').textContent = formatCurrency(goldValue);
-            } else {
-                goldPortfolioInfo.style.display = 'none';
-            }
-            
-            if (silverAmount > 0) {
-                silverPortfolioInfo.style.display = 'block';
-                document.getElementById('silverAmountDisplay').textContent = silverAmount.toFixed(1) + ' gram';
-                document.getElementById('silverValueDisplay').textContent = formatCurrency(silverValue);
-            } else {
-                silverPortfolioInfo.style.display = 'none';
             }
             
             savePortfolio();
