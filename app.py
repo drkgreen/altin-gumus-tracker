@@ -189,7 +189,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
+        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 16px; }
+        .portfolio-prices {
+            display: flex; justify-content: center; gap: 20px; margin-bottom: 16px;
+            font-size: 12px; opacity: 0.9;
+        }
+        .price-item { display: flex; align-items: center; gap: 6px; }
+        .price-label { font-weight: 500; }
+        .price-value { font-weight: 700; }
         .portfolio-breakdown { display: flex; justify-content: space-between; gap: 20px; }
         .breakdown-item { flex: 1; text-align: center; }
         .breakdown-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
@@ -303,6 +310,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <div class="portfolio-summary" id="portfolioSummary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
+            <div class="portfolio-prices">
+                <div class="price-item">
+                    <span class="price-label">Au:</span>
+                    <span class="price-value" id="goldPriceSmall">-.--₺</span>
+                </div>
+                <div class="price-item">
+                    <span class="price-label">Ag:</span>
+                    <span class="price-value" id="silverPriceSmall">-.--₺</span>
+                </div>
+            </div>
             <div class="portfolio-breakdown">
                 <div class="breakdown-item">
                     <div class="breakdown-label">Altın</div>
@@ -340,54 +357,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <div class="legend-item">
                     <div class="legend-color silver"></div>
                     <span>Gümüş Portföyü</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="price-portfolio-cards">
-            <div class="price-portfolio-card">
-                <div class="card-header">
-                    <div class="metal-info">
-                        <div class="metal-icon gold">Au</div>
-                        <div class="metal-details">
-                            <h3>Altın</h3>
-                            <p>Yapı Kredi</p>
-                        </div>
-                    </div>
-                    <div class="price-value" id="goldPrice">-.--₺</div>
-                </div>
-                <div class="portfolio-info" id="goldPortfolioInfo">
-                    <div class="portfolio-row">
-                        <span class="portfolio-label">Miktar:</span>
-                        <span class="portfolio-amount-small" id="goldAmountDisplay">0 gram</span>
-                    </div>
-                    <div class="portfolio-row">
-                        <span class="portfolio-label">Toplam Değer:</span>
-                        <span class="portfolio-value-small" id="goldValueDisplay">0₺</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="price-portfolio-card">
-                <div class="card-header">
-                    <div class="metal-info">
-                        <div class="metal-icon silver">Ag</div>
-                        <div class="metal-details">
-                            <h3>Gümüş</h3>
-                            <p>Vakıfbank</p>
-                        </div>
-                    </div>
-                    <div class="price-value" id="silverPrice">-.--₺</div>
-                </div>
-                <div class="portfolio-info" id="silverPortfolioInfo">
-                    <div class="portfolio-row">
-                        <span class="portfolio-label">Miktar:</span>
-                        <span class="portfolio-amount-small" id="silverAmountDisplay">0 gram</span>
-                    </div>
-                    <div class="portfolio-row">
-                        <span class="portfolio-label">Toplam Değer:</span>
-                        <span class="portfolio-value-small" id="silverValueDisplay">0₺</span>
-                    </div>
                 </div>
             </div>
         </div>
