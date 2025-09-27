@@ -2,8 +2,9 @@ name: Metal Price Tracker
 
 on:
   schedule:
-    # Her 30 dakikada bir çalışır (UTC)
-    - cron: '*/30 * * * *'
+    # Hafta içi sabah 8:00'den akşam 19:00'a kadar her 30 dakikada bir (UTC+3 için UTC-3 hesaplama)
+    # 05:00-16:00 UTC = 08:00-19:00 Türkiye saati
+    - cron: '0,30 5-15 * * 1-5'
   workflow_dispatch: # Manuel tetikleme için
 
 jobs:
@@ -27,9 +28,20 @@ jobs:
       run: |
         mkdir -p data
         
-    - name: Run price tracker
+    - name: Check time and run tracker
       run: |
-        python scripts/price_tracker.py
+        # Türkiye saati hesapla (UTC+3)
+        TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
+        echo "Türkiye saati: $TURKEY_HOUR:$(date -u -d '+3 hours' +%M)"
+        
+        # Sadece 08:00-19:00 arası çalıştır
+        if [ $TURKEY_HOUR -ge 8 ] && [ $TURKEY_HOUR -lt 19 ]; then
+          echo "Piyasa saatleri içinde - veri çekiliyor..."
+          python scripts/price_tracker.py
+        else
+          echo "Piyasa saatleri dışında - veri çekilmiyor"
+          exit 0
+        fi
         
     - name: Commit and push data
       run: |
