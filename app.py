@@ -40,51 +40,64 @@ def get_chart_data():
         if not recent_records:
             return None
         
-        # Günlük veriler (son 7 gün)
+        # Günlük veriler (bugün saat saat)
+        today = now.strftime("%Y-%m-%d")
+        today_records = [r for r in recent_records if r.get("date") == today]
+        
+        # Saatlik gruplandırma
+        hourly_data = {}
+        for record in today_records:
+            timestamp = record.get("timestamp", 0)
+            hour = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%H:00")
+            if hour not in hourly_data:
+                hourly_data[hour] = {
+                    "gold_prices": [],
+                    "silver_prices": []
+                }
+            hourly_data[hour]["gold_prices"].append(record["gold_price"])
+            hourly_data[hour]["silver_prices"].append(record["silver_price"])
+        
+        # Saatlik ortalamalar
         daily_data = []
+        for hour in sorted(hourly_data.keys()):
+            gold_avg = sum(hourly_data[hour]["gold_prices"]) / len(hourly_data[hour]["gold_prices"])
+            silver_avg = sum(hourly_data[hour]["silver_prices"]) / len(hourly_data[hour]["silver_prices"])
+            daily_data.append({
+                "hour": hour,
+                "gold_price": gold_avg,
+                "silver_price": silver_avg
+            })
+        
+        # Haftalık veriler (son 7 gün)
+        weekly_data = []
         for i in range(7):
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             day_records = [r for r in recent_records if r.get("date") == date]
             if day_records:
                 avg_gold = sum(r["gold_price"] for r in day_records) / len(day_records)
                 avg_silver = sum(r["silver_price"] for r in day_records) / len(day_records)
-                daily_data.insert(0, {
-                    "date": date,
-                    "gold_price": avg_gold,
-                    "silver_price": avg_silver
-                })
-        
-        # Haftalık veriler (son 4 hafta)
-        weekly_data = []
-        for i in range(4):
-            week_start = (now - timedelta(weeks=i+1)).strftime("%Y-%m-%d")
-            week_end = (now - timedelta(weeks=i)).strftime("%Y-%m-%d")
-            week_records = [r for r in recent_records 
-                           if week_start <= r.get("date", "") <= week_end]
-            if week_records:
-                avg_gold = sum(r["gold_price"] for r in week_records) / len(week_records)
-                avg_silver = sum(r["silver_price"] for r in week_records) / len(week_records)
+                day_name = (now - timedelta(days=i)).strftime("%a")
                 weekly_data.insert(0, {
-                    "week": f"Hafta {4-i}",
+                    "day": day_name,
                     "gold_price": avg_gold,
                     "silver_price": avg_silver
                 })
         
-        # Aylık veriler (son 3 ay)
+        # Aylık veriler (son 30 gün, 5'er günlük gruplar)
         monthly_data = []
-        for i in range(3):
-            month_date = now - timedelta(days=30*i)
-            month_start = month_date.replace(day=1).strftime("%Y-%m-%d")
-            month_end = (month_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-            month_end_str = month_end.strftime("%Y-%m-%d")
+        for i in range(6):
+            period_start = now - timedelta(days=(i+1)*5)
+            period_end = now - timedelta(days=i*5)
             
-            month_records = [r for r in recent_records 
-                            if month_start <= r.get("date", "") <= month_end_str]
-            if month_records:
-                avg_gold = sum(r["gold_price"] for r in month_records) / len(month_records)
-                avg_silver = sum(r["silver_price"] for r in month_records) / len(month_records)
+            period_records = [r for r in recent_records 
+                            if period_start.timestamp() <= r.get("timestamp", 0) <= period_end.timestamp()]
+            
+            if period_records:
+                avg_gold = sum(r["gold_price"] for r in period_records) / len(period_records)
+                avg_silver = sum(r["silver_price"] for r in period_records) / len(period_records)
+                period_label = period_start.strftime("%d.%m")
                 monthly_data.insert(0, {
-                    "month": month_date.strftime("%B"),
+                    "period": period_label,
                     "gold_price": avg_gold,
                     "silver_price": avg_silver
                 })
@@ -311,6 +324,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
                 </div>
             </div>
+            <div class="chart-filter">
+                <button class="filter-btn active" onclick="switchChartFilter('both')" id="bothFilterBtn">İkisi</button>
+                <button class="filter-btn" onclick="switchChartFilter('gold')" id="goldFilterBtn">Altın</button>
+                <button class="filter-btn" onclick="switchChartFilter('silver')" id="silverFilterBtn">Gümüş</button>
+            </div>
             <div class="chart-wrapper">
                 <canvas id="portfolioChart"></canvas>
             </div>
@@ -326,9 +344,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="price-cards">
-            <div class="price-card">
-                <div class="price-header">
+        <div class="price-portfolio-cards">
+            <div class="price-portfolio-card">
+                <div class="card-header">
                     <div class="metal-info">
                         <div class="metal-icon gold">Au</div>
                         <div class="metal-details">
@@ -338,10 +356,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     </div>
                     <div class="price-value" id="goldPrice">-.--₺</div>
                 </div>
+                <div class="portfolio-info" id="goldPortfolioInfo">
+                    <div class="portfolio-row">
+                        <span class="portfolio-label">Miktar:</span>
+                        <span class="portfolio-amount-small" id="goldAmountDisplay">0 gram</span>
+                    </div>
+                    <div class="portfolio-row">
+                        <span class="portfolio-label">Toplam Değer:</span>
+                        <span class="portfolio-value-small" id="goldValueDisplay">0₺</span>
+                    </div>
+                </div>
             </div>
             
-            <div class="price-card">
-                <div class="price-header">
+            <div class="price-portfolio-card">
+                <div class="card-header">
                     <div class="metal-info">
                         <div class="metal-icon silver">Ag</div>
                         <div class="metal-details">
@@ -350,6 +378,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         </div>
                     </div>
                     <div class="price-value" id="silverPrice">-.--₺</div>
+                </div>
+                <div class="portfolio-info" id="silverPortfolioInfo">
+                    <div class="portfolio-row">
+                        <span class="portfolio-label">Miktar:</span>
+                        <span class="portfolio-amount-small" id="silverAmountDisplay">0 gram</span>
+                    </div>
+                    <div class="portfolio-row">
+                        <span class="portfolio-label">Toplam Değer:</span>
+                        <span class="portfolio-value-small" id="silverValueDisplay">0₺</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -392,6 +430,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let chartData = {};
         let portfolioChart = null;
         let currentChartPeriod = 'daily';
+
+        let currentChartFilter = 'both';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -446,6 +486,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateChart();
         }
 
+        function switchChartFilter(filter) {
+            currentChartFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(filter + 'FilterBtn').classList.add('active');
+            updateChart();
+        }
+
         function updateChart() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
@@ -460,9 +507,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             const data = chartData[currentChartPeriod];
             const labels = data.map(item => {
-                if (currentChartPeriod === 'daily') return new Date(item.date).toLocaleDateString('tr-TR', {month: 'short', day: 'numeric'});
-                if (currentChartPeriod === 'weekly') return item.week;
-                return item.month;
+                if (currentChartPeriod === 'daily') return item.hour;
+                if (currentChartPeriod === 'weekly') return item.day;
+                return item.period;
             });
             
             const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
@@ -474,30 +521,37 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 portfolioChart.destroy();
             }
             
+            const datasets = [];
+            
+            if (currentChartFilter === 'both' || currentChartFilter === 'gold') {
+                datasets.push({
+                    label: 'Altın Portföyü',
+                    data: goldPortfolioData,
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                });
+            }
+            
+            if (currentChartFilter === 'both' || currentChartFilter === 'silver') {
+                datasets.push({
+                    label: 'Gümüş Portföyü',
+                    data: silverPortfolioData,
+                    borderColor: '#95a5a6',
+                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                });
+            }
+            
             portfolioChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: 'Altın Portföyü',
-                            data: goldPortfolioData,
-                            borderColor: '#f39c12',
-                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Gümüş Portföyü',
-                            data: silverPortfolioData,
-                            borderColor: '#95a5a6',
-                            backgroundColor: 'rgba(149, 165, 166, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
@@ -541,6 +595,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const portfolioSummary = document.getElementById('portfolioSummary');
             const chartContainer = document.getElementById('chartContainer');
             
+            // Portföy summary güncelle
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
                 chartContainer.style.display = 'block';
@@ -555,6 +610,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     portfolioChart.destroy();
                     portfolioChart = null;
                 }
+            }
+            
+            // Card'lardaki portföy bilgilerini güncelle
+            const goldPortfolioInfo = document.getElementById('goldPortfolioInfo');
+            const silverPortfolioInfo = document.getElementById('silverPortfolioInfo');
+            
+            if (goldAmount > 0) {
+                goldPortfolioInfo.style.display = 'block';
+                document.getElementById('goldAmountDisplay').textContent = goldAmount.toFixed(1) + ' gram';
+                document.getElementById('goldValueDisplay').textContent = formatCurrency(goldValue);
+            } else {
+                goldPortfolioInfo.style.display = 'none';
+            }
+            
+            if (silverAmount > 0) {
+                silverPortfolioInfo.style.display = 'block';
+                document.getElementById('silverAmountDisplay').textContent = silverAmount.toFixed(1) + ' gram';
+                document.getElementById('silverValueDisplay').textContent = formatCurrency(silverValue);
+            } else {
+                silverPortfolioInfo.style.display = 'none';
             }
             
             savePortfolio();
