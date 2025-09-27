@@ -40,64 +40,51 @@ def get_chart_data():
         if not recent_records:
             return None
         
-        # Günlük veriler (bugün saat saat)
-        today = now.strftime("%Y-%m-%d")
-        today_records = [r for r in recent_records if r.get("date") == today]
-        
-        # Saatlik gruplandırma
-        hourly_data = {}
-        for record in today_records:
-            timestamp = record.get("timestamp", 0)
-            hour = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%H:00")
-            if hour not in hourly_data:
-                hourly_data[hour] = {
-                    "gold_prices": [],
-                    "silver_prices": []
-                }
-            hourly_data[hour]["gold_prices"].append(record["gold_price"])
-            hourly_data[hour]["silver_prices"].append(record["silver_price"])
-        
-        # Saatlik ortalamalar
+        # Günlük veriler (son 7 gün)
         daily_data = []
-        for hour in sorted(hourly_data.keys()):
-            gold_avg = sum(hourly_data[hour]["gold_prices"]) / len(hourly_data[hour]["gold_prices"])
-            silver_avg = sum(hourly_data[hour]["silver_prices"]) / len(hourly_data[hour]["silver_prices"])
-            daily_data.append({
-                "hour": hour,
-                "gold_price": gold_avg,
-                "silver_price": silver_avg
-            })
-        
-        # Haftalık veriler (son 7 gün)
-        weekly_data = []
         for i in range(7):
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             day_records = [r for r in recent_records if r.get("date") == date]
             if day_records:
                 avg_gold = sum(r["gold_price"] for r in day_records) / len(day_records)
                 avg_silver = sum(r["silver_price"] for r in day_records) / len(day_records)
-                day_name = (now - timedelta(days=i)).strftime("%a")
-                weekly_data.insert(0, {
-                    "day": day_name,
+                daily_data.insert(0, {
+                    "date": date,
                     "gold_price": avg_gold,
                     "silver_price": avg_silver
                 })
         
-        # Aylık veriler (son 30 gün, 5'er günlük gruplar)
+        # Haftalık veriler (son 4 hafta)
+        weekly_data = []
+        for i in range(4):
+            week_start = (now - timedelta(weeks=i+1)).strftime("%Y-%m-%d")
+            week_end = (now - timedelta(weeks=i)).strftime("%Y-%m-%d")
+            week_records = [r for r in recent_records 
+                           if week_start <= r.get("date", "") <= week_end]
+            if week_records:
+                avg_gold = sum(r["gold_price"] for r in week_records) / len(week_records)
+                avg_silver = sum(r["silver_price"] for r in week_records) / len(week_records)
+                weekly_data.insert(0, {
+                    "week": f"Hafta {4-i}",
+                    "gold_price": avg_gold,
+                    "silver_price": avg_silver
+                })
+        
+        # Aylık veriler (son 3 ay)
         monthly_data = []
-        for i in range(6):
-            period_start = now - timedelta(days=(i+1)*5)
-            period_end = now - timedelta(days=i*5)
+        for i in range(3):
+            month_date = now - timedelta(days=30*i)
+            month_start = month_date.replace(day=1).strftime("%Y-%m-%d")
+            month_end = (month_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            month_end_str = month_end.strftime("%Y-%m-%d")
             
-            period_records = [r for r in recent_records 
-                            if period_start.timestamp() <= r.get("timestamp", 0) <= period_end.timestamp()]
-            
-            if period_records:
-                avg_gold = sum(r["gold_price"] for r in period_records) / len(period_records)
-                avg_silver = sum(r["silver_price"] for r in period_records) / len(period_records)
-                period_label = period_start.strftime("%d.%m")
+            month_records = [r for r in recent_records 
+                            if month_start <= r.get("date", "") <= month_end_str]
+            if month_records:
+                avg_gold = sum(r["gold_price"] for r in month_records) / len(month_records)
+                avg_silver = sum(r["silver_price"] for r in month_records) / len(month_records)
                 monthly_data.insert(0, {
-                    "period": period_label,
+                    "month": month_date.strftime("%B"),
                     "gold_price": avg_gold,
                     "silver_price": avg_silver
                 })
@@ -473,9 +460,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             const data = chartData[currentChartPeriod];
             const labels = data.map(item => {
-                if (currentChartPeriod === 'daily') return item.hour;
-                if (currentChartPeriod === 'weekly') return item.day;
-                return item.period;
+                if (currentChartPeriod === 'daily') return new Date(item.date).toLocaleDateString('tr-TR', {month: 'short', day: 'numeric'});
+                if (currentChartPeriod === 'weekly') return item.week;
+                return item.month;
             });
             
             const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
