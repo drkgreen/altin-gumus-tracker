@@ -153,64 +153,64 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
-            min-height: 100vh; padding: 20px;
+            min-height: 100vh; padding: 20px; font-size: 16px;
         }
-        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .container { max-width: 392px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 22px; padding: 18px 22px; border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .logo { font-size: 20px; font-weight: 700; color: white; }
+        .logo { font-size: 22px; font-weight: 700; color: white; }
         .actions { display: flex; gap: 10px; }
         .action-btn {
-            width: 44px; height: 44px; border-radius: 12px;
+            width: 46px; height: 46px; border-radius: 14px;
             background: rgba(255, 255, 255, 0.2); border: none;
-            color: white; font-size: 18px; cursor: pointer;
+            color: white; font-size: 20px; cursor: pointer;
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
         .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
         
         .portfolio-main {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 24px; padding: 28px; color: white;
+            border-radius: 26px; padding: 30px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 24px; }
+        .portfolio-amount { font-size: 44px; font-weight: 900; margin-bottom: 26px; }
         .portfolio-metals { display: flex; justify-content: space-between; gap: 16px; }
         .metal-section {
-            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
-            backdrop-filter: blur(10px); min-width: 0; /* Prevents overflow */
+            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 18px; padding: 18px;
+            backdrop-filter: blur(10px); min-width: 0;
         }
         .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .metal-icon {
-            width: 36px; height: 36px; border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+            width: 38px; height: 38px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
             background: rgba(255, 255, 255, 0.2); flex-shrink: 0;
         }
-        .metal-name { font-size: 13px; font-weight: 600; opacity: 0.9; }
-        .metal-price { font-size: 14px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .metal-value { font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metal-name { font-size: 15px; font-weight: 600; opacity: 0.9; }
+        .metal-price { font-size: 16px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metal-value { font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 22px; padding: 26px; border: 1px solid rgba(255, 255, 255, 0.3);
             display: none;
         }
         .chart-header {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
-        .chart-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+        .chart-title { font-size: 20px; font-weight: 700; color: #2c3e50; }
         .chart-tabs {
             display: flex; gap: 8px;
-            background: #f8f9fa; border-radius: 10px; padding: 4px;
+            background: #f8f9fa; border-radius: 12px; padding: 6px;
         }
         .chart-tab {
-            padding: 8px 16px; border: none; border-radius: 6px;
+            padding: 10px 18px; border: none; border-radius: 8px;
             background: transparent; color: #6c757d;
-            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .chart-wrapper { position: relative; height: 300px; margin-bottom: 16px; }
@@ -218,8 +218,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: flex; justify-content: center; gap: 12px; margin-bottom: 16px;
         }
         .chart-toggle {
-            padding: 8px 16px; border: 2px solid #e9ecef; border-radius: 10px;
-            background: white; color: #6c757d; font-size: 12px; font-weight: 600;
+            padding: 10px 18px; border: 2px solid #e9ecef; border-radius: 12px;
+            background: white; color: #6c757d; font-size: 14px; font-weight: 600;
             cursor: pointer; transition: all 0.3s;
         }
         .chart-toggle.active { border-color: #667eea; background: #667eea; color: white; }
@@ -227,21 +227,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: flex; justify-content: center; gap: 20px; margin-top: 16px;
         }
         .legend-item {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6c757d;
+            display: flex; align-items: center; gap: 8px; font-size: 16px; color: #6c757d;
         }
         .legend-color {
-            width: 16px; height: 3px; border-radius: 2px;
+            width: 18px; height: 5px; border-radius: 3px;
         }
         .legend-color.gold { background: linear-gradient(45deg, #f39c12, #d35400); }
         .legend-color.silver { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
         
         .status-bar {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
-            border-radius: 14px; padding: 14px 18px;
+            border-radius: 16px; padding: 16px 20px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .status-text { color: white; font-size: 15px; font-weight: 600; }
-        .status-time { color: rgba(255, 255, 255, 0.8); font-size: 13px; }
+        .status-text { color: white; font-size: 17px; font-weight: 600; }
+        .status-time { color: rgba(255, 255, 255, 0.8); font-size: 15px; }
         
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -249,27 +249,27 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
         }
         .modal-content {
-            background: white; border-radius: 24px; padding: 28px;
-            width: 100%; max-width: 350px; position: relative;
+            background: white; border-radius: 26px; padding: 30px;
+            width: 100%; max-width: 352px; position: relative;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .modal-title { font-size: 22px; font-weight: 800; color: #2c3e50; }
+        .modal-title { font-size: 24px; font-weight: 800; color: #2c3e50; }
         .close-btn {
-            width: 36px; height: 36px; border-radius: 10px; background: #f8f9fa;
-            border: none; font-size: 18px; cursor: pointer; display: flex;
+            width: 38px; height: 38px; border-radius: 12px; background: #f8f9fa;
+            border: none; font-size: 20px; cursor: pointer; display: flex;
             align-items: center; justify-content: center;
         }
         .input-group { margin-bottom: 22px; }
-        .input-label { display: block; margin-bottom: 10px; font-weight: 700; color: #2c3e50; font-size: 15px; }
+        .input-label { display: block; margin-bottom: 10px; font-weight: 700; color: #2c3e50; font-size: 17px; }
         .input-field {
-            width: 100%; padding: 16px; border: 2px solid #e9ecef;
-            border-radius: 14px; font-size: 17px; background: #f8f9fa; font-weight: 600;
+            width: 100%; padding: 18px; border: 2px solid #e9ecef;
+            border-radius: 16px; font-size: 19px; background: #f8f9fa; font-weight: 600;
         }
         .input-field:focus { outline: none; border-color: #667eea; background: white; }
         .modal-actions { display: flex; gap: 14px; justify-content: flex-end; }
         .btn {
-            padding: 14px 24px; border-radius: 12px; font-weight: 700;
-            cursor: pointer; border: none; font-size: 15px;
+            padding: 16px 26px; border-radius: 14px; font-weight: 700;
+            cursor: pointer; border: none; font-size: 17px;
         }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #e9ecef; color: #6c757d; }
@@ -300,7 +300,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         <div class="metal-name">Altın</div>
                     </div>
                     <div class="metal-price" id="currentGoldPrice">-.-- ₺</div>
-                    <div class="metal-value" id="goldValue">0 ₺</div>
+                    <div class="metal-value" id="goldValue">0,00 ₺</div>
                 </div>
                 <div class="metal-section">
                     <div class="metal-header">
@@ -308,7 +308,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         <div class="metal-name">Gümüş</div>
                     </div>
                     <div class="metal-price" id="currentSilverPrice">-.-- ₺</div>
-                    <div class="metal-value" id="silverValue">0 ₺</div>
+                    <div class="metal-value" id="silverValue">0,00 ₺</div>
                 </div>
             </div>
         </div>
@@ -381,6 +381,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let portfolioChart = null;
         let currentChartPeriod = 'daily';
         let currentMetalView = 'both';
+
+        // K formatında gösterim için yardımcı fonksiyon
+        function formatKValue(value) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M₺';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(0) + 'k₺';
+            }
+            return Math.round(value) + '₺';
+        }
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -508,7 +518,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return new Intl.NumberFormat('tr-TR').format(value) + '₺';
+                                    return formatKValue(value);
                                 }
                             }
                         }
@@ -596,7 +606,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR').format(amount) + '₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + ' ₺';
         }
 
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
@@ -621,28 +634,3 @@ def api_gold_price():
     try:
         price = get_gold_price()
         return jsonify({'success': bool(price), 'price': price or ''})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/silver-price')
-def api_silver_price():
-    try:
-        price = get_silver_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/chart-data')
-def api_chart_data():
-    try:
-        data = get_chart_data()
-        return jsonify({'success': bool(data), 'data': data or {}})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v3.0.0")
-    print("Redesigned Portfolio Interface")
-    print(f"URL: http://localhost:{port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
