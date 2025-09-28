@@ -188,20 +188,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex; justify-content: space-between; gap: 20px;
+            display: flex; justify-content: space-between; gap: 8px;
             margin-top: 20px;
         }
         .metal-item {
             flex: 1; 
             background: rgba(255, 255, 255, 0.15); 
-            border-radius: 20px; 
-            padding: 24px;
+            border-radius: 16px; 
+            padding: 18px;
             backdrop-filter: blur(10px); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-height: 140px;
         }
         .metal-header {
-            display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
         }
         .metal-icon {
             width: 40px; height: 40px; border-radius: 10px; display: flex;
@@ -210,7 +210,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-icon.gold { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
         .metal-icon.silver { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
         .metal-name { font-size: 16px; font-weight: 600; }
-        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 10px; }
+        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
         
         .chart-container {
@@ -293,14 +293,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .chart-header { flex-direction: column; gap: 12px; }
             .portfolio-metals { 
                 flex-direction: column; 
-                gap: 16px;
+                gap: 12px;
             }
             
             /* Mobilde daha büyük font boyutları */
             .metal-name { font-size: 17px; }
             .metal-price { font-size: 16px; }
             .metal-value { font-size: 24px; }
-            .metal-item { padding: 28px; min-height: 150px; }
+            .metal-item { padding: 20px; min-height: 130px; }
         }
     </style>
 </head>
@@ -672,7 +672,20 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.7.1")
-    print("Enhanced Portfolio Layout with Expanded Containers")
-    print(f"URL: http://localhost:{port}")
+    print("=" * 50)
+    print("🚀 Metal Fiyat Takipçisi v2.7.2")
+    print("📊 Optimized Container Layout")
+    print("✨ Kompakt ve Responsive Tasarım")
+    print("=" * 50)
+    print(f"🌐 Server: http://localhost:{port}")
+    print(f"📱 Mobile: http://0.0.0.0:{port}")
+    print("=" * 50)
+    print("📈 Özellikler:")
+    print("  • Optimize edilmiş container boyutları")
+    print("  • Minimum boşluk, maksimum alan")
+    print("  • Mobil responsive tasarım")
+    print("  • Real-time fiyat takibi")
+    print("  • Portföy grafik analizi")
+    print("  • Taşma önleyici kompakt layout")
+    print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
