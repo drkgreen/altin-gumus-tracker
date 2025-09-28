@@ -385,11 +385,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
-            const statusText = document.getElementById('statusText');
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
-                statusText.textContent = 'Güncelleniyor...';
                 
                 const [goldRes, silverRes, chartRes] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -416,12 +414,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     updateChart();
                 }
                 
-                statusText.textContent = 'Güncel';
                 document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 updatePortfolio();
                 
             } catch (error) {
-                statusText.textContent = 'Hata';
+                console.error('Fetch error:', error);
             } finally {
                 setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
             }
