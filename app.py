@@ -166,7 +166,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
             border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .header-left { display: flex; align-items: center; gap: 12px; }
         .logo { font-size: 20px; font-weight: 700; color: white; }
+        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
         .actions { display: flex; gap: 10px; }
         .action-btn {
             width: 44px; height: 44px; border-radius: 12px;
@@ -196,7 +198,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .metal-icon {
             width: 32px; height: 32px; border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+            align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
         }
         .metal-icon.gold { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
         .metal-icon.silver { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
@@ -243,10 +245,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .status-bar {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
             border-radius: 14px; padding: 14px 18px;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
         .status-text { color: white; font-size: 15px; font-weight: 600; }
-        .status-time { color: rgba(255, 255, 255, 0.8); font-size: 13px; }
         
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -289,7 +290,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Metal Tracker</div>
+            <div class="header-left">
+                <div class="logo">Metal Tracker</div>
+                <div class="update-time" id="updateTime">--:--</div>
+            </div>
             <div class="actions">
                 <button class="action-btn" onclick="fetchPrice()" id="refreshBtn">⟳</button>
                 <button class="action-btn" onclick="togglePortfolio()">⚙</button>
@@ -301,7 +305,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="portfolio-metals">
                 <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon gold">Au</div>
+                        <div class="metal-icon gold">•</div>
                         <div class="metal-name">Altın</div>
                     </div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
@@ -309,7 +313,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 </div>
                 <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon silver">Ag</div>
+                        <div class="metal-icon silver">•</div>
                         <div class="metal-name">Gümüş</div>
                     </div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
@@ -344,7 +348,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <div class="status-bar">
             <div class="status-text" id="statusText">Yükleniyor...</div>
-            <div class="status-time" id="statusTime">--:--</div>
         </div>
     </div>
     
@@ -416,7 +419,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 }
                 
                 statusText.textContent = 'Güncel';
-                document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('updateTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 updatePortfolio();
                 
             } catch (error) {
