@@ -188,8 +188,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex; justify-content: space-between; gap: 6px;
-            margin-top: 20px;
+            display: flex; justify-content: center; gap: 6px;
+            margin: 20px 10px 0 10px;
         }
         .metal-item {
             flex: 1; 
@@ -673,20 +673,20 @@ def api_chart_data():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=" * 50)
-    print("🚀 Metal Fiyat Takipçisi v2.7.3")
-    print("📊 Perfect Container Fit")
-    print("✨ Taşma Sorunu Çözüldü")
+    print("🚀 Metal Fiyat Takipçisi v2.7.4")
+    print("📊 Centered Container Layout")
+    print("✨ Eşit Sol/Sağ Hizalama")
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
     print("=" * 50)
     print("📈 Özellikler:")
-    print("  • Mükemmel container yerleşimi")
-    print("  • Taşma sorunu tamamen çözüldü")
-    print("  • Optimize edilmiş yan boşluklar")
+    print("  • Merkeze hizalanmış container'lar")
+    print("  • Eşit sol/sağ boşluklar (10px)")
+    print("  • Mükemmel geometrik yerleşim")
     print("  • Mobil responsive tasarım")
     print("  • Real-time fiyat takibi")
     print("  • Portföy grafik analizi")
-    print("  • Pixel-perfect layout")
+    print("  • Pixel-perfect centered layout")
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
