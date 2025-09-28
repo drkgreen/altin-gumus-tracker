@@ -159,7 +159,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
             min-height: 100vh; padding: 20px;
         }
-        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 5px; }
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
@@ -182,20 +182,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .portfolio-summary {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 24px; padding: 28px; color: white;
+            border-radius: 24px; padding: 24px 20px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex; justify-content: space-between; gap: 8px;
+            display: flex; justify-content: space-between; gap: 6px;
             margin-top: 20px;
         }
         .metal-item {
             flex: 1; 
             background: rgba(255, 255, 255, 0.15); 
             border-radius: 16px; 
-            padding: 18px;
+            padding: 16px;
             backdrop-filter: blur(10px); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-height: 140px;
@@ -673,19 +673,20 @@ def api_chart_data():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=" * 50)
-    print("🚀 Metal Fiyat Takipçisi v2.7.2")
-    print("📊 Optimized Container Layout")
-    print("✨ Kompakt ve Responsive Tasarım")
+    print("🚀 Metal Fiyat Takipçisi v2.7.3")
+    print("📊 Perfect Container Fit")
+    print("✨ Taşma Sorunu Çözüldü")
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
     print("=" * 50)
     print("📈 Özellikler:")
-    print("  • Optimize edilmiş container boyutları")
-    print("  • Minimum boşluk, maksimum alan")
+    print("  • Mükemmel container yerleşimi")
+    print("  • Taşma sorunu tamamen çözüldü")
+    print("  • Optimize edilmiş yan boşluklar")
     print("  • Mobil responsive tasarım")
     print("  • Real-time fiyat takibi")
     print("  • Portföy grafik analizi")
-    print("  • Taşma önleyici kompakt layout")
+    print("  • Pixel-perfect layout")
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
