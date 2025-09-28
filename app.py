@@ -95,7 +95,11 @@ def get_chart_data():
                     "silver_price": avg_silver
                 })
         
-        return {"daily": daily_data, "weekly": weekly_data, "monthly": monthly_data}
+        return {
+            "daily": daily_data,
+            "weekly": weekly_data,
+            "monthly": monthly_data
+        }
         
     except Exception as e:
         print(f"Chart data error: {e}")
@@ -172,27 +176,33 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
         
-        .portfolio-main {
+        .portfolio-summary {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             border-radius: 24px; padding: 28px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 24px; }
-        .portfolio-metals { display: flex; justify-content: space-between; gap: 16px; }
-        .metal-section {
+        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
+        .portfolio-metals {
+            display: flex; justify-content: space-between; gap: 16px;
+            margin-top: 16px;
+        }
+        .metal-item {
             flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
-            backdrop-filter: blur(10px); min-width: 0; /* Prevents overflow */
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .metal-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+        }
         .metal-icon {
-            width: 36px; height: 36px; border-radius: 8px; display: flex;
+            width: 32px; height: 32px; border-radius: 8px; display: flex;
             align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
-            background: rgba(255, 255, 255, 0.2); flex-shrink: 0;
         }
-        .metal-name { font-size: 13px; font-weight: 600; opacity: 0.9; }
-        .metal-price { font-size: 14px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .metal-value { font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .metal-icon.gold { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
+        .metal-icon.silver { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
+        .metal-name { font-size: 14px; font-weight: 600; }
+        .metal-price { font-size: 13px; opacity: 0.8; margin-bottom: 8px; }
+        .metal-value { font-size: 18px; font-weight: 700; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -213,22 +223,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .chart-wrapper { position: relative; height: 300px; margin-bottom: 16px; }
-        .chart-controls {
-            display: flex; justify-content: center; gap: 12px; margin-bottom: 16px;
+        .chart-wrapper {
+            position: relative; height: 300px; margin-bottom: 16px;
         }
-        .chart-toggle {
-            padding: 8px 16px; border: 2px solid #e9ecef; border-radius: 10px;
-            background: white; color: #6c757d; font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s;
-        }
-        .chart-toggle.active { border-color: #667eea; background: #667eea; color: white; }
         .chart-legend {
             display: flex; justify-content: center; gap: 20px; margin-top: 16px;
         }
         .legend-item {
             display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6c757d;
+            cursor: pointer; transition: opacity 0.3s;
         }
+        .legend-item.disabled { opacity: 0.4; }
         .legend-color {
             width: 16px; height: 3px; border-radius: 2px;
         }
@@ -277,7 +282,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         @media (max-width: 400px) {
             .container { max-width: 100%; }
             .chart-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 16px; }
+            .portfolio-metals { flex-direction: column; gap: 12px; }
         }
     </style>
 </head>
@@ -291,24 +296,24 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="portfolio-main" id="portfolioMain">
+        <div class="portfolio-summary" id="portfolioSummary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
-                <div class="metal-section">
+                <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon">Au</div>
+                        <div class="metal-icon gold">Au</div>
                         <div class="metal-name">Altın</div>
                     </div>
-                    <div class="metal-price" id="currentGoldPrice">-.-- ₺</div>
-                    <div class="metal-value" id="goldValue">0 ₺</div>
+                    <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
+                    <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
                 </div>
-                <div class="metal-section">
+                <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon">Ag</div>
+                        <div class="metal-icon silver">Ag</div>
                         <div class="metal-name">Gümüş</div>
                     </div>
-                    <div class="metal-price" id="currentSilverPrice">-.-- ₺</div>
-                    <div class="metal-value" id="silverValue">0 ₺</div>
+                    <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
+                    <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
                 </div>
             </div>
         </div>
@@ -322,20 +327,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
                 </div>
             </div>
-            <div class="chart-controls">
-                <button class="chart-toggle active" onclick="toggleMetal('both')" id="bothToggle">İkisi</button>
-                <button class="chart-toggle" onclick="toggleMetal('gold')" id="goldToggle">Altın</button>
-                <button class="chart-toggle" onclick="toggleMetal('silver')" id="silverToggle">Gümüş</button>
-            </div>
             <div class="chart-wrapper">
                 <canvas id="portfolioChart"></canvas>
             </div>
-            <div class="chart-legend" id="chartLegend">
-                <div class="legend-item">
+            <div class="chart-legend">
+                <div class="legend-item" onclick="toggleDataset('gold')" id="goldLegend">
                     <div class="legend-color gold"></div>
                     <span>Altın Portföyü</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" onclick="toggleDataset('silver')" id="silverLegend">
                     <div class="legend-color silver"></div>
                     <span>Gümüş Portföyü</span>
                 </div>
@@ -380,25 +380,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let chartData = {};
         let portfolioChart = null;
         let currentChartPeriod = 'daily';
-        let currentMetalView = 'both';
-
-        // Sayıları kısaltma ve para birimi formatlaması için yardımcı fonksiyonlar
-        function formatChartValue(value) {
-            if (value >= 1000000) {
-                return (value / 1000000).toFixed(2) + 'M₺';
-            } else if (value >= 1000) {
-                return (value / 1000).toFixed(2) + 'K₺';
-            } else {
-                return value.toFixed(2) + '₺';
-            }
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + '₺';
-        }
+        let visibleDatasets = { gold: true, silver: true };
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -419,13 +401,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const chartDataRes = await chartRes.json();
                 
                 if (goldData.success) {
-                    document.getElementById('currentGoldPrice').textContent = goldData.price + ' ₺';
                     let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
                 if (silverData.success) {
-                    document.getElementById('currentSilverPrice').textContent = silverData.price + ' ₺';
                     let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
@@ -453,12 +433,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateChart();
         }
 
-        function toggleMetal(metal) {
-            currentMetalView = metal;
-            document.querySelectorAll('.chart-toggle').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(metal + 'Toggle').classList.add('active');
+        function toggleDataset(type) {
+            visibleDatasets[type] = !visibleDatasets[type];
+            const legend = document.getElementById(type + 'Legend');
+            if (visibleDatasets[type]) {
+                legend.classList.remove('disabled');
+            } else {
+                legend.classList.add('disabled');
+            }
             updateChart();
-            updateLegend();
         }
 
         function updateChart() {
@@ -480,10 +463,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return item.period;
             });
             
+            const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
+            const silverPortfolioData = data.map(item => silverAmount * item.silver_price);
+            
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            
+            if (portfolioChart) {
+                portfolioChart.destroy();
+            }
+            
             const datasets = [];
             
-            if (currentMetalView === 'both' || currentMetalView === 'gold') {
-                const goldPortfolioData = data.map(item => goldAmount * item.gold_price);
+            if (visibleDatasets.gold && goldAmount > 0) {
                 datasets.push({
                     label: 'Altın Portföyü',
                     data: goldPortfolioData,
@@ -495,8 +486,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 });
             }
             
-            if (currentMetalView === 'both' || currentMetalView === 'silver') {
-                const silverPortfolioData = data.map(item => silverAmount * item.silver_price);
+            if (visibleDatasets.silver && silverAmount > 0) {
                 datasets.push({
                     label: 'Gümüş Portföyü',
                     data: silverPortfolioData,
@@ -508,56 +498,38 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 });
             }
             
-            const ctx = document.getElementById('portfolioChart').getContext('2d');
-            
-            if (portfolioChart) {
-                portfolioChart.destroy();
-            }
-            
             portfolioChart = new Chart(ctx, {
                 type: 'line',
-                data: { labels: labels, datasets: datasets },
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return formatChartValue(value);
+                                    if (value >= 1000000) {
+                                        return (value / 1000000).toFixed(1) + 'M₺';
+                                    } else if (value >= 1000) {
+                                        return (value / 1000).toFixed(0) + 'K₺';
+                                    }
+                                    return new Intl.NumberFormat('tr-TR', {maximumFractionDigits: 2}).format(value) + '₺';
                                 }
                             }
                         }
                     },
-                    elements: { point: { radius: 4, hoverRadius: 6 } },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
-                                }
-                            }
-                        }
+                    elements: {
+                        point: { radius: 4, hoverRadius: 6 }
                     }
                 }
             });
-        }
-
-        function updateLegend() {
-            const legend = document.getElementById('chartLegend');
-            if (currentMetalView === 'gold') {
-                legend.innerHTML = '<div class="legend-item"><div class="legend-color gold"></div><span>Altın Portföyü</span></div>';
-            } else if (currentMetalView === 'silver') {
-                legend.innerHTML = '<div class="legend-item"><div class="legend-color silver"></div><span>Gümüş Portföyü</span></div>';
-            } else {
-                legend.innerHTML = '<div class="legend-item"><div class="legend-color gold"></div><span>Altın Portföyü</span></div><div class="legend-item"><div class="legend-color silver"></div><span>Gümüş Portföyü</span></div>';
-            }
         }
 
         function togglePortfolio() {
@@ -576,18 +548,22 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const silverValue = silverAmount * currentSilverPrice;
             const totalValue = goldValue + silverValue;
             
-            const portfolioMain = document.getElementById('portfolioMain');
+            const portfolioSummary = document.getElementById('portfolioSummary');
             const chartContainer = document.getElementById('chartContainer');
             
             if (totalValue > 0) {
-                portfolioMain.style.display = 'block';
+                portfolioSummary.style.display = 'block';
                 chartContainer.style.display = 'block';
+                
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-                document.getElementById('goldValue').textContent = formatCurrency(goldValue);
-                document.getElementById('silverValue').textContent = formatCurrency(silverValue);
+                document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
+                document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
+                document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
+                document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+                
                 updateChart();
             } else {
-                portfolioMain.style.display = 'none';
+                portfolioSummary.style.display = 'none';
                 chartContainer.style.display = 'none';
                 if (portfolioChart) {
                     portfolioChart.destroy();
@@ -624,6 +600,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 } catch (e) {}
                 updatePortfolio();
             }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
+        }
+
+        function formatPrice(price) {
+            if (!price) return '0,00₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + '₺';
         }
 
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
@@ -669,7 +660,7 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v3.0.0")
-    print("Redesigned Portfolio Interface")
+    print("Metal Fiyat Takipçisi v2.7.0")
+    print("Redesigned Portfolio with Chart Controls")
     print(f"URL: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
