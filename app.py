@@ -181,7 +181,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 24px; }
 
         .metal-section {
-            flex: 1; padding: 16px; min-width: 0; /* Prevents overflow */
+            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
+            backdrop-filter: blur(10px); min-width: 0; /* Prevents overflow */
         }
         .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .metal-icon {
