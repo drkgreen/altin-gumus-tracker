@@ -188,25 +188,30 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex; justify-content: space-between; gap: 16px;
-            margin-top: 16px;
+            display: flex; justify-content: space-between; gap: 20px;
+            margin-top: 20px;
         }
         .metal-item {
-            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1; 
+            background: rgba(255, 255, 255, 0.15); 
+            border-radius: 20px; 
+            padding: 24px;
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 140px;
         }
         .metal-header {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
         }
         .metal-icon {
-            width: 32px; height: 32px; border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+            width: 40px; height: 40px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
         }
         .metal-icon.gold { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
         .metal-icon.silver { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
-        .metal-name { font-size: 14px; font-weight: 600; }
-        .metal-price { font-size: 13px; opacity: 0.8; margin-bottom: 8px; }
-        .metal-value { font-size: 18px; font-weight: 700; }
+        .metal-name { font-size: 16px; font-weight: 600; }
+        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 10px; }
+        .metal-value { font-size: 22px; font-weight: 700; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -286,7 +291,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         @media (max-width: 400px) {
             .container { max-width: 100%; }
             .chart-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
+            .portfolio-metals { 
+                flex-direction: column; 
+                gap: 16px;
+            }
+            
+            /* Mobilde daha büyük font boyutları */
+            .metal-name { font-size: 17px; }
+            .metal-price { font-size: 16px; }
+            .metal-value { font-size: 24px; }
+            .metal-item { padding: 28px; min-height: 150px; }
         }
     </style>
 </head>
@@ -658,7 +672,7 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.7.0")
-    print("Redesigned Portfolio with Chart Controls")
+    print("Metal Fiyat Takipçisi v2.7.1")
+    print("Enhanced Portfolio Layout with Expanded Containers")
     print(f"URL: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
