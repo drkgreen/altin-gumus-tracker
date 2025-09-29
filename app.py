@@ -45,6 +45,7 @@ def get_chart_data():
         daily_data = []
         for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
             timestamp = record.get("timestamp", 0)
+            # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
@@ -230,7 +231,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             cursor: grabbing;
         }
         
-        /* Kaydırma göstergesi */
         .scroll-indicator {
             display: flex; justify-content: center; align-items: center; gap: 8px;
             margin-top: 12px; color: #6c757d; font-size: 13px;
@@ -337,15 +337,33 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         <div class="chart-container" id="chartContainer">
             <div class="chart-header">
-                <div class="chart-title">📋 Fiyat Listesi</div>
+                <div class="chart-title">Portföy Grafiği</div>
                 <div class="chart-tabs">
                     <button class="chart-tab active" onclick="switchChart('daily')" id="dailyChartTab">Günlük</button>
                     <button class="chart-tab" onclick="switchChart('weekly')" id="weeklyChartTab">Haftalık</button>
                     <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
                 </div>
             </div>
+            <div class="chart-wrapper">
+                <canvas id="portfolioChart"></canvas>
+            </div>
             
-            <div class="list-view" id="listView"></div>
+            <div class="scroll-indicator">
+                <span>◀</span>
+                <div class="scroll-dots" id="scrollDots"></div>
+                <span>▶</span>
+            </div>
+            
+            <div class="chart-legend">
+                <div class="legend-item" onclick="toggleDataset('gold')" id="goldLegend">
+                    <div class="legend-color gold"></div>
+                    <span>Altın Portföyü</span>
+                </div>
+                <div class="legend-item" onclick="toggleDataset('silver')" id="silverLegend">
+                    <div class="legend-color silver"></div>
+                    <span>Gümüş Portföyü</span>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -379,8 +397,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
         let chartData = {};
+        let portfolioChart = null;
         let currentChartPeriod = 'daily';
-        let portfolioChart = null; // Kaydırma hassasiyeti
+        let visibleDatasets = { gold: true, silver: true };
+        let currentViewWindow = 0;
+        const MAX_VISIBLE_POINTS = 5;
+        
+        // Drag için değişkenler
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragCurrentX = 0;
+        let dragThreshold = 30;
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -410,7 +437,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (chartDataRes.success) {
                     chartData = chartDataRes.data;
-                    // En son verileri göstermek için window'u sıfırla
                     currentViewWindow = 0;
                     updateChart();
                     updateScrollIndicator();
@@ -428,7 +454,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         function switchChart(period) {
             currentChartPeriod = period;
-            currentViewWindow = 0; // Yeni grafik açıldığında başa dön
+            currentViewWindow = 0;
             document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'ChartTab').classList.add('active');
             updateChart();
@@ -449,21 +475,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function getVisibleData(fullData) {
             if (!fullData || fullData.length === 0) return fullData;
             
-            // Toplam veri sayısı
             const totalPoints = fullData.length;
             
-            // Eğer veri sayısı MAX_VISIBLE_POINTS'ten azsa tümünü göster
             if (totalPoints <= MAX_VISIBLE_POINTS) {
                 return fullData;
             }
             
-            // Kaç pencere olduğunu hesapla
             const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-            
-            // En son pencereyi varsayılan yap (currentViewWindow = 0 en son demek)
             const windowIndex = totalWindows - 1 - currentViewWindow;
-            
-            // Başlangıç ve bitiş indekslerini hesapla
             const startIndex = windowIndex * MAX_VISIBLE_POINTS;
             const endIndex = Math.min(startIndex + MAX_VISIBLE_POINTS, totalPoints);
             
@@ -508,10 +527,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
             
-            // Tüm veriyi al
             const fullData = chartData[currentChartPeriod];
-            
-            // Görünür veriyi filtrele
             const visibleData = getVisibleData(fullData);
             
             const labels = visibleData.map(item => {
@@ -571,7 +587,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                                 enabled: true,
                                 mode: 'x',
                                 onPan: function({chart}) {
-                                    // Pan işlemi sırasında window değiştir
                                     handlePan(chart);
                                 }
                             }
@@ -600,7 +615,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function handlePan(chart) {
-            // Bu fonksiyon gelecekte pan hareketlerini yönetmek için kullanılabilir
             console.log('Pan hareketi algılandı');
         }
 
@@ -723,11 +737,29 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             touchEndX = 0;
         });
 
-        window.onload = function() {
-            loadPortfolio();
-            fetchPrice();
-            updatePortfolio();
-        };
+        // Scroll dot'larına tıklama ile doğrudan o pencereye gitme
+        document.getElementById('scrollDots').addEventListener('click', function(e) {
+            if (e.target.classList.contains('scroll-dot')) {
+                const dots = Array.from(this.children);
+                const clickedIndex = dots.indexOf(e.target);
+                
+                if (clickedIndex !== -1) {
+                    const totalPoints = chartData[currentChartPeriod].length;
+                    const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
+                    currentViewWindow = totalWindows - 1 - clickedIndex;
+                    updateChart();
+                    updateScrollIndicator();
+                }
+            }
+        });
+
+        function togglePortfolio() {
+            document.getElementById('portfolioModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('portfolioModal').style.display = 'none';
+        }
 
         function updatePortfolio() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
@@ -750,184 +782,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
                 document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
                 
-                updateListView();
+                updateChart();
+                updateScrollIndicator();
             } else {
                 portfolioSummary.style.display = 'none';
                 chartContainer.style.display = 'none';
+                if (portfolioChart) {
+                    portfolioChart.destroy();
+                    portfolioChart = null;
+                }
             }
             
             savePortfolio();
-        }
-        
-        function updateListView() {
-            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
-            const listContainer = document.getElementById('listView');
-            
-            if (!chartData[currentChartPeriod] || (goldAmount === 0 && silverAmount === 0)) {
-                listContainer.innerHTML = `
-                    <div class="no-data">
-                        <div class="no-data-icon">📊</div>
-                        <div class="no-data-text">Veri yükleniyor veya portföy boş...</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            const data = chartData[currentChartPeriod];
-            
-            // İstatistikler hesapla
-            const goldPrices = data.map(d => d.gold_price);
-            const silverPrices = data.map(d => d.silver_price);
-            const portfolioValues = data.map(d => (goldAmount * d.gold_price) + (silverAmount * d.silver_price));
-            
-            const maxGold = Math.max(...goldPrices);
-            const minGold = Math.min(...goldPrices);
-            const avgGold = goldPrices.reduce((a, b) => a + b, 0) / goldPrices.length;
-            
-            const changePercent = ((portfolioValues[portfolioValues.length - 1] - portfolioValues[0]) / portfolioValues[0] * 100).toFixed(2);
-            
-            let html = `
-                <div class="summary-card">
-                    <div class="summary-title">📊 ${getPeriodLabel(currentChartPeriod)} Özet</div>
-                    <div class="summary-stats">
-                        <div class="summary-stat">
-                            <div class="summary-stat-label">En Yüksek Altın</div>
-                            <div class="summary-stat-value">${formatPrice(maxGold)}</div>
-                        </div>
-                        <div class="summary-stat">
-                            <div class="summary-stat-label">En Düşük Altın</div>
-                            <div class="summary-stat-value">${formatPrice(minGold)}</div>
-                        </div>
-                        <div class="summary-stat">
-                            <div class="summary-stat-label">Ortalama Altın</div>
-                            <div class="summary-stat-value">${formatPrice(avgGold)}</div>
-                        </div>
-                        <div class="summary-stat">
-                            <div class="summary-stat-label">Portföy Değişim</div>
-                            <div class="summary-stat-value">${changePercent > 0 ? '↑' : '↓'} ${Math.abs(changePercent)}%</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="price-table">
-                    <div class="table-header">
-                        <div>Saat</div>
-                        <div>Altın</div>
-                        <div>Gümüş</div>
-                        <div>Portföy</div>
-                    </div>
-                    <div class="table-body">
-            `;
-            
-            // Satırları oluştur (tersine çevir - en yeni önce)
-            const reversedData = [...data].reverse();
-            reversedData.forEach((item, index) => {
-                const isLatest = index === 0;
-                const timeLabel = getTimeLabel(item, currentChartPeriod);
-                
-                const goldPrice = item.gold_price;
-                const silverPrice = item.silver_price;
-                const portfolioValue = (goldAmount * goldPrice) + (silverAmount * silverPrice);
-                
-                // Değişim hesapla (bir önceki kayıtla karşılaştır)
-                let goldChange = 0;
-                let silverChange = 0;
-                let portfolioChange = 0;
-                
-                if (index < reversedData.length - 1) {
-                    const prevItem = reversedData[index + 1];
-                    goldChange = ((goldPrice - prevItem.gold_price) / prevItem.gold_price * 100);
-                    silverChange = ((silverPrice - prevItem.silver_price) / prevItem.silver_price * 100);
-                    const prevPortfolioValue = (goldAmount * prevItem.gold_price) + (silverAmount * prevItem.silver_price);
-                    portfolioChange = ((portfolioValue - prevPortfolioValue) / prevPortfolioValue * 100);
-                }
-                
-                html += `
-                    <div class="table-row ${isLatest ? 'latest' : ''}">
-                        <div class="row-time">
-                            ${timeLabel}
-                            ${isLatest ? '<div class="time-badge">CANLI</div>' : ''}
-                        </div>
-                        
-                        <div class="row-cell">
-                            <div class="cell-price">${formatPriceShort(goldPrice)}</div>
-                            ${goldChange !== 0 ? `
-                                <div class="cell-change ${goldChange > 0 ? 'change-up' : 'change-down'}">
-                                    ${goldChange > 0 ? '↑' : '↓'}${Math.abs(goldChange).toFixed(1)}%
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="row-cell">
-                            <div class="cell-price">${formatPriceShort(silverPrice)}</div>
-                            ${silverChange !== 0 ? `
-                                <div class="cell-change ${silverChange > 0 ? 'change-up' : 'change-down'}">
-                                    ${silverChange > 0 ? '↑' : '↓'}${Math.abs(silverChange).toFixed(1)}%
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="row-cell">
-                            <div class="cell-price">${formatCurrencyShort(portfolioValue)}</div>
-                            ${portfolioChange !== 0 ? `
-                                <div class="cell-change ${portfolioChange > 0 ? 'change-up' : 'change-down'}">
-                                    ${portfolioChange > 0 ? '↑' : '↓'}${Math.abs(portfolioChange).toFixed(1)}%
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
-                    </div>
-                </div>
-            `;
-            
-            listContainer.innerHTML = html;
-            listContainer.style.display = 'block';
-        }
-        
-        function getPeriodLabel(period) {
-            switch(period) {
-                case 'daily': return 'Günlük';
-                case 'weekly': return 'Haftalık';
-                case 'monthly': return 'Aylık';
-                default: return '';
-            }
-        }
-        
-        function getTimeLabel(item, period) {
-            if (period === 'daily') return item.time;
-            if (period === 'weekly') return item.day;
-            return item.period;
-        }
-        
-        function formatPriceShort(price) {
-            if (!price) return '0₺';
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(price) + '₺';
-        }
-        
-        function formatCurrencyShort(amount) {
-            if (amount >= 1000) {
-                return (amount / 1000).toFixed(1) + 'K₺';
-            }
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount) + '₺';
-        }
-        
-        function togglePortfolio() {
-            document.getElementById('portfolioModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('portfolioModal').style.display = 'none';
         }
 
         function savePortfolio() {
@@ -1009,8 +875,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             loadPortfolio();
             fetchPrice();
             updatePortfolio();
-            // Liste görünümünü varsayılan olarak göster
-            switchView('list');
         };
     </script>
 </body>
@@ -1046,22 +910,25 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("=" * 50)
+    print("=" * 60)
     print("🚀 Metal Fiyat Takipçisi v3.0.0")
-    print("📊 Kaydırılabilir Grafik Özelliği")
-    print("✨ Maksimum 5 Veri Noktası Görünümü")
-    print("=" * 50)
+    print("=" * 60)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
-    print("=" * 50)
-    print("🔥 Yeni Özellikler:")
-    print("  • Yatay kaydırılabilir grafik")
-    print("  • Maksimum 5 dikey çizgi gösterimi")
-    print("  • Touch swipe desteği (← →)")
-    print("  • Klavye ok tuşları ile kaydırma")
-    print("  • Scroll gösterge noktaları")
-    print("  • Doğrudan nokta seçimi")
-    print("  • 30 dakikalık detaylı veri")
-    print("  • Türkiye saati (UTC+3)")
-    print("=" * 50)
+    print("=" * 60)
+    print("✨ Yeni Özellikler:")
+    print("  • 📊 Kaydırılabilir grafik (max 5 veri noktası)")
+    print("  • 🖱️  Mouse drag ile kaydırma")
+    print("  • 👆 Touch swipe desteği")
+    print("  • ⌨️  Klavye ok tuşları (← →)")
+    print("  • 🔘 Scroll dot navigasyonu")
+    print("  • 💾 Cookie ile kalıcı portföy kaydı")
+    print("  • 🕐 30 dakikalık detaylı veri takibi")
+    print("  • 🇹🇷 Türkiye saati (UTC+3)")
+    print("=" * 60)
+    print("📈 Veri Kaynakları:")
+    print("  • Altın: YapıKredi (doviz.com)")
+    print("  • Gümüş: VakıfBank (doviz.com)")
+    print("  • Geçmiş: GitHub JSON")
+    print("=" * 60)
     app.run(host='0.0.0.0', port=port, debug=False)
