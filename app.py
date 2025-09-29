@@ -38,30 +38,24 @@ def get_chart_data():
         if not recent_records:
             return None
         
-        # Günlük veriler (bugün saat saat)
+        # Günlük veriler (bugün her kayıt ayrı ayrı - 30dk aralıklarla)
         today = now.strftime("%Y-%m-%d")
         today_records = [r for r in recent_records if r.get("date") == today]
         
-        hourly_data = {}
-        for record in today_records:
-            timestamp = record.get("timestamp", 0)
-            hour = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%H:00")
-            if hour not in hourly_data:
-                hourly_data[hour] = {"gold_prices": [], "silver_prices": []}
-            hourly_data[hour]["gold_prices"].append(record["gold_price"])
-            hourly_data[hour]["silver_prices"].append(record["silver_price"])
-        
         daily_data = []
-        for hour in sorted(hourly_data.keys()):
-            gold_avg = sum(hourly_data[hour]["gold_prices"]) / len(hourly_data[hour]["gold_prices"])
-            silver_avg = sum(hourly_data[hour]["silver_prices"]) / len(hourly_data[hour]["silver_prices"])
+        for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
+            timestamp = record.get("timestamp", 0)
+            # UTC'den Türkiye saatine çevir (+3 saat)
+            local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
+            time_label = local_time.strftime("%H:%M")
+            
             daily_data.append({
-                "hour": hour,
-                "gold_price": gold_avg,
-                "silver_price": silver_avg
+                "time": time_label,
+                "gold_price": record["gold_price"],
+                "silver_price": record["silver_price"]
             })
         
-        # Haftalık veriler (son 7 gün)
+        # Haftalık veriler (son 7 gün, günlük ortalamalar)
         weekly_data = []
         for i in range(7):
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -402,7 +396,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
-                refreshBtn.style.transition = 'transform 0.5s ease';
                 
                 const [goldRes, silverRes, chartRes] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -414,28 +407,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const silverData = await silverRes.json();
                 const chartDataRes = await chartRes.json();
                 
-                console.log('Gold data:', goldData);
-                console.log('Silver data:', silverData);
-                console.log('Chart data:', chartDataRes);
-                
                 if (goldData.success) {
                     let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    console.log('Current gold price:', currentGoldPrice);
                 }
                 
                 if (silverData.success) {
                     let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    console.log('Current silver price:', currentSilverPrice);
                 }
                 
-                if (chartDataRes.success && chartDataRes.data) {
+                if (chartDataRes.success) {
                     chartData = chartDataRes.data;
-                    console.log('Chart data loaded:', chartData);
                     updateChart();
-                } else {
-                    console.error('Chart data failed:', chartDataRes);
                 }
                 
                 document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
@@ -480,7 +464,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             const data = chartData[currentChartPeriod];
             const labels = data.map(item => {
-                if (currentChartPeriod === 'daily') return item.hour;
+                if (currentChartPeriod === 'daily') return item.time;
                 if (currentChartPeriod === 'weekly') return item.day;
                 return item.period;
             });
@@ -647,9 +631,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             loadPortfolio();
             fetchPrice();
             updatePortfolio();
-            
-            // Her 5 dakikada bir otomatik güncelleme
-            setInterval(fetchPrice, 300000);
         };
     </script>
 </body>
@@ -686,20 +667,20 @@ def api_chart_data():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=" * 50)
-    print("🚀 Metal Fiyat Takipçisi v2.7.4")
-    print("📊 Centered Container Layout")
-    print("✨ Eşit Sol/Sağ Hizalama")
+    print("🚀 Metal Fiyat Takipçisi v2.8.0")
+    print("📊 30 Dakikalık Detaylı Grafik")
+    print("✨ Türkiye Saati (UTC+3)")
     print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
     print("=" * 50)
     print("📈 Özellikler:")
-    print("  • Merkeze hizalanmış container'lar")
-    print("  • Eşit sol/sağ boşluklar (10px)")
-    print("  • Otomatik veri güncelleme (5 dk)")
-    print("  • Geliştirilmiş hata ayıklama")
-    print("  • Mobil responsive tasarım")
+    print("  • 30 dakikalık detaylı veri takibi")
+    print("  • Türkiye saati (UTC+3) ile gösterim")
+    print("  • Her kayıt ayrı ayrı grafikte")
+    print("  • Günlük: HH:MM formatında zaman")
+    print("  • Haftalık: Günlük ortalamalar")
+    print("  • Aylık: 5 günlük periyotlar")
     print("  • Real-time fiyat takibi")
-    print("  • Portföy grafik analizi")
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
