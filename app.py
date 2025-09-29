@@ -45,7 +45,6 @@ def get_chart_data():
         daily_data = []
         for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
             timestamp = record.get("timestamp", 0)
-            # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
@@ -221,18 +220,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .chart-wrapper {
             position: relative; height: 300px; margin-bottom: 16px;
             overflow: hidden;
+            cursor: grab;
+            user-select: none;
+        }
+        .chart-wrapper:active {
+            cursor: grabbing;
+        }
+        .chart-wrapper.dragging {
+            cursor: grabbing;
         }
         
+        /* Kaydırma göstergesi */
         .scroll-indicator {
             display: flex; justify-content: center; align-items: center; gap: 8px;
             margin-top: 12px; color: #6c757d; font-size: 13px;
         }
-        .scroll-dots { display: flex; gap: 4px; }
+        .scroll-dots {
+            display: flex; gap: 4px;
+        }
         .scroll-dot {
             width: 6px; height: 6px; border-radius: 50%;
-            background: #d1d5db; transition: all 0.3s; cursor: pointer;
+            background: #d1d5db; transition: all 0.3s;
         }
-        .scroll-dot:hover { background: #9ca3af; }
         .scroll-dot.active {
             background: #667eea; width: 20px; border-radius: 3px;
         }
@@ -393,6 +402,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let visibleDatasets = { gold: true, silver: true };
         let currentViewWindow = 0;
         const MAX_VISIBLE_POINTS = 5;
+        
+        // Drag için değişkenler
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragCurrentX = 0;
+        let dragThreshold = 30; // Kaydırma hassasiyeti
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -411,17 +426,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const chartDataRes = await chartRes.json();
                 
                 if (goldData.success) {
-                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
+                    let cleanPrice = goldData.price.replace(/[^\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
                 if (silverData.success) {
-                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
+                    let cleanPrice = silverData.price.replace(/[^\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
                 if (chartDataRes.success) {
                     chartData = chartDataRes.data;
+                    // En son verileri göstermek için window'u sıfırla
                     currentViewWindow = 0;
                     updateChart();
                     updateScrollIndicator();
@@ -439,7 +455,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         function switchChart(period) {
             currentChartPeriod = period;
-            currentViewWindow = 0;
+            currentViewWindow = 0; // Yeni grafik açıldığında başa dön
             document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'ChartTab').classList.add('active');
             updateChart();
@@ -460,14 +476,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function getVisibleData(fullData) {
             if (!fullData || fullData.length === 0) return fullData;
             
+            // Toplam veri sayısı
             const totalPoints = fullData.length;
             
+            // Eğer veri sayısı MAX_VISIBLE_POINTS'ten azsa tümünü göster
             if (totalPoints <= MAX_VISIBLE_POINTS) {
                 return fullData;
             }
             
+            // Kaç pencere olduğunu hesapla
             const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
+            
+            // En son pencereyi varsayılan yap (currentViewWindow = 0 en son demek)
             const windowIndex = totalWindows - 1 - currentViewWindow;
+            
+            // Başlangıç ve bitiş indekslerini hesapla
             const startIndex = windowIndex * MAX_VISIBLE_POINTS;
             const endIndex = Math.min(startIndex + MAX_VISIBLE_POINTS, totalPoints);
             
@@ -512,7 +535,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
             
+            // Tüm veriyi al
             const fullData = chartData[currentChartPeriod];
+            
+            // Görünür veriyi filtrele
             const visibleData = getVisibleData(fullData);
             
             const labels = visibleData.map(item => {
@@ -570,7 +596,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         zoom: {
                             pan: {
                                 enabled: true,
-                                mode: 'x'
+                                mode: 'x',
+                                onPan: function({chart}) {
+                                    // Pan işlemi sırasında window değiştir
+                                    handlePan(chart);
+                                }
                             }
                         }
                     },
@@ -596,6 +626,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             });
         }
 
+        function handlePan(chart) {
+            // Bu fonksiyon gelecekte pan hareketlerini yönetmek için kullanılabilir
+            console.log('Pan hareketi algılandı');
+        }
+
+        // Klavye ile kaydırma
         document.addEventListener('keydown', function(e) {
             if (!chartData[currentChartPeriod]) return;
             
@@ -617,42 +653,104 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         });
 
+        // MOUSE DRAG KAYDIRMA
+        const chartWrapper = document.getElementById('portfolioChart');
+        
+        chartWrapper.addEventListener('mousedown', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            isDragging = true;
+            dragStartX = e.clientX;
+            chartWrapper.parentElement.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            dragCurrentX = e.clientX;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            chartWrapper.parentElement.classList.remove('dragging');
+            
+            const dragDistance = dragStartX - dragCurrentX;
+            
+            if (Math.abs(dragDistance) > dragThreshold) {
+                const totalPoints = chartData[currentChartPeriod].length;
+                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+                
+                if (dragDistance > 0) {
+                    // Sola sürükleme = Eski verilere git
+                    if (currentViewWindow < maxWindows) {
+                        currentViewWindow++;
+                        updateChart();
+                        updateScrollIndicator();
+                    }
+                } else {
+                    // Sağa sürükleme = Yeni verilere git
+                    if (currentViewWindow > 0) {
+                        currentViewWindow--;
+                        updateChart();
+                        updateScrollIndicator();
+                    }
+                }
+            }
+            
+            dragStartX = 0;
+            dragCurrentX = 0;
+        });
+
+        // TOUCH SWIPE KAYDIRMA
         let touchStartX = 0;
         let touchEndX = 0;
 
-        document.getElementById('portfolioChart').addEventListener('touchstart', function(e) {
-            touchStartX = e.changedTouches[0].screenX;
-        });
+        chartWrapper.addEventListener('touchstart', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            touchStartX = e.changedTouches[0].clientX;
+            chartWrapper.parentElement.classList.add('dragging');
+        }, { passive: true });
 
-        document.getElementById('portfolioChart').addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
+        chartWrapper.addEventListener('touchmove', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            touchEndX = e.changedTouches[0].clientX;
+        }, { passive: true });
 
-        function handleSwipe() {
+        chartWrapper.addEventListener('touchend', function(e) {
             if (!chartData[currentChartPeriod]) return;
             
-            const totalPoints = chartData[currentChartPeriod].length;
-            const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+            chartWrapper.parentElement.classList.remove('dragging');
+            
+            const swipeDistance = touchStartX - touchEndX;
             const swipeThreshold = 50;
             
-            if (touchEndX < touchStartX - swipeThreshold) {
-                if (currentViewWindow < maxWindows) {
-                    currentViewWindow++;
-                    updateChart();
-                    updateScrollIndicator();
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                const totalPoints = chartData[currentChartPeriod].length;
+                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+                
+                if (swipeDistance > 0) {
+                    // Sola swipe = Eski verilere git
+                    if (currentViewWindow < maxWindows) {
+                        currentViewWindow++;
+                        updateChart();
+                        updateScrollIndicator();
+                    }
+                } else {
+                    // Sağa swipe = Yeni verilere git
+                    if (currentViewWindow > 0) {
+                        currentViewWindow--;
+                        updateChart();
+                        updateScrollIndicator();
+                    }
                 }
             }
             
-            if (touchEndX > touchStartX + swipeThreshold) {
-                if (currentViewWindow > 0) {
-                    currentViewWindow--;
-                    updateChart();
-                    updateScrollIndicator();
-                }
-            }
-        }
+            touchStartX = 0;
+            touchEndX = 0;
+        });
 
+        // Scroll dot'larına tıklama ile doğrudan o pencereye gitme
         document.getElementById('scrollDots').addEventListener('click', function(e) {
             if (e.target.classList.contains('scroll-dot')) {
                 const dots = Array.from(this.children);
@@ -715,6 +813,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const goldAmount = document.getElementById('goldAmount').value;
             const silverAmount = document.getElementById('silverAmount').value;
             
+            // In-memory storage (localStorage alternatifi)
             window.portfolioData = {
                 gold: goldAmount,
                 silver: silverAmount
@@ -722,6 +821,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function loadPortfolio() {
+            // In-memory storage'dan yükle
             if (window.portfolioData) {
                 document.getElementById('goldAmount').value = window.portfolioData.gold || '';
                 document.getElementById('silverAmount').value = window.portfolioData.silver || '';
@@ -812,16 +912,5 @@ if __name__ == '__main__':
     print("  • Doğrudan nokta seçimi")
     print("  • 30 dakikalık detaylı veri")
     print("  • Türkiye saati (UTC+3)")
-    print("  • In-memory portfolio storage")
-    print("=" * 50)
-    print("📈 Grafik Periyotları:")
-    print("  • Günlük: HH:MM formatında zaman")
-    print("  • Haftalık: Günlük ortalamalar")
-    print("  • Aylık: 5 günlük periyotlar")
-    print("=" * 50)
-    print("⌨️  Kontroller:")
-    print("  • ← → : Klavye ile kaydırma")
-    print("  • Swipe: Dokunmatik kaydırma")
-    print("  • Dots: Noktalara tıklayarak atlama")
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
