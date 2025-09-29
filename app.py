@@ -11,7 +11,6 @@ app = Flask(__name__)
 CORS(app)
 
 def load_price_history():
-    """GitHub'dan fiyat geçmişini yükler"""
     try:
         url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/data/price-history.json"
         response = requests.get(url, timeout=10)
@@ -23,7 +22,6 @@ def load_price_history():
         return {"records": []}
 
 def get_chart_data():
-    """Grafik için veri hazırlar - günlük, haftalık, aylık"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -47,7 +45,6 @@ def get_chart_data():
         daily_data = []
         for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
             timestamp = record.get("timestamp", 0)
-            # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
@@ -57,7 +54,7 @@ def get_chart_data():
                 "silver_price": record["silver_price"]
             })
         
-        # Haftalık veriler (son 7 gün, günlük ortalamalar)
+        # Haftalık veriler
         weekly_data = []
         for i in range(7):
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -72,7 +69,7 @@ def get_chart_data():
                     "silver_price": avg_silver
                 })
         
-        # Aylık veriler (son 30 gün, 5'er günlük gruplar)
+        # Aylık veriler
         monthly_data = []
         for i in range(6):
             period_start = now - timedelta(days=(i+1)*5)
@@ -102,7 +99,6 @@ def get_chart_data():
         return None
 
 def get_gold_price():
-    """YapıKredi'den altın fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -123,7 +119,6 @@ def get_gold_price():
         raise Exception(f"Gold price error: {str(e)}")
 
 def get_silver_price():
-    """VakıfBank'tan gümüş fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/vakifbank/gumus"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -143,440 +138,164 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
+# HTML_TEMPLATE başlangıç
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Tracker v3.1</title>
+    <title>Metal Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
+        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 5px; }
         
-        .container {
-            max-width: 390px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 0 5px;
-        }
-        
-        /* Header */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 16px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .update-time {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-        
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo { font-size: 20px; font-weight: 700; color: white; }
+        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
+        .actions { display: flex; gap: 10px; }
         .action-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2); border: none;
+            color: white; font-size: 18px; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
         
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-        
-        /* Portfolio Summary */
         .portfolio-summary {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 24px;
-            padding: 24px 20px;
-            color: white;
+            border-radius: 24px; padding: 24px 20px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
-            display: none;
-            text-align: center;
+            display: none; text-align: center;
         }
-        
-        .portfolio-amount {
-            font-size: 42px;
-            font-weight: 900;
-            margin-bottom: 20px;
-        }
-        
+        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
+            display: flex; justify-content: center; gap: 6px;
             margin: 20px 10px 0 10px;
         }
-        
         .metal-item {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
+            flex: 1; 
+            background: rgba(255, 255, 255, 0.15); 
+            border-radius: 16px; 
             padding: 16px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-height: 140px;
         }
+        .metal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .metal-name { font-size: 16px; font-weight: 600; }
+        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
+        .metal-value { font-size: 22px; font-weight: 700; }
         
-        .metal-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .metal-name {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .metal-price {
-            font-size: 15px;
-            opacity: 0.8;
-            margin-bottom: 8px;
-        }
-        
-        .metal-value {
-            font-size: 22px;
-            font-weight: 700;
-        }
-        
-        /* Chart Container */
         .chart-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
             display: none;
         }
-        
         .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
-        
-        .chart-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        
+        .chart-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
         .chart-tabs {
-            display: flex;
-            gap: 8px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 4px;
+            display: flex; gap: 8px;
+            background: #f8f9fa; border-radius: 10px; padding: 4px;
         }
-        
         .chart-tab {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            background: transparent;
-            color: #6c757d;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 8px 16px; border: none; border-radius: 6px;
+            background: transparent; color: #6c757d;
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
-        
-        .chart-tab.active {
-            background: white;
-            color: #2c3e50;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
+        .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .chart-wrapper {
-            position: relative;
-            height: 300px;
-            margin-bottom: 16px;
-            overflow: hidden;
-            cursor: grab;
-            user-select: none;
+            position: relative; height: 300px; margin-bottom: 16px;
+            overflow: hidden; cursor: grab; user-select: none;
         }
+        .chart-wrapper:active { cursor: grabbing; }
+        .chart-wrapper.dragging { cursor: grabbing; }
         
-        .chart-wrapper:active {
-            cursor: grabbing;
-        }
-        
-        .chart-wrapper.dragging {
-            cursor: grabbing;
-        }
-        
-        /* Scroll Indicator */
         .scroll-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-            color: #6c757d;
-            font-size: 13px;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 12px; color: #6c757d; font-size: 13px;
         }
-        
-        .scroll-dots {
-            display: flex;
-            gap: 4px;
-        }
-        
+        .scroll-dots { display: flex; gap: 4px; }
         .scroll-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #d1d5db;
-            transition: all 0.3s;
-            cursor: pointer;
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #d1d5db; transition: all 0.3s; cursor: pointer;
         }
+        .scroll-dot:hover { background: #9ca3af; }
+        .scroll-dot.active { background: #667eea; width: 20px; border-radius: 3px; }
         
-        .scroll-dot:hover {
-            background: #9ca3af;
-        }
-        
-        .scroll-dot.active {
-            background: #667eea;
-            width: 20px;
-            border-radius: 3px;
-        }
-        
-        /* Chart Legend */
         .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 16px;
+            display: flex; justify-content: center; gap: 20px; margin-top: 16px;
         }
-        
         .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: #6c757d;
-            cursor: pointer;
-            transition: opacity 0.3s;
+            display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6c757d;
+            cursor: pointer; transition: opacity 0.3s;
         }
-        
-        .legend-item.disabled {
-            opacity: 0.4;
-        }
-        
-        .legend-color {
-            width: 16px;
-            height: 3px;
-            border-radius: 2px;
-        }
-        
-        .legend-color.gold {
-            background: linear-gradient(45deg, #f39c12, #d35400);
-        }
-        
-        .legend-color.silver {
-            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
-        }
-        
-        /* Modal */
+        .legend-item.disabled { opacity: 0.4; }
+        .legend-color { width: 16px; height: 3px; border-radius: 2px; }
+        .legend-color.gold { background: linear-gradient(45deg, #f39c12, #d35400); }
+        .legend-color.silver { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
+# PARÇA 2/3 - HTML_TEMPLATE devamı
+
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
+            z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        
         .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 28px;
-            width: 100%;
-            max-width: 350px;
-            position: relative;
+            background: white; border-radius: 24px; padding: 28px;
+            width: 100%; max-width: 350px; position: relative;
         }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        
-        .modal-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #2c3e50;
-        }
-        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 22px; font-weight: 800; color: #2c3e50; }
         .close-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
+            width: 36px; height: 36px; border-radius: 10px; background: #f8f9fa;
+            border: none; font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
         }
-        
-        .close-btn:hover {
-            background: #e9ecef;
-        }
-        
-        .input-group {
-            margin-bottom: 22px;
-        }
-        
-        .input-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 700;
-            color: #2c3e50;
-            font-size: 15px;
-        }
-        
+        .input-group { margin-bottom: 22px; }
+        .input-label { display: block; margin-bottom: 10px; font-weight: 700; color: #2c3e50; font-size: 15px; }
         .input-field {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 14px;
-            font-size: 17px;
-            background: #f8f9fa;
-            font-weight: 600;
-            transition: all 0.3s;
+            width: 100%; padding: 16px; border: 2px solid #e9ecef;
+            border-radius: 14px; font-size: 17px; background: #f8f9fa; font-weight: 600;
         }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 14px;
-            justify-content: flex-end;
-        }
-        
+        .input-field:focus { outline: none; border-color: #667eea; background: white; }
+        .modal-actions { display: flex; gap: 14px; justify-content: flex-end; }
         .btn {
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            border: none;
-            font-size: 15px;
-            transition: all 0.3s ease;
+            padding: 14px 24px; border-radius: 12px; font-weight: 700;
+            cursor: pointer; border: none; font-size: 15px; transition: all 0.3s ease;
         }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-1px); }
+        .btn-secondary { background: #e9ecef; color: #6c757d; }
+        .btn-secondary:hover { background: #dee2e6; }
         
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-1px);
-        }
-        
-        .btn-secondary {
-            background: #e9ecef;
-            color: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #dee2e6;
-        }
-        
-        /* Responsive */
         @media (max-width: 400px) {
-            .container {
-                max-width: 100%;
-            }
-            
-            .chart-header {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .portfolio-metals {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .metal-name {
-                font-size: 17px;
-            }
-            
-            .metal-price {
-                font-size: 16px;
-            }
-            
-            .metal-value {
-                font-size: 24px;
-            }
-            
-            .metal-item {
-                padding: 20px;
-                min-height: 130px;
-            }
+            .container { max-width: 100%; }
+            .chart-header { flex-direction: column; gap: 12px; }
+            .portfolio-metals { flex-direction: column; gap: 12px; }
+            .metal-name { font-size: 17px; }
+            .metal-price { font-size: 16px; }
+            .metal-value { font-size: 24px; }
+            .metal-item { padding: 20px; min-height: 130px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
                 <div class="logo">Metal Tracker</div>
@@ -588,7 +307,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- Portfolio Summary -->
         <div class="portfolio-summary" id="portfolioSummary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
@@ -609,7 +327,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- Chart Container -->
         <div class="chart-container" id="chartContainer">
             <div class="chart-header">
                 <div class="chart-title">Portföy Grafiği</div>
@@ -642,7 +359,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </div>
     
-    <!-- Portfolio Modal -->
     <div class="modal-overlay" id="portfolioModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -670,7 +386,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     </div>
 
     <script>
-        // Global değişkenler
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
         let chartData = {};
@@ -680,13 +395,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentViewWindow = 0;
         const MAX_VISIBLE_POINTS = 5;
         
-        // Drag kontrol değişkenleri
         let isDragging = false;
         let dragStartX = 0;
         let dragCurrentX = 0;
         let dragThreshold = 30;
 
-        // Fiyat çekme fonksiyonu
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
             
@@ -730,7 +443,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        // Grafik periyodu değiştirme
         function switchChart(period) {
             currentChartPeriod = period;
             currentViewWindow = 0;
@@ -740,7 +452,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateScrollIndicator();
         }
 
-        // Dataset görünürlüğünü değiştirme
         function toggleDataset(type) {
             visibleDatasets[type] = !visibleDatasets[type];
             const legend = document.getElementById(type + 'Legend');
@@ -752,15 +463,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             updateChart();
         }
 
-        // Görünür veriyi al
         function getVisibleData(fullData) {
             if (!fullData || fullData.length === 0) return fullData;
             
             const totalPoints = fullData.length;
-            
-            if (totalPoints <= MAX_VISIBLE_POINTS) {
-                return fullData;
-            }
+            if (totalPoints <= MAX_VISIBLE_POINTS) return fullData;
             
             const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
             const windowIndex = totalWindows - 1 - currentViewWindow;
@@ -770,7 +477,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             return fullData.slice(startIndex, endIndex);
         }
 
-        // Scroll göstergesini güncelle
         function updateScrollIndicator() {
             const dotsContainer = document.getElementById('scrollDots');
             if (!chartData[currentChartPeriod]) {
@@ -796,8 +502,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 dotsContainer.appendChild(dot);
             }
         }
+# PARÇA 3/3 - JavaScript updateChart fonksiyonu ve Flask routes
 
-        // Grafik güncelleme - GRADIENT VERSION
         function updateChart() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
@@ -831,7 +537,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const datasets = [];
             
             if (visibleDatasets.gold && goldAmount > 0) {
-                // Gradient oluştur - Altın
                 const goldGradient = ctx.createLinearGradient(0, 0, 0, 300);
                 goldGradient.addColorStop(0, 'rgba(243, 156, 18, 0.6)');
                 goldGradient.addColorStop(0.5, 'rgba(243, 156, 18, 0.3)');
@@ -857,390 +562,322 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             if (visibleDatasets.silver && silverAmount > 0) {
-    // Gradient oluştur - Gümüş
-    const silverGradient = ctx.createLinearGradient(0, 0, 0, 300);
-    silverGradient.addColorStop(0, 'rgba(149, 165, 166, 0.6)');
-    silverGradient.addColorStop(0.5, 'rgba(149, 165, 166, 0.3)');
-    silverGradient.addColorStop(1, 'rgba(149, 165, 166, 0.05)');
-    
-    datasets.push({
-        label: 'Gümüş Portföyü',
-        data: silverPortfolioData,
-        borderColor: '#95a5a6',
-        backgroundColor: silverGradient,
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 5,
-        pointHoverRadius: 8,
-        pointBackgroundColor: '#95a5a6',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: '#95a5a6',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 3
-    });
-}
-
-portfolioChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: datasets
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            mode: 'index',
-            intersect: false,
-        },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                titleFont: {
-                    size: 14,
-                    weight: 'bold'
-                },
-                bodyFont: {
-                    size: 13
-                },
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                displayColors: true,
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            label += formatCurrency(context.parsed.y);
-                        }
-                        return label;
-                    }
-                }
-            },
-            zoom: {
-                pan: {
-                    enabled: true,
-                    mode: 'x'
-                }
+                const silverGradient = ctx.createLinearGradient(0, 0, 0, 300);
+                silverGradient.addColorStop(0, 'rgba(149, 165, 166, 0.6)');
+                silverGradient.addColorStop(0.5, 'rgba(149, 165, 166, 0.3)');
+                silverGradient.addColorStop(1, 'rgba(149, 165, 166, 0.05)');
+                
+                datasets.push({
+                    label: 'Gümüş Portföyü',
+                    data: silverPortfolioData,
+                    borderColor: '#95a5a6',
+                    backgroundColor: silverGradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#95a5a6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverBackgroundColor: '#95a5a6',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3
+                });
             }
-        },
-        scales: {
-            x: {
-                grid: {
-                    display: true,
-                    color: 'rgba(0, 0, 0, 0.05)',
-                    drawBorder: false
-                },
-                ticks: {
-                    font: {
-                        size: 11,
-                        weight: '600'
+            
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += formatCurrency(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     },
-                    color: '#6c757d'
-                }
-            },
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)',
-                    drawBorder: false
-                },
-                ticks: {
-                    font: {
-                        size: 11,
-                        weight: '600'
-                    },
-                    color: '#6c757d',
-                    callback: function(value) {
-                        if (value >= 1000000) {
-                            return (value / 1000000).toFixed(1) + 'M₺';
-                        } else if (value >= 1000) {
-                            return (value / 1000).toFixed(0) + 'K₺';
+                    scales: {
+                        x: {
+                            grid: { display: true, color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                            ticks: { font: { size: 11, weight: '600' }, color: '#6c757d' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                            ticks: {
+                                font: { size: 11, weight: '600' },
+                                color: '#6c757d',
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M₺';
+                                    else if (value >= 1000) return (value / 1000).toFixed(0) + 'K₺';
+                                    return new Intl.NumberFormat('tr-TR', {maximumFractionDigits: 0}).format(value) + '₺';
+                                }
+                            }
                         }
-                        return new Intl.NumberFormat('tr-TR', {
-                            maximumFractionDigits: 0
-                        }).format(value) + '₺';
-                    }
+                    },
+                    elements: { line: { borderJoinStyle: 'round', borderCapStyle: 'round' } },
+                    animation: { duration: 750, easing: 'easeInOutQuart' }
+                }
+            });
+        }
+
+        // Mouse & Touch events
+        const chartWrapper = document.getElementById('portfolioChart');
+        
+        chartWrapper.addEventListener('mousedown', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            isDragging = true;
+            dragStartX = e.clientX;
+            chartWrapper.parentElement.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            dragCurrentX = e.clientX;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            chartWrapper.parentElement.classList.remove('dragging');
+            
+            const dragDistance = dragStartX - dragCurrentX;
+            if (Math.abs(dragDistance) > dragThreshold) {
+                const totalPoints = chartData[currentChartPeriod].length;
+                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+                
+                if (dragDistance < 0 && currentViewWindow < maxWindows) {
+                    currentViewWindow++;
+                    updateChart();
+                    updateScrollIndicator();
+                } else if (dragDistance > 0 && currentViewWindow > 0) {
+                    currentViewWindow--;
+                    updateChart();
+                    updateScrollIndicator();
                 }
             }
-        },
-        elements: {
-            line: {
-                borderJoinStyle: 'round',
-                borderCapStyle: 'round'
+            dragStartX = 0;
+            dragCurrentX = 0;
+        });
+
+        let touchStartX = 0;
+        chartWrapper.addEventListener('touchstart', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            touchStartX = e.changedTouches[0].clientX;
+            chartWrapper.parentElement.classList.add('dragging');
+        }, { passive: true });
+
+        chartWrapper.addEventListener('touchend', function(e) {
+            if (!chartData[currentChartPeriod]) return;
+            chartWrapper.parentElement.classList.remove('dragging');
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const swipeDistance = touchStartX - touchEndX;
+            
+            if (Math.abs(swipeDistance) > 50) {
+                const totalPoints = chartData[currentChartPeriod].length;
+                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+                
+                if (swipeDistance < 0 && currentViewWindow < maxWindows) {
+                    currentViewWindow++;
+                    updateChart();
+                    updateScrollIndicator();
+                } else if (swipeDistance > 0 && currentViewWindow > 0) {
+                    currentViewWindow--;
+                    updateChart();
+                    updateScrollIndicator();
+                }
             }
-        },
-        animation: {
-            duration: 750,
-            easing: 'easeInOutQuart'
-        }
-    }
-});
+        });
 
-// Klavye kontrolleri
-document.addEventListener('keydown', function(e) {
-    if (!chartData[currentChartPeriod]) return;
-    
-    const totalPoints = chartData[currentChartPeriod].length;
-    const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-    
-    if (e.key === 'ArrowLeft') {
-        if (currentViewWindow < maxWindows) {
-            currentViewWindow++;
-            updateChart();
-            updateScrollIndicator();
-        }
-    } else if (e.key === 'ArrowRight') {
-        if (currentViewWindow > 0) {
-            currentViewWindow--;
-            updateChart();
-            updateScrollIndicator();
-        }
-    }
-});
-
-// Mouse drag kaydırma
-const chartWrapper = document.getElementById('portfolioChart');
-
-chartWrapper.addEventListener('mousedown', function(e) {
-    if (!chartData[currentChartPeriod]) return;
-    isDragging = true;
-    dragStartX = e.clientX;
-    chartWrapper.parentElement.classList.add('dragging');
-    e.preventDefault();
-});
-
-document.addEventListener('mousemove', function(e) {
-    if (!isDragging) return;
-    dragCurrentX = e.clientX;
-});
-
-document.addEventListener('mouseup', function(e) {
-    if (!isDragging) return;
-    
-    isDragging = false;
-    chartWrapper.parentElement.classList.remove('dragging');
-    
-    const dragDistance = dragStartX - dragCurrentX;
-    
-    if (Math.abs(dragDistance) > dragThreshold) {
-        const totalPoints = chartData[currentChartPeriod].length;
-        const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-        
-        if (dragDistance < 0) {
-            // Sağa sürükle = Eski verilere git
-            if (currentViewWindow < maxWindows) {
-                currentViewWindow++;
-                updateChart();
-                updateScrollIndicator();
-            }
-        } else {
-            // Sola sürükle = Yeni verilere git
-            if (currentViewWindow > 0) {
-                currentViewWindow--;
-                updateChart();
-                updateScrollIndicator();
-            }
-        }
-    }
-    
-    dragStartX = 0;
-    dragCurrentX = 0;
-});
-
-// Touch swipe kaydırma
-let touchStartX = 0;
-let touchEndX = 0;
-
-chartWrapper.addEventListener('touchstart', function(e) {
-    if (!chartData[currentChartPeriod]) return;
-    touchStartX = e.changedTouches[0].clientX;
-    chartWrapper.parentElement.classList.add('dragging');
-}, { passive: true });
-
-chartWrapper.addEventListener('touchmove', function(e) {
-    if (!chartData[currentChartPeriod]) return;
-    touchEndX = e.changedTouches[0].clientX;
-}, { passive: true });
-
-chartWrapper.addEventListener('touchend', function(e) {
-    if (!chartData[currentChartPeriod]) return;
-    
-    chartWrapper.parentElement.classList.remove('dragging');
-    
-    const swipeDistance = touchStartX - touchEndX;
-    const swipeThreshold = 50;
-    
-    if (Math.abs(swipeDistance) > swipeThreshold) {
-        const totalPoints = chartData[currentChartPeriod].length;
-        const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-        
-        if (swipeDistance < 0) {
-            // Sağa swipe = Eski verilere git
-            if (currentViewWindow < maxWindows) {
-                currentViewWindow++;
-                updateChart();
-                updateScrollIndicator();
-            }
-        } else {
-            // Sola swipe = Yeni verilere git
-            if (currentViewWindow > 0) {
-                currentViewWindow--;
-                updateChart();
-                updateScrollIndicator();
-            }
-        }
-    }
-    
-    touchStartX = 0;
-    touchEndX = 0;
-});
-
-// Scroll dot navigasyonu
-document.getElementById('scrollDots').addEventListener('click', function(e) {
-    if (e.target.classList.contains('scroll-dot')) {
-        const dots = Array.from(this.children);
-        const clickedIndex = dots.indexOf(e.target);
-        
-        if (clickedIndex !== -1) {
+        document.addEventListener('keydown', function(e) {
+            if (!chartData[currentChartPeriod]) return;
             const totalPoints = chartData[currentChartPeriod].length;
-            const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-            currentViewWindow = totalWindows - 1 - clickedIndex;
-            updateChart();
-            updateScrollIndicator();
+            const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
+            
+            if (e.key === 'ArrowLeft' && currentViewWindow < maxWindows) {
+                currentViewWindow++;
+                updateChart();
+                updateScrollIndicator();
+            } else if (e.key === 'ArrowRight' && currentViewWindow > 0) {
+                currentViewWindow--;
+                updateChart();
+                updateScrollIndicator();
+            }
+        });
+
+        document.getElementById('scrollDots').addEventListener('click', function(e) {
+            if (e.target.classList.contains('scroll-dot')) {
+                const dots = Array.from(this.children);
+                const clickedIndex = dots.indexOf(e.target);
+                if (clickedIndex !== -1) {
+                    const totalPoints = chartData[currentChartPeriod].length;
+                    const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
+                    currentViewWindow = totalWindows - 1 - clickedIndex;
+                    updateChart();
+                    updateScrollIndicator();
+                }
+            }
+        });
+
+        function togglePortfolio() {
+            document.getElementById('portfolioModal').style.display = 'flex';
         }
-    }
-});
 
-// Portföy modal kontrolleri
-function togglePortfolio() {
-    document.getElementById('portfolioModal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('portfolioModal').style.display = 'none';
-}
-
-// Portföy güncelleme
-function updatePortfolio() {
-    const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
-    const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
-    
-    const goldValue = goldAmount * currentGoldPrice;
-    const silverValue = silverAmount * currentSilverPrice;
-    const totalValue = goldValue + silverValue;
-    
-    const portfolioSummary = document.getElementById('portfolioSummary');
-    const chartContainer = document.getElementById('chartContainer');
-    
-    if (totalValue > 0) {
-        portfolioSummary.style.display = 'block';
-        chartContainer.style.display = 'block';
-        
-        document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-        document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
-        document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
-        document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
-        document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
-        
-        updateChart();
-        updateScrollIndicator();
-    } else {
-        portfolioSummary.style.display = 'none';
-        chartContainer.style.display = 'none';
-        if (portfolioChart) {
-            portfolioChart.destroy();
-            portfolioChart = null;
+        function closeModal() {
+            document.getElementById('portfolioModal').style.display = 'none';
         }
-    }
-    
-    savePortfolio();
-}
 
-// Cookie ile portföy kaydetme
-function savePortfolio() {
-    const goldAmount = document.getElementById('goldAmount').value;
-    const silverAmount = document.getElementById('silverAmount').value;
-    
-    const expiryDate = new Date();
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    
-    document.cookie = `goldAmount=${goldAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-    document.cookie = `silverAmount=${silverAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-    
-    window.portfolioData = {
-        gold: goldAmount,
-        silver: silverAmount
-    };
-}
+        function updatePortfolio() {
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            const goldValue = goldAmount * currentGoldPrice;
+            const silverValue = silverAmount * currentSilverPrice;
+            const totalValue = goldValue + silverValue;
+            
+            const portfolioSummary = document.getElementById('portfolioSummary');
+            const chartContainer = document.getElementById('chartContainer');
+            
+            if (totalValue > 0) {
+                portfolioSummary.style.display = 'block';
+                chartContainer.style.display = 'block';
+                document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
+                document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
+                document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
+                document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
+                document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+                updateChart();
+                updateScrollIndicator();
+            } else {
+                portfolioSummary.style.display = 'none';
+                chartContainer.style.display = 'none';
+                if (portfolioChart) {
+                    portfolioChart.destroy();
+                    portfolioChart = null;
+                }
+            }
+            savePortfolio();
+        }
 
-// Cookie'den portföy yükleme
-function loadPortfolio() {
-    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-    }, {});
-    
-    if (cookies.goldAmount && cookies.goldAmount !== 'undefined') {
-        document.getElementById('goldAmount').value = cookies.goldAmount;
-    }
-    if (cookies.silverAmount && cookies.silverAmount !== 'undefined') {
-        document.getElementById('silverAmount').value = cookies.silverAmount;
-    }
-    
-    if (!cookies.goldAmount && window.portfolioData) {
-        document.getElementById('goldAmount').value = window.portfolioData.gold || '';
-        document.getElementById('silverAmount').value = window.portfolioData.silver || '';
-    }
-}
+        function savePortfolio() {
+            const goldAmount = document.getElementById('goldAmount').value;
+            const silverAmount = document.getElementById('silverAmount').value;
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            document.cookie = `goldAmount=${goldAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            document.cookie = `silverAmount=${silverAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            window.portfolioData = { gold: goldAmount, silver: silverAmount };
+        }
 
-// Portföy temizleme
-function clearPortfolio() {
-    if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
-        document.getElementById('goldAmount').value = '';
-        document.getElementById('silverAmount').value = '';
-        
-        document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        
-        window.portfolioData = null;
-        
-        updatePortfolio();
-    }
-}
+        function loadPortfolio() {
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [key, value] = cookie.trim().split('=');
+                acc[key] = value;
+                return acc;
+            }, {});
+            
+            if (cookies.goldAmount && cookies.goldAmount !== 'undefined') {
+                document.getElementById('goldAmount').value = cookies.goldAmount;
+            }
+            if (cookies.silverAmount && cookies.silverAmount !== 'undefined') {
+                document.getElementById('silverAmount').value = cookies.silverAmount;
+            }
+        }
 
-// Para birimi formatlama
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('tr-TR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount) + '₺';
-}
+        function clearPortfolio() {
+            if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
+                document.getElementById('goldAmount').value = '';
+                document.getElementById('silverAmount').value = '';
+                document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.portfolioData = null;
+                updatePortfolio();
+            }
+        }
 
-// Fiyat formatlama
-function formatPrice(price) {
-    if (!price) return '0,00₺';
-    return new Intl.NumberFormat('tr-TR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price) + '₺';
-}
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(amount) + '₺';
+        }
 
-// Modal dışına tıklama ile kapatma
-document.getElementById('portfolioModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-});
+        function formatPrice(price) {
+            if (!price) return '0,00₺';
+            return new Intl.NumberFormat('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(price) + '₺';
+        }
 
-// Sayfa yüklendiğinde
-window.onload = function() {
-    loadPortfolio();
-    fetchPrice();
-    updatePortfolio();
-};
+        document.getElementById('portfolioModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        window.onload = function() {
+            loadPortfolio();
+            fetchPrice();
+            updatePortfolio();
+        };
+    </script>
+</body>
+</html>'''
+
+@app.route('/')
+def index():
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/api/gold-price')
+def api_gold_price():
+    try:
+        price = get_gold_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/silver-price')
+def api_silver_price():
+    try:
+        price = get_silver_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/chart-data')
+def api_chart_data():
+    try:
+        data = get_chart_data()
+        return jsonify({'success': bool(data), 'data': data or {}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    print("=" * 70)
+    print("🚀 Metal Fiyat Takipçisi v3.1.0 - GRADIENT EDITION")
+    print("=" * 70)
+    print(f"🌐 Server: http://localhost:{port}")
+    print(f"📱 Mobile: http://0.0.0.0:{port}")
+    print("=" * 70)
+    print("✨ Özellikler:")
+    print("  • 🎨 Gradient area chart")
+    print("  • 💎 Hover noktalar (5-8px)")
+    print("  • 🖱️  Mouse drag + Touch swipe")
+    print("  • 💾 Cookie kalıcı kayıt")
+    print("  • 📊 Max 5 veri noktası")
+    print("=" * 70)
+    app.run(host='0.0.0.0', port=port, debug=False)
