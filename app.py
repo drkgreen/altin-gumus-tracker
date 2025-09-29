@@ -741,11 +741,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         });
 
         function togglePortfolio() {
-            document.getElementById('portfolioModal').style.display = 'flex';
+            const modal = document.getElementById('portfolioModal');
+            modal.style.display = 'flex';
         }
 
         function closeModal() {
-            document.getElementById('portfolioModal').style.display = 'none';
+            const modal = document.getElementById('portfolioModal');
+            modal.style.display = 'none';
         }
 
         function updatePortfolio() {
