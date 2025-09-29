@@ -773,28 +773,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const totalValue = goldValue + silverValue;
             
             const portfolioSummary = document.getElementById('portfolioSummary');
-            const chartContainer = document.getElementById('chartContainer');
             
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
-                chartContainer.style.display = 'block';
                 
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
                 document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
                 document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
                 document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
                 document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
-                
-                updateChart();
-                updateScrollIndicator();
             } else {
                 portfolioSummary.style.display = 'none';
-                chartContainer.style.display = 'none';
-                if (portfolioChart) {
-                    portfolioChart.destroy();
-                    portfolioChart = null;
-                }
             }
+            
+            // Tabloyu her zaman güncelle (portföy olsun olmasın)
+            updateTable();
             
             savePortfolio();
         }
