@@ -21,7 +21,7 @@ def load_price_history():
         print(f"Price history error: {e}")
         return {"records": []}
 
-def get_chart_data():
+def get_table_data():
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -43,16 +43,25 @@ def get_chart_data():
         today_records = [r for r in recent_records if r.get("date") == today]
         
         daily_data = []
-        for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
+        for i, record in enumerate(sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)):
             timestamp = record.get("timestamp", 0)
             # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
+            # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
+            change_percent = 0
+            if i < len(today_records) - 1:
+                prev_record = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)[i + 1]
+                if prev_record and prev_record.get("gold_price"):
+                    price_diff = record["gold_price"] - prev_record["gold_price"]
+                    change_percent = (price_diff / prev_record["gold_price"]) * 100
+            
             daily_data.append({
                 "time": time_label,
                 "gold_price": record["gold_price"],
-                "silver_price": record["silver_price"]
+                "silver_price": record["silver_price"],
+                "change_percent": change_percent
             })
         
         # Haftalık veriler (son 7 gün, günlük ortalamalar)
@@ -63,40 +72,32 @@ def get_chart_data():
             if day_records:
                 avg_gold = sum(r["gold_price"] for r in day_records) / len(day_records)
                 avg_silver = sum(r["silver_price"] for r in day_records) / len(day_records)
-                day_name = (now - timedelta(days=i)).strftime("%a")
+                
+                # Değişim hesaplama (bir önceki gün ile karşılaştır)
+                change_percent = 0
+                if i < 6:
+                    prev_date = (now - timedelta(days=i+1)).strftime("%Y-%m-%d")
+                    prev_day_records = [r for r in recent_records if r.get("date") == prev_date]
+                    if prev_day_records:
+                        prev_avg_gold = sum(r["gold_price"] for r in prev_day_records) / len(prev_day_records)
+                        price_diff = avg_gold - prev_avg_gold
+                        change_percent = (price_diff / prev_avg_gold) * 100
+                
+                day_name = (now - timedelta(days=i)).strftime("%d.%m")
                 weekly_data.insert(0, {
-                    "day": day_name,
+                    "time": day_name,
                     "gold_price": avg_gold,
-                    "silver_price": avg_silver
-                })
-        
-        # Aylık veriler (son 30 gün, 5'er günlük gruplar)
-        monthly_data = []
-        for i in range(6):
-            period_start = now - timedelta(days=(i+1)*5)
-            period_end = now - timedelta(days=i*5)
-            
-            period_records = [r for r in recent_records 
-                            if period_start.timestamp() <= r.get("timestamp", 0) <= period_end.timestamp()]
-            
-            if period_records:
-                avg_gold = sum(r["gold_price"] for r in period_records) / len(period_records)
-                avg_silver = sum(r["silver_price"] for r in period_records) / len(period_records)
-                period_label = period_start.strftime("%d.%m")
-                monthly_data.insert(0, {
-                    "period": period_label,
-                    "gold_price": avg_gold,
-                    "silver_price": avg_silver
+                    "silver_price": avg_silver,
+                    "change_percent": change_percent
                 })
         
         return {
             "daily": daily_data,
-            "weekly": weekly_data,
-            "monthly": monthly_data
+            "weekly": weekly_data
         }
         
     except Exception as e:
-        print(f"Chart data error: {e}")
+        print(f"Table data error: {e}")
         return None
 
 def get_gold_price():
@@ -145,9 +146,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metal Tracker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -199,66 +197,54 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
         
-        .chart-container {
+        .price-history {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
             border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
             display: none;
         }
-        .chart-header {
+        .history-header {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
-        .chart-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
-        .chart-tabs {
+        .history-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+        .period-tabs {
             display: flex; gap: 8px;
             background: #f8f9fa; border-radius: 10px; padding: 4px;
         }
-        .chart-tab {
+        .period-tab {
             padding: 8px 16px; border: none; border-radius: 6px;
             background: transparent; color: #6c757d;
             font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
-        .chart-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .chart-wrapper {
-            position: relative; height: 300px; margin-bottom: 16px;
-            overflow: hidden;
-            cursor: grab;
-            user-select: none;
-        }
-        .chart-wrapper:active {
-            cursor: grabbing;
-        }
-        .chart-wrapper.dragging {
-            cursor: grabbing;
-        }
+        .period-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
-        .scroll-indicator {
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-            margin-top: 12px; color: #6c757d; font-size: 13px;
+        .price-table {
+            overflow-x: auto; border-radius: 12px; background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .scroll-dots {
-            display: flex; gap: 4px;
+        .price-table table {
+            width: 100%; border-collapse: collapse;
         }
-        .scroll-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            background: #d1d5db; transition: all 0.3s;
+        .price-table th {
+            background: #f8f9fa; padding: 12px 8px; text-align: left;
+            font-weight: 600; color: #495057; font-size: 14px;
+            border-bottom: 2px solid #e9ecef;
         }
-        .scroll-dot.active {
-            background: #667eea; width: 20px; border-radius: 3px;
+        .price-table td {
+            padding: 12px 8px; border-bottom: 1px solid #f1f3f4;
+            font-size: 14px; color: #495057;
         }
-        
-        .chart-legend {
-            display: flex; justify-content: center; gap: 20px; margin-top: 16px;
+        .price-table tr:hover {
+            background: #f8f9fa;
         }
-        .legend-item {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6c757d;
-            cursor: pointer; transition: opacity 0.3s;
+        .price-table .time { font-weight: 600; color: #2c3e50; }
+        .price-table .price { font-weight: 600; }
+        .price-table .portfolio { font-weight: 700; color: #e67e22; }
+        .price-table .change {
+            font-weight: 600; font-size: 13px;
         }
-        .legend-item.disabled { opacity: 0.4; }
-        .legend-color {
-            width: 16px; height: 3px; border-radius: 2px;
-        }
-        .legend-color.gold { background: linear-gradient(45deg, #f39c12, #d35400); }
-        .legend-color.silver { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
+        .change.positive { color: #27ae60; }
+        .change.negative { color: #e74c3c; }
+        .change.neutral { color: #95a5a6; }
         
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -293,12 +279,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         @media (max-width: 400px) {
             .container { max-width: 100%; }
-            .chart-header { flex-direction: column; gap: 12px; }
+            .history-header { flex-direction: column; gap: 12px; }
             .portfolio-metals { flex-direction: column; gap: 12px; }
             .metal-name { font-size: 17px; }
             .metal-price { font-size: 16px; }
             .metal-value { font-size: 24px; }
             .metal-item { padding: 20px; min-height: 130px; }
+            .price-table th, .price-table td { padding: 8px 6px; font-size: 13px; }
         }
     </style>
 </head>
@@ -335,34 +322,29 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="chart-container" id="chartContainer">
-            <div class="chart-header">
-                <div class="chart-title">Portföy Grafiği</div>
-                <div class="chart-tabs">
-                    <button class="chart-tab active" onclick="switchChart('daily')" id="dailyChartTab">Günlük</button>
-                    <button class="chart-tab" onclick="switchChart('weekly')" id="weeklyChartTab">Haftalık</button>
-                    <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
+        <div class="price-history" id="priceHistory">
+            <div class="history-header">
+                <div class="history-title">Fiyat Geçmişi</div>
+                <div class="period-tabs">
+                    <button class="period-tab active" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
+                    <button class="period-tab" onclick="switchPeriod('weekly')" id="weeklyTab">Haftalık</button>
                 </div>
             </div>
-            <div class="chart-wrapper">
-                <canvas id="portfolioChart"></canvas>
-            </div>
-            
-            <div class="scroll-indicator">
-                <span>◀</span>
-                <div class="scroll-dots" id="scrollDots"></div>
-                <span>▶</span>
-            </div>
-            
-            <div class="chart-legend">
-                <div class="legend-item" onclick="toggleDataset('gold')" id="goldLegend">
-                    <div class="legend-color gold"></div>
-                    <span>Altın Portföyü</span>
-                </div>
-                <div class="legend-item" onclick="toggleDataset('silver')" id="silverLegend">
-                    <div class="legend-color silver"></div>
-                    <span>Gümüş Portföyü</span>
-                </div>
+            <div class="price-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>Altın</th>
+                            <th>Gümüş</th>
+                            <th>Portföy</th>
+                            <th>Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -396,18 +378,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
-        let chartData = {};
-        let portfolioChart = null;
-        let currentChartPeriod = 'daily';
-        let visibleDatasets = { gold: true, silver: true };
-        let currentViewWindow = 0;
-        const MAX_VISIBLE_POINTS = 5;
-        
-        // Drag için değişkenler
-        let isDragging = false;
-        let dragStartX = 0;
-        let dragCurrentX = 0;
-        let dragThreshold = 30;
+        let tableData = {};
+        let currentPeriod = 'daily';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -415,15 +387,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
                 
-                const [goldRes, silverRes, chartRes] = await Promise.all([
+                const [goldRes, silverRes, tableRes] = await Promise.all([
                     fetch('/api/gold-price'),
                     fetch('/api/silver-price'),
-                    fetch('/api/chart-data')
+                    fetch('/api/table-data')
                 ]);
                 
                 const goldData = await goldRes.json();
                 const silverData = await silverRes.json();
-                const chartDataRes = await chartRes.json();
+                const tableDataRes = await tableRes.json();
                 
                 if (goldData.success) {
                     let cleanPrice = goldData.price.replace(/[^\d,]/g, '');
@@ -435,11 +407,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
                 }
                 
-                if (chartDataRes.success) {
-                    chartData = chartDataRes.data;
-                    currentViewWindow = 0;
-                    updateChart();
-                    updateScrollIndicator();
+                if (tableDataRes.success) {
+                    tableData = tableDataRes.data;
+                    updateTable();
                 }
                 
                 document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
@@ -452,306 +422,48 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        function switchChart(period) {
-            currentChartPeriod = period;
-            currentViewWindow = 0;
-            document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(period + 'ChartTab').classList.add('active');
-            updateChart();
-            updateScrollIndicator();
+        function switchPeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(period + 'Tab').classList.add('active');
+            updateTable();
         }
 
-        function toggleDataset(type) {
-            visibleDatasets[type] = !visibleDatasets[type];
-            const legend = document.getElementById(type + 'Legend');
-            if (visibleDatasets[type]) {
-                legend.classList.remove('disabled');
-            } else {
-                legend.classList.add('disabled');
-            }
-            updateChart();
-        }
-
-        function getVisibleData(fullData) {
-            if (!fullData || fullData.length === 0) return fullData;
-            
-            const totalPoints = fullData.length;
-            
-            if (totalPoints <= MAX_VISIBLE_POINTS) {
-                return fullData;
-            }
-            
-            const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-            const windowIndex = totalWindows - 1 - currentViewWindow;
-            const startIndex = windowIndex * MAX_VISIBLE_POINTS;
-            const endIndex = Math.min(startIndex + MAX_VISIBLE_POINTS, totalPoints);
-            
-            return fullData.slice(startIndex, endIndex);
-        }
-
-        function updateScrollIndicator() {
-            const dotsContainer = document.getElementById('scrollDots');
-            if (!chartData[currentChartPeriod]) {
-                dotsContainer.innerHTML = '';
-                return;
-            }
-            
-            const totalPoints = chartData[currentChartPeriod].length;
-            const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-            
-            if (totalWindows <= 1) {
-                dotsContainer.innerHTML = '';
-                return;
-            }
-            
-            dotsContainer.innerHTML = '';
-            for (let i = 0; i < totalWindows; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'scroll-dot';
-                if (i === (totalWindows - 1 - currentViewWindow)) {
-                    dot.classList.add('active');
-                }
-                dotsContainer.appendChild(dot);
-            }
-        }
-
-        function updateChart() {
+        function updateTable() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            if (!chartData[currentChartPeriod] || (goldAmount === 0 && silverAmount === 0)) {
-                if (portfolioChart) {
-                    portfolioChart.destroy();
-                    portfolioChart = null;
-                }
-                return;
-            }
+            if (!tableData[currentPeriod]) return;
             
-            const fullData = chartData[currentChartPeriod];
-            const visibleData = getVisibleData(fullData);
+            const tbody = document.getElementById('priceTableBody');
+            tbody.innerHTML = '';
             
-            const labels = visibleData.map(item => {
-                if (currentChartPeriod === 'daily') return item.time;
-                if (currentChartPeriod === 'weekly') return item.day;
-                return item.period;
-            });
-            
-            const goldPortfolioData = visibleData.map(item => goldAmount * item.gold_price);
-            const silverPortfolioData = visibleData.map(item => silverAmount * item.silver_price);
-            
-            const ctx = document.getElementById('portfolioChart').getContext('2d');
-            
-            if (portfolioChart) {
-                portfolioChart.destroy();
-            }
-            
-            const datasets = [];
-            
-            if (visibleDatasets.gold && goldAmount > 0) {
-                datasets.push({
-                    label: 'Altın Portföyü',
-                    data: goldPortfolioData,
-                    borderColor: '#f39c12',
-                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                });
-            }
-            
-            if (visibleDatasets.silver && silverAmount > 0) {
-                datasets.push({
-                    label: 'Gümüş Portföyü',
-                    data: silverPortfolioData,
-                    borderColor: '#95a5a6',
-                    backgroundColor: 'rgba(149, 165, 166, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                });
-            }
-            
-            portfolioChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        zoom: {
-                            pan: {
-                                enabled: true,
-                                mode: 'x',
-                                onPan: function({chart}) {
-                                    handlePan(chart);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    if (value >= 1000000) {
-                                        return (value / 1000000).toFixed(1) + 'M₺';
-                                    } else if (value >= 1000) {
-                                        return (value / 1000).toFixed(0) + 'K₺';
-                                    }
-                                    return new Intl.NumberFormat('tr-TR', {maximumFractionDigits: 2}).format(value) + '₺';
-                                }
-                            }
-                        }
-                    },
-                    elements: {
-                        point: { radius: 4, hoverRadius: 6 }
-                    }
-                }
+            tableData[currentPeriod].forEach(item => {
+                const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="time">${item.time}</td>
+                    <td class="price">${formatPrice(item.gold_price)}</td>
+                    <td class="price">${formatPrice(item.silver_price)}</td>
+                    <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
+                    <td class="change ${getChangeClass(item.change_percent)}">${formatChange(item.change_percent)}</td>
+                `;
+                tbody.appendChild(row);
             });
         }
 
-        function handlePan(chart) {
-            console.log('Pan hareketi algılandı');
+        function getChangeClass(changePercent) {
+            if (changePercent > 0) return 'positive';
+            if (changePercent < 0) return 'negative';
+            return 'neutral';
         }
 
-        // Klavye ile kaydırma
-        document.addEventListener('keydown', function(e) {
-            if (!chartData[currentChartPeriod]) return;
-            
-            const totalPoints = chartData[currentChartPeriod].length;
-            const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-            
-            if (e.key === 'ArrowLeft') {
-                if (currentViewWindow < maxWindows) {
-                    currentViewWindow++;
-                    updateChart();
-                    updateScrollIndicator();
-                }
-            } else if (e.key === 'ArrowRight') {
-                if (currentViewWindow > 0) {
-                    currentViewWindow--;
-                    updateChart();
-                    updateScrollIndicator();
-                }
-            }
-        });
-
-        // MOUSE DRAG KAYDIRMA
-        const chartWrapper = document.getElementById('portfolioChart');
-        
-        chartWrapper.addEventListener('mousedown', function(e) {
-            if (!chartData[currentChartPeriod]) return;
-            isDragging = true;
-            dragStartX = e.clientX;
-            chartWrapper.parentElement.classList.add('dragging');
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            dragCurrentX = e.clientX;
-        });
-
-        document.addEventListener('mouseup', function(e) {
-            if (!isDragging) return;
-            
-            isDragging = false;
-            chartWrapper.parentElement.classList.remove('dragging');
-            
-            const dragDistance = dragStartX - dragCurrentX;
-            
-            if (Math.abs(dragDistance) > dragThreshold) {
-                const totalPoints = chartData[currentChartPeriod].length;
-                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-                
-                if (dragDistance < 0) {
-                    // Sağa sürükleme = Eski verilere git (sola kaydır)
-                    if (currentViewWindow < maxWindows) {
-                        currentViewWindow++;
-                        updateChart();
-                        updateScrollIndicator();
-                    }
-                } else {
-                    // Sola sürükleme = Yeni verilere git (sağa kaydır)
-                    if (currentViewWindow > 0) {
-                        currentViewWindow--;
-                        updateChart();
-                        updateScrollIndicator();
-                    }
-                }
-            }
-            
-            dragStartX = 0;
-            dragCurrentX = 0;
-        });
-
-        // TOUCH SWIPE KAYDIRMA
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        chartWrapper.addEventListener('touchstart', function(e) {
-            if (!chartData[currentChartPeriod]) return;
-            touchStartX = e.changedTouches[0].clientX;
-            chartWrapper.parentElement.classList.add('dragging');
-        }, { passive: true });
-
-        chartWrapper.addEventListener('touchmove', function(e) {
-            if (!chartData[currentChartPeriod]) return;
-            touchEndX = e.changedTouches[0].clientX;
-        }, { passive: true });
-
-        chartWrapper.addEventListener('touchend', function(e) {
-            if (!chartData[currentChartPeriod]) return;
-            
-            chartWrapper.parentElement.classList.remove('dragging');
-            
-            const swipeDistance = touchStartX - touchEndX;
-            const swipeThreshold = 50;
-            
-            if (Math.abs(swipeDistance) > swipeThreshold) {
-                const totalPoints = chartData[currentChartPeriod].length;
-                const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
-                
-                if (swipeDistance < 0) {
-                    // Sağa swipe = Eski verilere git (sola kaydır)
-                    if (currentViewWindow < maxWindows) {
-                        currentViewWindow++;
-                        updateChart();
-                        updateScrollIndicator();
-                    }
-                } else {
-                    // Sola swipe = Yeni verilere git (sağa kaydır)
-                    if (currentViewWindow > 0) {
-                        currentViewWindow--;
-                        updateChart();
-                        updateScrollIndicator();
-                    }
-                }
-            }
-            
-            touchStartX = 0;
-            touchEndX = 0;
-        });
-
-        // Scroll dot'larına tıklama ile doğrudan o pencereye gitme
-        document.getElementById('scrollDots').addEventListener('click', function(e) {
-            if (e.target.classList.contains('scroll-dot')) {
-                const dots = Array.from(this.children);
-                const clickedIndex = dots.indexOf(e.target);
-                
-                if (clickedIndex !== -1) {
-                    const totalPoints = chartData[currentChartPeriod].length;
-                    const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-                    currentViewWindow = totalWindows - 1 - clickedIndex;
-                    updateChart();
-                    updateScrollIndicator();
-                }
-            }
-        });
+        function formatChange(changePercent) {
+            if (changePercent === 0) return '0.00%';
+            const sign = changePercent > 0 ? '+' : '';
+            return `${sign}${changePercent.toFixed(2)}%`;
+        }
 
         function togglePortfolio() {
             document.getElementById('portfolioModal').style.display = 'flex';
@@ -770,11 +482,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const totalValue = goldValue + silverValue;
             
             const portfolioSummary = document.getElementById('portfolioSummary');
-            const chartContainer = document.getElementById('chartContainer');
+            const priceHistory = document.getElementById('priceHistory');
             
             if (totalValue > 0) {
                 portfolioSummary.style.display = 'block';
-                chartContainer.style.display = 'block';
+                priceHistory.style.display = 'block';
                 
                 document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
                 document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
@@ -782,15 +494,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
                 document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
                 
-                updateChart();
-                updateScrollIndicator();
+                updateTable();
             } else {
                 portfolioSummary.style.display = 'none';
-                chartContainer.style.display = 'none';
-                if (portfolioChart) {
-                    portfolioChart.destroy();
-                    portfolioChart = null;
-                }
+                priceHistory.style.display = 'none';
             }
             
             savePortfolio();
@@ -900,10 +607,10 @@ def api_silver_price():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/chart-data')
-def api_chart_data():
+@app.route('/api/table-data')
+def api_table_data():
     try:
-        data = get_chart_data()
+        data = get_table_data()
         return jsonify({'success': bool(data), 'data': data or {}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -911,19 +618,19 @@ def api_chart_data():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=" * 60)
-    print("🚀 Metal Fiyat Takipçisi v3.0.0")
+    print("🚀 Metal Fiyat Takipçisi v4.0.0")
     print("=" * 60)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
     print("=" * 60)
     print("✨ Yeni Özellikler:")
-    print("  • 📊 Kaydırılabilir grafik (max 5 veri noktası)")
-    print("  • 🖱️  Mouse drag ile kaydırma")
-    print("  • 👆 Touch swipe desteği")
-    print("  • ⌨️  Klavye ok tuşları (← →)")
-    print("  • 🔘 Scroll dot navigasyonu")
+    print("  • 📊 Tablo bazlı fiyat geçmişi")
+    print("  • 📈 Değişim yüzdesi hesaplama")
+    print("  • 💰 Portföy değeri sütunu")
+    print("  • 🕐 Günlük/haftalık görünüm")
+    print("  • 🎨 Responsive tablo tasarımı")
     print("  • 💾 Cookie ile kalıcı portföy kaydı")
-    print("  • 🕐 30 dakikalık detaylı veri takibi")
+    print("  • 🕕 30 dakikalık detaylı veri takibi")
     print("  • 🇹🇷 Türkiye saati (UTC+3)")
     print("=" * 60)
     print("📈 Veri Kaynakları:")
