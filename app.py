@@ -45,7 +45,6 @@ def get_chart_data():
         daily_data = []
         for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
             timestamp = record.get("timestamp", 0)
-            # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
@@ -231,6 +230,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             cursor: grabbing;
         }
         
+        /* Kaydırma göstergesi */
         .scroll-indicator {
             display: flex; justify-content: center; align-items: center; gap: 8px;
             margin-top: 12px; color: #6c757d; font-size: 13px;
@@ -335,34 +335,42 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="chart-container" id="chartContainer">
-            <div class="chart-header">
-                <div class="chart-title">Portföy Grafiği</div>
-                <div class="chart-tabs">
-                    <button class="chart-tab active" onclick="switchChart('daily')" id="dailyChartTab">Günlük</button>
-                    <button class="chart-tab" onclick="switchChart('weekly')" id="weeklyChartTab">Haftalık</button>
-                    <button class="chart-tab" onclick="switchChart('monthly')" id="monthlyChartTab">Aylık</button>
+        <div class="price-table-container" id="priceTableContainer">
+            <div class="table-header">
+                <div>
+                    <div class="table-title">Fiyat Listesi</div>
+                    <div class="table-date" id="tableDate">29 Eylül 2025</div>
                 </div>
-            </div>
-            <div class="chart-wrapper">
-                <canvas id="portfolioChart"></canvas>
             </div>
             
-            <div class="scroll-indicator">
-                <span>◀</span>
-                <div class="scroll-dots" id="scrollDots"></div>
-                <span>▶</span>
+            <div class="table-tabs">
+                <button class="table-tab active" onclick="switchTable('daily')" id="dailyTableTab">Günlük</button>
+                <button class="table-tab" onclick="switchTable('weekly')" id="weeklyTableTab">Haftalık</button>
+                <button class="table-tab" onclick="switchTable('monthly')" id="monthlyTableTab">Aylık</button>
             </div>
             
-            <div class="chart-legend">
-                <div class="legend-item" onclick="toggleDataset('gold')" id="goldLegend">
-                    <div class="legend-color gold"></div>
-                    <span>Altın Portföyü</span>
-                </div>
-                <div class="legend-item" onclick="toggleDataset('silver')" id="silverLegend">
-                    <div class="legend-color silver"></div>
-                    <span>Gümüş Portföyü</span>
-                </div>
+            <div style="overflow-x: auto;">
+                <table class="price-table">
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>Altın</th>
+                            <th>Gümüş</th>
+                            <th>Portföy</th>
+                            <th>Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <tr>
+                            <td colspan="5" class="no-data">Veri yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="scroll-hint">
+                <span>↕</span>
+                <span>Kaydırarak tüm verileri görüntüleyin</span>
             </div>
         </div>
     </div>
@@ -407,7 +415,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let isDragging = false;
         let dragStartX = 0;
         let dragCurrentX = 0;
-        let dragThreshold = 30;
+        let dragThreshold = 30; // Kaydırma hassasiyeti
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -437,6 +445,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (chartDataRes.success) {
                     chartData = chartDataRes.data;
+                    // En son verileri göstermek için window'u sıfırla
                     currentViewWindow = 0;
                     updateChart();
                     updateScrollIndicator();
@@ -454,7 +463,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         function switchChart(period) {
             currentChartPeriod = period;
-            currentViewWindow = 0;
+            currentViewWindow = 0; // Yeni grafik açıldığında başa dön
             document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'ChartTab').classList.add('active');
             updateChart();
@@ -475,14 +484,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function getVisibleData(fullData) {
             if (!fullData || fullData.length === 0) return fullData;
             
+            // Toplam veri sayısı
             const totalPoints = fullData.length;
             
+            // Eğer veri sayısı MAX_VISIBLE_POINTS'ten azsa tümünü göster
             if (totalPoints <= MAX_VISIBLE_POINTS) {
                 return fullData;
             }
             
+            // Kaç pencere olduğunu hesapla
             const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
+            
+            // En son pencereyi varsayılan yap (currentViewWindow = 0 en son demek)
             const windowIndex = totalWindows - 1 - currentViewWindow;
+            
+            // Başlangıç ve bitiş indekslerini hesapla
             const startIndex = windowIndex * MAX_VISIBLE_POINTS;
             const endIndex = Math.min(startIndex + MAX_VISIBLE_POINTS, totalPoints);
             
@@ -527,7 +543,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
             
+            // Tüm veriyi al
             const fullData = chartData[currentChartPeriod];
+            
+            // Görünür veriyi filtrele
             const visibleData = getVisibleData(fullData);
             
             const labels = visibleData.map(item => {
@@ -587,6 +606,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                                 enabled: true,
                                 mode: 'x',
                                 onPan: function({chart}) {
+                                    // Pan işlemi sırasında window değiştir
                                     handlePan(chart);
                                 }
                             }
@@ -615,6 +635,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function handlePan(chart) {
+            // Bu fonksiyon gelecekte pan hareketlerini yönetmek için kullanılabilir
             console.log('Pan hareketi algılandı');
         }
 
@@ -733,25 +754,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 }
             }
             
-            touchStartX = 0;
-            touchEndX = 0;
-        });
 
-        // Scroll dot'larına tıklama ile doğrudan o pencereye gitme
-        document.getElementById('scrollDots').addEventListener('click', function(e) {
-            if (e.target.classList.contains('scroll-dot')) {
-                const dots = Array.from(this.children);
-                const clickedIndex = dots.indexOf(e.target);
-                
-                if (clickedIndex !== -1) {
-                    const totalPoints = chartData[currentChartPeriod].length;
-                    const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-                    currentViewWindow = totalWindows - 1 - clickedIndex;
-                    updateChart();
-                    updateScrollIndicator();
-                }
-            }
-        });
 
         function togglePortfolio() {
             document.getElementById('portfolioModal').style.display = 'flex';
@@ -910,25 +913,22 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("=" * 60)
+    print("=" * 50)
     print("🚀 Metal Fiyat Takipçisi v3.0.0")
-    print("=" * 60)
+    print("📊 Kaydırılabilir Grafik Özelliği")
+    print("✨ Maksimum 5 Veri Noktası Görünümü")
+    print("=" * 50)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
-    print("=" * 60)
-    print("✨ Yeni Özellikler:")
-    print("  • 📊 Kaydırılabilir grafik (max 5 veri noktası)")
-    print("  • 🖱️  Mouse drag ile kaydırma")
-    print("  • 👆 Touch swipe desteği")
-    print("  • ⌨️  Klavye ok tuşları (← →)")
-    print("  • 🔘 Scroll dot navigasyonu")
-    print("  • 💾 Cookie ile kalıcı portföy kaydı")
-    print("  • 🕐 30 dakikalık detaylı veri takibi")
-    print("  • 🇹🇷 Türkiye saati (UTC+3)")
-    print("=" * 60)
-    print("📈 Veri Kaynakları:")
-    print("  • Altın: YapıKredi (doviz.com)")
-    print("  • Gümüş: VakıfBank (doviz.com)")
-    print("  • Geçmiş: GitHub JSON")
-    print("=" * 60)
+    print("=" * 50)
+    print("🔥 Yeni Özellikler:")
+    print("  • Yatay kaydırılabilir grafik")
+    print("  • Maksimum 5 dikey çizgi gösterimi")
+    print("  • Touch swipe desteği (← →)")
+    print("  • Klavye ok tuşları ile kaydırma")
+    print("  • Scroll gösterge noktaları")
+    print("  • Doğrudan nokta seçimi")
+    print("  • 30 dakikalık detaylı veri")
+    print("  • Türkiye saati (UTC+3)")
+    print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
