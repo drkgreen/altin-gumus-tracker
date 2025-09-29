@@ -38,30 +38,24 @@ def get_chart_data():
         if not recent_records:
             return None
         
-        # Günlük veriler (bugün saat saat)
+        # Günlük veriler (bugün her kayıt ayrı ayrı - 30dk aralıklarla)
         today = now.strftime("%Y-%m-%d")
         today_records = [r for r in recent_records if r.get("date") == today]
         
-        hourly_data = {}
-        for record in today_records:
-            timestamp = record.get("timestamp", 0)
-            hour = datetime.fromtimestamp(timestamp, timezone.utc).strftime("%H:00")
-            if hour not in hourly_data:
-                hourly_data[hour] = {"gold_prices": [], "silver_prices": []}
-            hourly_data[hour]["gold_prices"].append(record["gold_price"])
-            hourly_data[hour]["silver_prices"].append(record["silver_price"])
-        
         daily_data = []
-        for hour in sorted(hourly_data.keys()):
-            gold_avg = sum(hourly_data[hour]["gold_prices"]) / len(hourly_data[hour]["gold_prices"])
-            silver_avg = sum(hourly_data[hour]["silver_prices"]) / len(hourly_data[hour]["silver_prices"])
+        for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
+            timestamp = record.get("timestamp", 0)
+            # UTC'den Türkiye saatine çevir (+3 saat)
+            local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
+            time_label = local_time.strftime("%H:%M")
+            
             daily_data.append({
-                "hour": hour,
-                "gold_price": gold_avg,
-                "silver_price": silver_avg
+                "time": time_label,
+                "gold_price": record["gold_price"],
+                "silver_price": record["silver_price"]
             })
         
-        # Haftalık veriler (son 7 gün)
+        # Haftalık veriler (son 7 gün, günlük ortalamalar)
         weekly_data = []
         for i in range(7):
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -159,14 +153,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
             min-height: 100vh; padding: 20px;
         }
-        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 5px; }
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
             border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .header-left {
+            display: flex; align-items: center; gap: 12px;
+        }
         .logo { font-size: 20px; font-weight: 700; color: white; }
+        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
         .actions { display: flex; gap: 10px; }
         .action-btn {
             width: 44px; height: 44px; border-radius: 12px;
@@ -178,31 +176,36 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .portfolio-summary {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 24px; padding: 28px; color: white;
+            border-radius: 24px; padding: 24px 20px; color: white;
             box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
             display: none; text-align: center;
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals {
-            display: flex; justify-content: space-between; gap: 16px;
-            margin-top: 16px;
+            display: flex; justify-content: center; gap: 6px;
+            margin: 20px 10px 0 10px;
         }
         .metal-item {
-            flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px;
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1; 
+            background: rgba(255, 255, 255, 0.15); 
+            border-radius: 16px; 
+            padding: 16px;
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 140px;
         }
         .metal-header {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
         }
         .metal-icon {
-            width: 32px; height: 32px; border-radius: 8px; display: flex;
-            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+            width: 40px; height: 40px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
         }
         .metal-icon.gold { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
         .metal-icon.silver { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
-        .metal-name { font-size: 14px; font-weight: 600; }
-        .metal-price { font-size: 13px; opacity: 0.8; margin-bottom: 8px; }
-        .metal-value { font-size: 18px; font-weight: 700; }
+        .metal-name { font-size: 16px; font-weight: 600; }
+        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
+        .metal-value { font-size: 22px; font-weight: 700; }
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -282,14 +285,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         @media (max-width: 400px) {
             .container { max-width: 100%; }
             .chart-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
+            .portfolio-metals { 
+                flex-direction: column; 
+                gap: 12px;
+            }
+            
+            /* Mobilde daha büyük font boyutları */
+            .metal-name { font-size: 17px; }
+            .metal-price { font-size: 16px; }
+            .metal-value { font-size: 24px; }
+            .metal-item { padding: 20px; min-height: 130px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Metal Tracker</div>
+            <div class="header-left">
+                <div class="logo">Metal Tracker</div>
+                <div class="update-time" id="headerTime">--:--</div>
+            </div>
             <div class="actions">
                 <button class="action-btn" onclick="fetchPrice()" id="refreshBtn">⟳</button>
                 <button class="action-btn" onclick="togglePortfolio()">⚙</button>
@@ -301,7 +316,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="portfolio-metals">
                 <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon gold">Au</div>
                         <div class="metal-name">Altın</div>
                     </div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
@@ -309,7 +323,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 </div>
                 <div class="metal-item">
                     <div class="metal-header">
-                        <div class="metal-icon silver">Ag</div>
                         <div class="metal-name">Gümüş</div>
                     </div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
@@ -342,10 +355,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="status-bar">
-            <div class="status-text" id="statusText">Yükleniyor...</div>
-            <div class="status-time" id="statusTime">--:--</div>
-        </div>
     </div>
     
     <div class="modal-overlay" id="portfolioModal">
@@ -384,11 +393,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
-            const statusText = document.getElementById('statusText');
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
-                statusText.textContent = 'Güncelleniyor...';
                 
                 const [goldRes, silverRes, chartRes] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -415,12 +422,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     updateChart();
                 }
                 
-                statusText.textContent = 'Güncel';
-                document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 updatePortfolio();
                 
             } catch (error) {
-                statusText.textContent = 'Hata';
+                console.error('Fetch error:', error);
             } finally {
                 setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
             }
@@ -458,7 +464,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             const data = chartData[currentChartPeriod];
             const labels = data.map(item => {
-                if (currentChartPeriod === 'daily') return item.hour;
+                if (currentChartPeriod === 'daily') return item.time;
                 if (currentChartPeriod === 'weekly') return item.day;
                 return item.period;
             });
@@ -660,7 +666,21 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("Metal Fiyat Takipçisi v2.7.0")
-    print("Redesigned Portfolio with Chart Controls")
-    print(f"URL: http://localhost:{port}")
+    print("=" * 50)
+    print("🚀 Metal Fiyat Takipçisi v2.8.0")
+    print("📊 30 Dakikalık Detaylı Grafik")
+    print("✨ Türkiye Saati (UTC+3)")
+    print("=" * 50)
+    print(f"🌐 Server: http://localhost:{port}")
+    print(f"📱 Mobile: http://0.0.0.0:{port}")
+    print("=" * 50)
+    print("📈 Özellikler:")
+    print("  • 30 dakikalık detaylı veri takibi")
+    print("  • Türkiye saati (UTC+3) ile gösterim")
+    print("  • Her kayıt ayrı ayrı grafikte")
+    print("  • Günlük: HH:MM formatında zaman")
+    print("  • Haftalık: Günlük ortalamalar")
+    print("  • Aylık: 5 günlük periyotlar")
+    print("  • Real-time fiyat takibi")
+    print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
