@@ -45,6 +45,7 @@ def get_chart_data():
         daily_data = []
         for record in sorted(today_records, key=lambda x: x.get("timestamp", 0)):
             timestamp = record.get("timestamp", 0)
+            # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
             time_label = local_time.strftime("%H:%M")
             
@@ -230,7 +231,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             cursor: grabbing;
         }
         
-        /* Kaydırma göstergesi */
         .scroll-indicator {
             display: flex; justify-content: center; align-items: center; gap: 8px;
             margin-top: 12px; color: #6c757d; font-size: 13px;
@@ -407,7 +407,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let isDragging = false;
         let dragStartX = 0;
         let dragCurrentX = 0;
-        let dragThreshold = 30; // Kaydırma hassasiyeti
+        let dragThreshold = 30;
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -437,7 +437,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (chartDataRes.success) {
                     chartData = chartDataRes.data;
-                    // En son verileri göstermek için window'u sıfırla
                     currentViewWindow = 0;
                     updateChart();
                     updateScrollIndicator();
@@ -455,7 +454,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         function switchChart(period) {
             currentChartPeriod = period;
-            currentViewWindow = 0; // Yeni grafik açıldığında başa dön
+            currentViewWindow = 0;
             document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'ChartTab').classList.add('active');
             updateChart();
@@ -476,21 +475,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function getVisibleData(fullData) {
             if (!fullData || fullData.length === 0) return fullData;
             
-            // Toplam veri sayısı
             const totalPoints = fullData.length;
             
-            // Eğer veri sayısı MAX_VISIBLE_POINTS'ten azsa tümünü göster
             if (totalPoints <= MAX_VISIBLE_POINTS) {
                 return fullData;
             }
             
-            // Kaç pencere olduğunu hesapla
             const totalWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS);
-            
-            // En son pencereyi varsayılan yap (currentViewWindow = 0 en son demek)
             const windowIndex = totalWindows - 1 - currentViewWindow;
-            
-            // Başlangıç ve bitiş indekslerini hesapla
             const startIndex = windowIndex * MAX_VISIBLE_POINTS;
             const endIndex = Math.min(startIndex + MAX_VISIBLE_POINTS, totalPoints);
             
@@ -535,10 +527,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 return;
             }
             
-            // Tüm veriyi al
             const fullData = chartData[currentChartPeriod];
-            
-            // Görünür veriyi filtrele
             const visibleData = getVisibleData(fullData);
             
             const labels = visibleData.map(item => {
@@ -598,7 +587,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                                 enabled: true,
                                 mode: 'x',
                                 onPan: function({chart}) {
-                                    // Pan işlemi sırasında window değiştir
                                     handlePan(chart);
                                 }
                             }
@@ -627,7 +615,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function handlePan(chart) {
-            // Bu fonksiyon gelecekte pan hareketlerini yönetmek için kullanılabilir
             console.log('Pan hareketi algılandı');
         }
 
@@ -681,15 +668,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const totalPoints = chartData[currentChartPeriod].length;
                 const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
                 
-                if (dragDistance > 0) {
-                    // Sola sürükleme = Eski verilere git
+                if (dragDistance < 0) {
+                    // Sağa sürükleme = Eski verilere git (sola kaydır)
                     if (currentViewWindow < maxWindows) {
                         currentViewWindow++;
                         updateChart();
                         updateScrollIndicator();
                     }
                 } else {
-                    // Sağa sürükleme = Yeni verilere git
+                    // Sola sürükleme = Yeni verilere git (sağa kaydır)
                     if (currentViewWindow > 0) {
                         currentViewWindow--;
                         updateChart();
@@ -729,15 +716,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const totalPoints = chartData[currentChartPeriod].length;
                 const maxWindows = Math.ceil(totalPoints / MAX_VISIBLE_POINTS) - 1;
                 
-                if (swipeDistance > 0) {
-                    // Sola swipe = Eski verilere git
+                if (swipeDistance < 0) {
+                    // Sağa swipe = Eski verilere git (sola kaydır)
                     if (currentViewWindow < maxWindows) {
                         currentViewWindow++;
                         updateChart();
                         updateScrollIndicator();
                     }
                 } else {
-                    // Sağa swipe = Yeni verilere git
+                    // Sola swipe = Yeni verilere git (sağa kaydır)
                     if (currentViewWindow > 0) {
                         currentViewWindow--;
                         updateChart();
@@ -813,7 +800,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const goldAmount = document.getElementById('goldAmount').value;
             const silverAmount = document.getElementById('silverAmount').value;
             
-            // In-memory storage (localStorage alternatifi)
+            // Cookie ile kalıcı kayıt (1 yıl geçerli)
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            
+            document.cookie = `goldAmount=${goldAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            document.cookie = `silverAmount=${silverAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            
+            // Yedek olarak in-memory de tut
             window.portfolioData = {
                 gold: goldAmount,
                 silver: silverAmount
@@ -821,8 +815,22 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function loadPortfolio() {
-            // In-memory storage'dan yükle
-            if (window.portfolioData) {
+            // Cookie'den yükle
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [key, value] = cookie.trim().split('=');
+                acc[key] = value;
+                return acc;
+            }, {});
+            
+            if (cookies.goldAmount && cookies.goldAmount !== 'undefined') {
+                document.getElementById('goldAmount').value = cookies.goldAmount;
+            }
+            if (cookies.silverAmount && cookies.silverAmount !== 'undefined') {
+                document.getElementById('silverAmount').value = cookies.silverAmount;
+            }
+            
+            // Yedek: in-memory'den yükle
+            if (!cookies.goldAmount && window.portfolioData) {
                 document.getElementById('goldAmount').value = window.portfolioData.gold || '';
                 document.getElementById('silverAmount').value = window.portfolioData.silver || '';
             }
@@ -832,7 +840,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
                 document.getElementById('goldAmount').value = '';
                 document.getElementById('silverAmount').value = '';
+                
+                // Cookie'leri sil
+                document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                
+                // In-memory'yi temizle
                 window.portfolioData = null;
+                
                 updatePortfolio();
             }
         }
@@ -895,22 +910,25 @@ def api_chart_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print("=" * 50)
+    print("=" * 60)
     print("🚀 Metal Fiyat Takipçisi v3.0.0")
-    print("📊 Kaydırılabilir Grafik Özelliği")
-    print("✨ Maksimum 5 Veri Noktası Görünümü")
-    print("=" * 50)
+    print("=" * 60)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
-    print("=" * 50)
-    print("🔥 Yeni Özellikler:")
-    print("  • Yatay kaydırılabilir grafik")
-    print("  • Maksimum 5 dikey çizgi gösterimi")
-    print("  • Touch swipe desteği (← →)")
-    print("  • Klavye ok tuşları ile kaydırma")
-    print("  • Scroll gösterge noktaları")
-    print("  • Doğrudan nokta seçimi")
-    print("  • 30 dakikalık detaylı veri")
-    print("  • Türkiye saati (UTC+3)")
-    print("=" * 50)
+    print("=" * 60)
+    print("✨ Yeni Özellikler:")
+    print("  • 📊 Kaydırılabilir grafik (max 5 veri noktası)")
+    print("  • 🖱️  Mouse drag ile kaydırma")
+    print("  • 👆 Touch swipe desteği")
+    print("  • ⌨️  Klavye ok tuşları (← →)")
+    print("  • 🔘 Scroll dot navigasyonu")
+    print("  • 💾 Cookie ile kalıcı portföy kaydı")
+    print("  • 🕐 30 dakikalık detaylı veri takibi")
+    print("  • 🇹🇷 Türkiye saati (UTC+3)")
+    print("=" * 60)
+    print("📈 Veri Kaynakları:")
+    print("  • Altın: YapıKredi (doviz.com)")
+    print("  • Gümüş: VakıfBank (doviz.com)")
+    print("  • Geçmiş: GitHub JSON")
+    print("=" * 60)
     app.run(host='0.0.0.0', port=port, debug=False)
