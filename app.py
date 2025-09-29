@@ -402,6 +402,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
+                refreshBtn.style.transition = 'transform 0.5s ease';
                 
                 const [goldRes, silverRes, chartRes] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -413,19 +414,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const silverData = await silverRes.json();
                 const chartDataRes = await chartRes.json();
                 
+                console.log('Gold data:', goldData);
+                console.log('Silver data:', silverData);
+                console.log('Chart data:', chartDataRes);
+                
                 if (goldData.success) {
                     let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    console.log('Current gold price:', currentGoldPrice);
                 }
                 
                 if (silverData.success) {
                     let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    console.log('Current silver price:', currentSilverPrice);
                 }
                 
-                if (chartDataRes.success) {
+                if (chartDataRes.success && chartDataRes.data) {
                     chartData = chartDataRes.data;
+                    console.log('Chart data loaded:', chartData);
                     updateChart();
+                } else {
+                    console.error('Chart data failed:', chartDataRes);
                 }
                 
                 document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
@@ -637,6 +647,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             loadPortfolio();
             fetchPrice();
             updatePortfolio();
+            
+            // Her 5 dakikada bir otomatik güncelleme
+            setInterval(fetchPrice, 300000);
         };
     </script>
 </body>
@@ -683,10 +696,10 @@ if __name__ == '__main__':
     print("📈 Özellikler:")
     print("  • Merkeze hizalanmış container'lar")
     print("  • Eşit sol/sağ boşluklar (10px)")
-    print("  • Mükemmel geometrik yerleşim")
+    print("  • Otomatik veri güncelleme (5 dk)")
+    print("  • Geliştirilmiş hata ayıklama")
     print("  • Mobil responsive tasarım")
     print("  • Real-time fiyat takibi")
     print("  • Portföy grafik analizi")
-    print("  • Pixel-perfect centered layout")
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
