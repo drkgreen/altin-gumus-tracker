@@ -38,33 +38,44 @@ def get_table_data():
         if not recent_records:
             return None
         
-        # Günlük veriler (bugün her kayıt ayrı ayrı - 30dk aralıklarla)
-        today = now.strftime("%Y-%m-%d")
-        today_records = [r for r in recent_records if r.get("date") == today]
-        
+        # Günlük veriler (son 2 gün, her kayıt ayrı ayrı - 30dk aralıklarla)
         daily_data = []
-        sorted_today_records = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)
         
-        for i, record in enumerate(sorted_today_records):
-            timestamp = record.get("timestamp", 0)
-            # UTC'den Türkiye saatine çevir (+3 saat)
-            local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
-            time_label = local_time.strftime("%H:%M")
+        # Son 2 günün verilerini al
+        for day_offset in range(2):
+            target_date = (now - timedelta(days=day_offset)).strftime("%Y-%m-%d")
+            day_records = [r for r in recent_records if r.get("date") == target_date]
             
-            # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
-            change_percent = 0
-            if i < len(sorted_today_records) - 1:
-                prev_record = sorted_today_records[i + 1]
-                if prev_record and prev_record.get("gold_price"):
-                    price_diff = record["gold_price"] - prev_record["gold_price"]
-                    change_percent = (price_diff / prev_record["gold_price"]) * 100
+            if day_records:
+                sorted_day_records = sorted(day_records, key=lambda x: x.get("timestamp", 0), reverse=True)
+                
+                for i, record in enumerate(sorted_day_records):
+                    timestamp = record.get("timestamp", 0)
+                    # UTC'den Türkiye saatine çevir (+3 saat)
+                    local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
+                    
+                    # Eğer bugün değilse tarih de göster
+                    if day_offset == 0:
+                        time_label = local_time.strftime("%H:%M")
+                    else:
+                        time_label = local_time.strftime("%d.%m %H:%M")
+                    
+                    # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
+                    change_percent = 0
+                    if i < len(sorted_day_records) - 1:
+                        prev_record = sorted_day_records[i + 1]
+                        if prev_record and prev_record.get("gold_price"):
+                            price_diff = record["gold_price"] - prev_record["gold_price"]
+                            change_percent = (price_diff / prev_record["gold_price"]) * 100
+                    
+                    daily_data.append({
+                        "time": time_label,
+                        "gold_price": record["gold_price"],
+                        "silver_price": record["silver_price"],
+                        "change_percent": change_percent
+                    })
             
-            daily_data.append({
-                "time": time_label,
-                "gold_price": record["gold_price"],
-                "silver_price": record["silver_price"],
-                "change_percent": change_percent
-            })
+        print(f"DEBUG: Son 2 gün için {len(daily_data)} kayıt eklendi")
         
         # Haftalık veriler (son 7 gün, günlük en yüksek değerler)
         weekly_data = []
