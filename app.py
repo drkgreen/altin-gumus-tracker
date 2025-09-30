@@ -43,7 +43,9 @@ def get_table_data():
         today_records = [r for r in recent_records if r.get("date") == today]
         
         daily_data = []
-        for i, record in enumerate(sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)):
+        sorted_today_records = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)
+        
+        for i, record in enumerate(sorted_today_records):
             timestamp = record.get("timestamp", 0)
             # UTC'den Türkiye saatine çevir (+3 saat)
             local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
@@ -51,8 +53,8 @@ def get_table_data():
             
             # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
             change_percent = 0
-            if i < len(today_records) - 1:
-                prev_record = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)[i + 1]
+            if i < len(sorted_today_records) - 1:
+                prev_record = sorted_today_records[i + 1]
                 if prev_record and prev_record.get("gold_price"):
                     price_diff = record["gold_price"] - prev_record["gold_price"]
                     change_percent = (price_diff / prev_record["gold_price"]) * 100
