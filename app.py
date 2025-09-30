@@ -84,12 +84,15 @@ def get_table_data():
                         change_percent = (price_diff / prev_avg_gold) * 100
                 
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
-                weekly_data.insert(0, {
+                weekly_data.append({
                     "time": day_name,
                     "gold_price": avg_gold,
                     "silver_price": avg_silver,
                     "change_percent": change_percent
                 })
+        
+        # En son kayıt en başta olsun diye ters çevir
+        weekly_data.reverse()
         
         return {
             "daily": daily_data,
@@ -339,7 +342,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <table>
                     <thead>
                         <tr>
-                            <th>Saat</th>
+                            <th id="timeHeader">Saat</th>
                             <th>Altın</th>
                             <th>Gümüş</th>
                             <th>Portföy</th>
@@ -431,6 +434,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             currentPeriod = period;
             document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'Tab').classList.add('active');
+            
+            // Tablo başlığını güncelle
+            const timeHeader = document.getElementById('timeHeader');
+            if (period === 'daily') {
+                timeHeader.textContent = 'Saat';
+            } else if (period === 'weekly') {
+                timeHeader.textContent = 'Tarih';
+            }
+            
             updateTable();
         }
 
