@@ -197,13 +197,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
         
+        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
+        
         .price-history {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
-            display: none;
+            border-radius: 20px; padding: 16px 8px; border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none; margin: 0 -2px;
         }
         .history-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            padding: 0 12px;
         }
         .history-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
         .period-tabs {
@@ -219,19 +222,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .price-table {
             overflow-x: auto; border-radius: 12px; background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 0 4px;
         }
         .price-table table {
             width: 100%; border-collapse: collapse;
         }
         .price-table th {
-            background: #f8f9fa; padding: 12px 8px; text-align: left;
-            font-weight: 600; color: #495057; font-size: 14px;
-            border-bottom: 2px solid #e9ecef;
+            background: #f8f9fa; padding: 12px 6px; text-align: left;
+            font-weight: 600; color: #495057; font-size: 13px;
+            border-bottom: 2px solid #e9ecef; white-space: nowrap;
         }
         .price-table td {
-            padding: 12px 8px; border-bottom: 1px solid #f1f3f4;
-            font-size: 14px; color: #495057;
+            padding: 12px 6px; border-bottom: 1px solid #f1f3f4;
+            font-size: 13px; color: #495057; white-space: nowrap;
         }
         .price-table tr:hover {
             background: #f8f9fa;
@@ -278,14 +281,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .btn-secondary { background: #e9ecef; color: #6c757d; }
         
         @media (max-width: 400px) {
-            .container { max-width: 100%; }
+            .container { max-width: 100%; padding: 0 1px; }
             .history-header { flex-direction: column; gap: 12px; }
             .portfolio-metals { flex-direction: column; gap: 12px; }
             .metal-name { font-size: 17px; }
             .metal-price { font-size: 16px; }
             .metal-value { font-size: 24px; }
             .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 8px 6px; font-size: 13px; }
+            .price-table th, .price-table td { padding: 10px 4px; font-size: 12px; }
+            .price-history { padding: 12px 4px; margin: 0 -1px; }
+            .price-table { margin: 0 2px; }
         }
     </style>
 </head>
