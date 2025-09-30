@@ -66,34 +66,46 @@ def get_table_data():
                 "change_percent": change_percent
             })
         
-        # Haftalık veriler (son 7 gün, günlük ortalamalar)
+        # Haftalık veriler (son 7 gün, günlük en yüksek değerler)
         weekly_data = []
-        for i in range(7):
+        weekly_temp = []
+        
+        # Önce tüm günleri topla (eskiden yeniye)
+        for i in range(6, -1, -1):  # 6'dan 0'a doğru (eskiden yeniye)
             date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             day_records = [r for r in recent_records if r.get("date") == date]
             if day_records:
-                avg_gold = sum(r["gold_price"] for r in day_records) / len(day_records)
-                avg_silver = sum(r["silver_price"] for r in day_records) / len(day_records)
-                
-                # Değişim hesaplama (bir önceki gün ile karşılaştır)
-                change_percent = 0
-                if i < 6:
-                    prev_date = (now - timedelta(days=i+1)).strftime("%Y-%m-%d")
-                    prev_day_records = [r for r in recent_records if r.get("date") == prev_date]
-                    if prev_day_records:
-                        prev_avg_gold = sum(r["gold_price"] for r in prev_day_records) / len(prev_day_records)
-                        price_diff = avg_gold - prev_avg_gold
-                        change_percent = (price_diff / prev_avg_gold) * 100
+                # O günün en yüksek fiyatlarını bul
+                max_gold = max(r["gold_price"] for r in day_records)
+                max_silver = max(r["silver_price"] for r in day_records)
                 
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
-                weekly_data.append({
+                weekly_temp.append({
                     "time": day_name,
-                    "gold_price": avg_gold,
-                    "silver_price": avg_silver,
-                    "change_percent": change_percent
+                    "gold_price": max_gold,
+                    "silver_price": max_silver,
+                    "date_offset": i
                 })
         
-        # En son kayıt en başta olsun diye ters çevir
+        # Şimdi değişim hesaplama ve sıralama (yeniden eskiye)
+        for i, day_data in enumerate(weekly_temp):
+            change_percent = 0
+            
+            # Bir önceki gün ile karşılaştır (eskiden yeniye sıralı listede)
+            if i > 0:
+                prev_day = weekly_temp[i-1]
+                if prev_day["gold_price"] > 0:
+                    price_diff = day_data["gold_price"] - prev_day["gold_price"]
+                    change_percent = (price_diff / prev_day["gold_price"]) * 100
+            
+            weekly_data.append({
+                "time": day_data["time"],
+                "gold_price": day_data["gold_price"],
+                "silver_price": day_data["silver_price"],
+                "change_percent": change_percent
+            })
+        
+        # En son kayıt en başta olsun diye ters çevir (yeniden eskiye)
         weekly_data.reverse()
         
         return {
@@ -458,7 +470,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             tbody.innerHTML = '';
             
             tableData[currentPeriod].forEach(item => {
-                const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                let portfolioValue = 0;
+                
+                if (currentPeriod === 'weekly') {
+                    // Haftalık için o günün en yüksek portföy değerini hesapla
+                    portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                } else {
+                    // Günlük için normal hesaplama
+                    portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                }
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
