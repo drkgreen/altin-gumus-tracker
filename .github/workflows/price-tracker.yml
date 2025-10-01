@@ -1,14 +1,19 @@
-name: Metal Price Tracker
+name: Metal Price Tracker v2.0
 
 on:
   schedule:
-    # Hafta içi sabah 8:00'den akşam 19:00'a kadar her 30 dakikada bir (UTC+3 için UTC-3 hesaplama)
-    # 05:00-16:00 UTC = 08:00-19:00 Türkiye saati
-    - cron: '0,30 5-15 * * 1-5'
+    # Her gün sabah 7:00'den akşam 21:00'a kadar her 30 dakikada bir
+    # 04:00-18:00 UTC = 07:00-21:00 Türkiye saati (UTC+3)
+    - cron: '0,30 4-18 * * *'
+    
+    # Gece optimizasyon işi - her gece 02:00 Türkiye saati
+    # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
+    - cron: '0 23 * * *'
+    
   workflow_dispatch: # Manuel tetikleme için
 
 jobs:
-  track-prices:
+  metal-tracker:
     runs-on: ubuntu-latest
     
     steps:
@@ -28,24 +33,90 @@ jobs:
       run: |
         mkdir -p data
         
-    - name: Check time and run tracker
+    - name: Determine operation based on time
       run: |
         # Türkiye saati hesapla (UTC+3)
         TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
-        echo "Türkiye saati: $TURKEY_HOUR:$(date -u -d '+3 hours' +%M)"
+        TURKEY_MINUTE=$(date -u -d '+3 hours' +%M)
+        CURRENT_UTC_HOUR=$(date -u +%H)
         
-        # Sadece 08:00-19:00 arası çalıştır
-        if [ $TURKEY_HOUR -ge 8 ] && [ $TURKEY_HOUR -lt 19 ]; then
-          echo "Piyasa saatleri içinde - veri çekiliyor..."
-          python scripts/price_tracker.py
+        echo "🕐 UTC Saati: $(date -u +%H:%M)"
+        echo "🇹🇷 Türkiye Saati: $TURKEY_HOUR:$TURKEY_MINUTE"
+        echo "📅 Tarih: $(date -u -d '+3 hours' +%Y-%m-%d)"
+        
+        # Gece optimizasyon kontrolü (02:00 Türkiye saati)
+        if [ $TURKEY_HOUR -eq 2 ]; then
+          echo "🌙 Gece optimizasyonu zamanı - başlatılıyor..."
+          python scripts/price_tracker.py --optimize
+          
+        # Veri toplama saatleri kontrolü (07:00-21:00 Türkiye saati)
+        elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -lt 21 ]; then
+          echo "📊 Veri toplama saatleri ($TURKEY_HOUR:$TURKEY_MINUTE) - başlatılıyor..."
+          python scripts/price_tracker.py --collect
+          
         else
-          echo "Piyasa saatleri dışında - veri çekilmiyor"
+          echo "⏰ Belirlenen saatler dışında ($TURKEY_HOUR:$TURKEY_MINUTE)"
+          echo "   📊 Veri toplama: 07:00-21:00 TR"
+          echo "   🌙 Optimizasyon: 02:00 TR"
+          echo "   ❌ İşlem yapılmıyor"
           exit 0
         fi
         
-    - name: Commit and push data
+    - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add data/price-history.json
-        git diff --staged --quiet || (git commit -m "Auto-update price data $(date '+%Y-%m-%d %H:%M:%S UTC')" && git push)
+        git config --local user.name "Metal Tracker Bot v2.0"
+        
+        # Değişiklik varsa commit et
+        if [ -f data/price-history.json ]; then
+          git add data/price-history.json
+          
+          # Commit mesajını operasyona göre belirle
+          TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
+          
+          if [ $TURKEY_HOUR -eq 2 ]; then
+            COMMIT_MSG="🌙 Daily optimization: $(date -u -d '+3 hours -1 day' +%Y-%m-%d) peak data saved"
+          else
+            COMMIT_MSG="📊 Price update: $(date -u -d '+3 hours' +%Y-%m-%d\ %H:%M) TR"
+          fi
+          
+          # Sadece değişiklik varsa commit yap
+          git diff --staged --quiet || (
+            echo "💾 Committing changes: $COMMIT_MSG"
+            git commit -m "$COMMIT_MSG"
+            git push
+          )
+        else
+          echo "❌ No data file found - skipping commit"
+        fi
+        
+    - name: Print operation summary
+      run: |
+        TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
+        echo ""
+        echo "📋 İşlem Özeti:"
+        echo "==============="
+        
+        if [ $TURKEY_HOUR -eq 2 ]; then
+          echo "🌙 Gece optimizasyonu tamamlandı"
+          echo "   • Bir önceki günün peak değeri saklandı"
+          echo "   • Diğer veriler temizlendi"
+        else
+          echo "📊 Veri toplama tamamlandı"
+          echo "   • Altın fiyatı çekildi"
+          echo "   • Gümüş fiyatı çekildi"
+          echo "   • Portföy değeri hesaplandı"
+        fi
+        
+        echo ""
+        echo "⏰ Bir sonraki çalışma:"
+        if [ $TURKEY_HOUR -eq 2 ]; then
+          echo "   📊 07:00 TR (Veri toplama başlangıcı)"
+        elif [ $TURKEY_HOUR -ge 20 ]; then
+          echo "   🌙 02:00 TR (Gece optimizasyonu)"
+        else
+          echo "   📊 $(($TURKEY_HOUR + 1)):00 TR (Veri toplama devam)"
+        fi
+        
+        echo ""
+        echo "✅ Workflow başarıyla tamamlandı!"
