@@ -325,20 +325,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #e74c3c; }
         .change.neutral { color: #95a5a6; }
         
-        .data-source-info {
-            background: rgba(255, 255, 255, 0.1); 
-            border-radius: 12px; padding: 12px 16px; 
-            margin-top: 12px; font-size: 11px; 
-            color: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .data-source-info .source-title { font-weight: 600; margin-bottom: 4px; }
-        .data-source-info .weekly-note { 
-            background: rgba(255, 255, 255, 0.1); 
-            border-radius: 6px; padding: 6px 8px; 
-            margin-top: 6px; font-size: 10px;
-        }
-        
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
@@ -416,15 +402,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     </div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
-                </div>
-            </div>
-            
-            <div class="data-source-info">
-                <div class="source-title">📊 Veri Kaynağı</div>
-                <div>• Günlük: 30dk aralıklarla tüm veriler</div>
-                <div>• Haftalık: Günlük peak değerler (📊)</div>
-                <div class="weekly-note">
-                    🌙 Her gece 02:00'de optimize edilir
                 </div>
             </div>
         </div>
