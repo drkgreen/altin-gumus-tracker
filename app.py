@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Metal Price Tracker Web App v2.0
+Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
+"""
 from flask import Flask, jsonify, render_template_string
 from flask_cors import CORS
 import requests
@@ -11,6 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 def load_price_history():
+    """GitHub'dan fiyat geçmişini yükler"""
     try:
         url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/data/price-history.json"
         response = requests.get(url, timeout=10)
@@ -21,30 +26,26 @@ def load_price_history():
         print(f"Price history error: {e}")
         return {"records": []}
 
-def get_table_data():
+def get_daily_data():
+    """Son 2 günün tüm verilerini getir (30dk aralıklarla)"""
     try:
         history = load_price_history()
         records = history.get("records", [])
         
         if not records:
-            return None
+            return []
         
         now = datetime.now(timezone.utc)
-        thirty_days_ago = (now - timedelta(days=30)).timestamp()
-        recent_records = [r for r in records 
-                         if r.get("timestamp", 0) > thirty_days_ago 
-                         and r.get("gold_price") and r.get("silver_price")]
-        
-        if not recent_records:
-            return None
-        
-        # Günlük veriler (son 2 gün, her kayıt ayrı ayrı - 30dk aralıklarla)
         daily_data = []
         
         # Son 2 günün verilerini al
         for day_offset in range(2):
             target_date = (now - timedelta(days=day_offset)).strftime("%Y-%m-%d")
-            day_records = [r for r in recent_records if r.get("date") == target_date]
+            day_records = [r for r in records 
+                          if r.get("date") == target_date 
+                          and r.get("gold_price") 
+                          and r.get("silver_price")
+                          and not r.get("optimized", False)]  # Optimize edilmemiş kayıtlar
             
             if day_records:
                 sorted_day_records = sorted(day_records, key=lambda x: x.get("timestamp", 0), reverse=True)
@@ -72,33 +73,58 @@ def get_table_data():
                         "time": time_label,
                         "gold_price": record["gold_price"],
                         "silver_price": record["silver_price"],
-                        "change_percent": change_percent
+                        "change_percent": change_percent,
+                        "optimized": False
                     })
-            
-        print(f"DEBUG: Son 2 gün için {len(daily_data)} kayıt eklendi")
         
-        # Haftalık veriler (son 7 gün, günlük en yüksek değerler)
+        return daily_data
+        
+    except Exception as e:
+        print(f"Daily data error: {e}")
+        return []
+
+def get_weekly_optimized_data():
+    """Son 7 günün optimize edilmiş verilerini getir (günlük peak değerler)"""
+    try:
+        history = load_price_history()
+        records = history.get("records", [])
+        
+        if not records:
+            return []
+        
+        # Optimize edilmiş kayıtları bul (günlük peak değerler)
+        optimized_records = [
+            r for r in records 
+            if r.get("optimized") == True and r.get("daily_peak") == True
+        ]
+        
+        # Son 7 günün optimize edilmiş verilerini al
         weekly_data = []
         weekly_temp = []
+        now = datetime.now(timezone.utc)
         
         # Önce tüm günleri topla (eskiden yeniye)
         for i in range(6, -1, -1):  # 6'dan 0'a doğru (eskiden yeniye)
-            date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_records = [r for r in recent_records if r.get("date") == date]
-            if day_records:
-                # O günün en yüksek fiyatlarını bul
-                max_gold = max(r["gold_price"] for r in day_records)
-                max_silver = max(r["silver_price"] for r in day_records)
-                
+            target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+            
+            # O günün optimize edilmiş kaydını bul
+            day_record = next(
+                (r for r in optimized_records if r.get("date") == target_date), 
+                None
+            )
+            
+            if day_record:
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
                 weekly_temp.append({
                     "time": day_name,
-                    "gold_price": max_gold,
-                    "silver_price": max_silver,
-                    "date_offset": i
+                    "gold_price": day_record["gold_price"],
+                    "silver_price": day_record["silver_price"],
+                    "date_offset": i,
+                    "peak_time": day_record.get("peak_time", "unknown"),
+                    "portfolio_value": day_record.get("portfolio_value", 0)
                 })
         
-        # Şimdi değişim hesaplama ve sıralama (yeniden eskiye)
+        # Şimdi değişim hesaplama
         for i, day_data in enumerate(weekly_temp):
             change_percent = 0
             
@@ -110,14 +136,35 @@ def get_table_data():
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
             weekly_data.append({
-                "time": day_data["time"],
+                "time": f"{day_data['time']} 📊",  # Peak değer işareti
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
-                "change_percent": change_percent
+                "change_percent": change_percent,
+                "optimized": True,
+                "peak_time": day_data["peak_time"],
+                "portfolio_value": day_data["portfolio_value"]
             })
         
         # En son kayıt en başta olsun diye ters çevir (yeniden eskiye)
         weekly_data.reverse()
+        
+        return weekly_data
+        
+    except Exception as e:
+        print(f"Weekly optimized data error: {e}")
+        return []
+
+def get_table_data():
+    """Günlük ve haftalık veriler için farklı kaynak kullan"""
+    try:
+        # Günlük veriler: Son 2 gün, tüm kayıtlar (30dk aralıklarla)
+        daily_data = get_daily_data()
+        
+        # Haftalık veriler: Son 7 gün, optimize edilmiş kayıtlar (günlük peak değerler)
+        weekly_data = get_weekly_optimized_data()
+        
+        print(f"DEBUG: Günlük veri sayısı: {len(daily_data)}")
+        print(f"DEBUG: Haftalık veri sayısı: {len(weekly_data)}")
         
         return {
             "daily": daily_data,
@@ -126,9 +173,10 @@ def get_table_data():
         
     except Exception as e:
         print(f"Table data error: {e}")
-        return None
+        return {"daily": [], "weekly": []}
 
 def get_gold_price():
+    """Yapı Kredi altın fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -149,6 +197,7 @@ def get_gold_price():
         raise Exception(f"Gold price error: {str(e)}")
 
 def get_silver_price():
+    """Vakıfbank gümüş fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/vakifbank/gumus"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -173,7 +222,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Tracker</title>
+    <title>Metal Tracker v2.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -181,7 +230,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
             min-height: 100vh; padding: 20px;
         }
-        .container { max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 5px; }
+        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
@@ -189,7 +238,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .header-left { display: flex; align-items: center; gap: 12px; }
-        .logo { font-size: 20px; font-weight: 700; color: white; }
+        .logo { font-size: 18px; font-weight: 700; color: white; }
+        .version { font-size: 11px; color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 8px; }
         .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
         .actions { display: flex; gap: 10px; }
         .action-btn {
@@ -224,8 +274,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-name { font-size: 16px; font-weight: 600; }
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
-        
-        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
         
         .price-history {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
@@ -277,6 +325,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #e74c3c; }
         .change.neutral { color: #95a5a6; }
         
+        .data-source-info {
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 12px; padding: 12px 16px; 
+            margin-top: 12px; font-size: 11px; 
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .data-source-info .source-title { font-weight: 600; margin-bottom: 4px; }
+        .data-source-info .weekly-note { 
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 6px; padding: 6px 8px; 
+            margin-top: 6px; font-size: 10px;
+        }
+        
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
@@ -326,7 +388,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <div class="logo">Metal Tracker</div>
+                <div>
+                    <div class="logo">Metal Tracker</div>
+                    <div class="version">v2.0</div>
+                </div>
                 <div class="update-time" id="headerTime">--:--</div>
             </div>
             <div class="actions">
@@ -351,6 +416,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     </div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
+                </div>
+            </div>
+            
+            <div class="data-source-info">
+                <div class="source-title">📊 Veri Kaynağı</div>
+                <div>• Günlük: 30dk aralıklarla tüm veriler</div>
+                <div>• Haftalık: Günlük peak değerler (📊)</div>
+                <div class="weekly-note">
+                    🌙 Her gece 02:00'de optimize edilir
                 </div>
             </div>
         </div>
@@ -481,19 +555,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             tbody.innerHTML = '';
             
             tableData[currentPeriod].forEach(item => {
-                let portfolioValue = 0;
-                
-                if (currentPeriod === 'weekly') {
-                    // Haftalık için o günün en yüksek portföy değerini hesapla
-                    portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                } else {
-                    // Günlük için normal hesaplama
-                    portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                }
+                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 
                 const row = document.createElement('tr');
+                
+                // Haftalık görünümde optimize edilmiş veriyi göster
+                const timeDisplay = item.optimized ? 
+                    `<span title="Günün peak değeri (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
+                    item.time;
+                
                 row.innerHTML = `
-                    <td class="time">${item.time}</td>
+                    <td class="time">${timeDisplay}</td>
                     <td class="price">${formatPrice(item.gold_price)}</td>
                     <td class="price">${formatPrice(item.silver_price)}</td>
                     <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
@@ -668,24 +740,30 @@ def api_table_data():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=" * 60)
-    print("🚀 Metal Fiyat Takipçisi v4.0.0")
+    print("🚀 Metal Fiyat Takipçisi v2.0.0")
     print("=" * 60)
     print(f"🌐 Server: http://localhost:{port}")
     print(f"📱 Mobile: http://0.0.0.0:{port}")
     print("=" * 60)
-    print("✨ Yeni Özellikler:")
-    print("  • 📊 Tablo bazlı fiyat geçmişi")
-    print("  • 📈 Değişim yüzdesi hesaplama")
-    print("  • 💰 Portföy değeri sütunu")
-    print("  • 🕐 Günlük/haftalık görünüm")
-    print("  • 🎨 Responsive tablo tasarımı")
-    print("  • 💾 Cookie ile kalıcı portföy kaydı")
-    print("  • 🕕 30 dakikalık detaylı veri takibi")
-    print("  • 🇹🇷 Türkiye saati (UTC+3)")
+    print("✨ Yeni Özellikler v2.0:")
+    print("  • 🕐 Her gün 07:00-21:00 veri toplama")
+    print("  • 🌙 Gece 02:00 otomatik optimizasyon")
+    print("  • 📊 Haftalık görünüm: günlük peak değerler")
+    print("  • 🎯 Optimize edilmiş veri saklama")
+    print("  • 📈 İyileştirilmiş değişim hesaplama")
+    print("  • 💾 Daha verimli depolama sistemi")
+    print("  • 🏷️ Peak değer işaretleme (📊)")
+    print("  • 🔄 Hafta sonu dahil 7/24 çalışma")
     print("=" * 60)
     print("📈 Veri Kaynakları:")
     print("  • Altın: YapıKredi (doviz.com)")
     print("  • Gümüş: VakıfBank (doviz.com)")
-    print("  • Geçmiş: GitHub JSON")
+    print("  • Günlük: 30dk aralıklarla (29 veri/gün)")
+    print("  • Haftalık: Optimize edilmiş peak değerler")
+    print("=" * 60)
+    print("⏰ Çalışma Saatleri:")
+    print("  • Veri Toplama: 07:00-21:00 TR (Her gün)")
+    print("  • Optimizasyon: 02:00 TR (Her gece)")
+    print("  • Sıklık: 30 dakikada bir")
     print("=" * 60)
     app.run(host='0.0.0.0', port=port, debug=False)
