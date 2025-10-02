@@ -275,6 +275,55 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
         
+        .today-peak-card {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #8b4513;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .peak-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #8b4513;
+        }
+
+        .peak-time-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .peak-time {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .peak-gold, .peak-silver {
+            font-weight: 600;
+        }
+
+        .peak-portfolio {
+            font-size: 15px;
+            font-weight: 700;
+            color: #8b4513;
+        }
+
+        .peak-portfolio span {
+            font-size: 18px;
+            color: #ff6b35;
+        }
+        
         .price-history {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
             border-radius: 20px; padding: 16px 4px; border: 1px solid rgba(255, 255, 255, 0.3);
@@ -325,55 +374,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #e74c3c; }
         .change.neutral { color: #95a5a6; }
         
-        .today-peak-card {
-            background: linear-gradient(135deg, #ffd700, #ffb347);
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 12px;
-            color: #8b4513;
-            text-align: center;
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .peak-header {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #8b4513;
-        }
-
-        .peak-time-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .peak-time {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-weight: 700;
-        }
-
-        .peak-gold, .peak-silver {
-            font-weight: 600;
-        }
-
-        .peak-portfolio {
-            font-size: 15px;
-            font-weight: 700;
-            color: #8b4513;
-        }
-
-        .peak-portfolio span {
-            font-size: 18px;
-            color: #ff6b35;
-        }
-        
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
@@ -418,7 +418,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .price-table { margin: 0 4px; }
             .history-header { padding: 0 8px; }
             .peak-time-row { flex-direction: column; gap: 6px; }
-            .peak-time-row span { font-size: 12px; }
+            .peak-time, .peak-gold, .peak-silver { font-size: 12px; }
         }
     </style>
 </head>
@@ -457,7 +457,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 </div>
             </div>
             
-            <!-- YENİ: Bugünün Peak Değeri Kartı -->
+            <!-- YENİ: Peak kartı -->
             <div class="today-peak-card" id="todayPeakCard" style="display: none;">
                 <div class="peak-header">🏆 Bugünün Peak Değeri</div>
                 <div class="peak-details">
