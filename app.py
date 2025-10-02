@@ -317,7 +317,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .peak-row {
             background-color: #e3f2fd !important;
-            border-left: 4px solid #2196f3 !important;
             position: relative;
         }
         
@@ -327,6 +326,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         
         .peak-row::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #2196f3;
+            z-index: 1;
+        }
+        
+        .peak-row::after {
             content: '';
             position: absolute;
             top: 0;
