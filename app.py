@@ -319,24 +319,29 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background-color: #e3f2fd !important;
             border-left: 4px solid #2196f3 !important;
             position: relative;
-            overflow: hidden;
+        }
+        
+        .peak-row td {
+            position: relative;
+            z-index: 2;
         }
         
         .peak-row::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.2), transparent);
             animation: peakShine 2s ease-in-out infinite;
+            z-index: 1;
         }
         
         @keyframes peakShine {
-            0% { left: -100%; }
-            50% { left: 100%; }
-            100% { left: 100%; }
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
         }
         
         .modal-overlay {
