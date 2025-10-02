@@ -316,14 +316,27 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.neutral { color: #95a5a6; }
         
         .peak-row {
-            background-color: #fff8e7 !important;
-            border-left: 2px solid #f39c12;
-            animation: peakPulse 3s ease-in-out infinite;
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #2196f3 !important;
+            position: relative;
+            overflow: hidden;
         }
         
-        @keyframes peakPulse {
-            0%, 100% { background-color: #fff8e7; }
-            50% { background-color: #ffeaa7; }
+        .peak-row::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.3), transparent);
+            animation: peakShine 2s ease-in-out infinite;
+        }
+        
+        @keyframes peakShine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
         }
         
         .modal-overlay {
