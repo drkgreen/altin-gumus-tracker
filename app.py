@@ -325,74 +325,53 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #e74c3c; }
         .change.neutral { color: #95a5a6; }
         
-        .daily-peak-tracker {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            padding: 14px 16px 10px;
-            margin: 12px 8px;
-            color: white;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
+        .today-peak-card {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #8b4513;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .daily-peak-tracker:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        .peak-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #8b4513;
         }
 
-        .peak-info {
+        .peak-time-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .peak-time {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .peak-icon {
-            font-size: 14px;
-        }
-
-        .peak-time-value {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-family: monospace;
-        }
-
-        .peak-values {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .peak-total {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 8px;
+            border-radius: 8px;
             font-weight: 700;
         }
 
-        .peak-progress-bar {
-            height: 3px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            overflow: hidden;
+        .peak-gold, .peak-silver {
+            font-weight: 600;
         }
 
-        .peak-progress {
-            height: 100%;
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 2px;
-            transition: width 0.5s ease;
+        .peak-portfolio {
+            font-size: 15px;
+            font-weight: 700;
+            color: #8b4513;
+        }
+
+        .peak-portfolio span {
+            font-size: 18px;
+            color: #ff6b35;
         }
         
         .modal-overlay {
@@ -438,8 +417,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
             .price-table { margin: 0 4px; }
             .history-header { padding: 0 8px; }
-            .daily-peak-tracker { margin: 12px 4px; font-size: 12px; padding: 12px 14px 8px; }
-            .peak-values { font-size: 11px; gap: 4px; }
+            .peak-time-row { flex-direction: column; gap: 6px; }
+            .peak-time-row span { font-size: 12px; }
         }
     </style>
 </head>
@@ -477,6 +456,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
                 </div>
             </div>
+            
+            <!-- YENİ: Bugünün Peak Değeri Kartı -->
+            <div class="today-peak-card" id="todayPeakCard" style="display: none;">
+                <div class="peak-header">🏆 Bugünün Peak Değeri</div>
+                <div class="peak-details">
+                    <div class="peak-time-row">
+                        <span class="peak-time" id="peakTime">--:--</span>
+                        <span class="peak-gold" id="peakGold">0₺</span>
+                        <span class="peak-silver" id="peakSilver">0₺</span>
+                    </div>
+                    <div class="peak-portfolio">
+                        En Yüksek: <span id="peakPortfolioValue">0,00₺</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="price-history" id="priceHistory">
@@ -487,28 +481,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <button class="period-tab" onclick="switchPeriod('weekly')" id="weeklyTab">Haftalık</button>
                 </div>
             </div>
-            
-            <!-- YENİ: Daily Peak Tracker -->
-            <div class="daily-peak-tracker" id="dailyPeakTracker" style="display: none;">
-                <div class="peak-info">
-                    <div class="peak-time">
-                        <span class="peak-icon">🏆</span>
-                        <span>Bugünün Peak:</span>
-                        <span class="peak-time-value" id="peakTime">--:--</span>
-                    </div>
-                    <div class="peak-values">
-                        <span class="peak-gold" id="peakGold">0₺</span>
-                        <span>+</span>
-                        <span class="peak-silver" id="peakSilver">0₺</span>
-                        <span>=</span>
-                        <span class="peak-total" id="peakTotal">0₺</span>
-                    </div>
-                </div>
-                <div class="peak-progress-bar">
-                    <div class="peak-progress" id="peakProgress" style="width: 0%"></div>
-                </div>
-            </div>
-            
             <div class="price-table">
                 <table>
                     <thead>
@@ -589,6 +561,52 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 if (tableDataRes.success) {
                     tableData = tableDataRes.data;
                     updateTable();
+        }
+
+        function updateTodayPeak() {
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            
+            if (goldAmount === 0 && silverAmount === 0) {
+                document.getElementById('todayPeakCard').style.display = 'none';
+                return;
+            }
+            
+            // Bugünün verilerinden peak'i bul
+            const todayData = tableData.daily || [];
+            
+            if (todayData.length === 0) {
+                document.getElementById('todayPeakCard').style.display = 'none';
+                return;
+            }
+            
+            let maxPortfolioValue = 0;
+            let peakRecord = null;
+            
+            todayData.forEach(record => {
+                const portfolioValue = (goldAmount * record.gold_price) + (silverAmount * record.silver_price);
+                
+                if (portfolioValue > maxPortfolioValue) {
+                    maxPortfolioValue = portfolioValue;
+                    peakRecord = {
+                        time: record.time,
+                        gold_price: record.gold_price,
+                        silver_price: record.silver_price,
+                        portfolio_value: portfolioValue
+                    };
+                }
+            });
+            
+            if (peakRecord) {
+                document.getElementById('peakTime').textContent = peakRecord.time;
+                document.getElementById('peakGold').textContent = formatPrice(peakRecord.gold_price);
+                document.getElementById('peakSilver').textContent = formatPrice(peakRecord.silver_price);
+                document.getElementById('peakPortfolioValue').textContent = formatCurrency(peakRecord.portfolio_value);
+                
+                document.getElementById('todayPeakCard').style.display = 'block';
+            } else {
+                document.getElementById('todayPeakCard').style.display = 'none';
+            }
                 }
                 
                 document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
@@ -615,52 +633,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             updateTable();
-            
-            // Peak tracker'ı güncelle
-            if (tableData.daily) {
-                updateDailyPeakTracker(tableData.daily);
-            }
-        }
-
-        function updateDailyPeakTracker(dailyData) {
-            const tracker = document.getElementById('dailyPeakTracker');
-            
-            if (currentPeriod === 'daily' && dailyData.length > 0) {
-                // Bugünün en yüksek portföy değerini bul
-                let maxPortfolio = 0;
-                let peakRecord = null;
-                
-                dailyData.forEach(record => {
-                    const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 1;
-                    const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 1;
-                    const portfolioValue = (goldAmount * record.gold_price) + (silverAmount * record.silver_price);
-                    
-                    if (portfolioValue > maxPortfolio) {
-                        maxPortfolio = portfolioValue;
-                        peakRecord = record;
-                    }
-                });
-                
-                if (peakRecord && maxPortfolio > 0) {
-                    // Peak bilgilerini güncelle
-                    document.getElementById('peakTime').textContent = peakRecord.time;
-                    document.getElementById('peakGold').textContent = formatPrice(peakRecord.gold_price);
-                    document.getElementById('peakSilver').textContent = formatPrice(peakRecord.silver_price);
-                    document.getElementById('peakTotal').textContent = formatCurrency(maxPortfolio);
-                    
-                    // Progress bar güncelle (günün ilerleyişine göre)
-                    const now = new Date();
-                    const currentHour = now.getHours();
-                    const progress = Math.min(Math.max(((currentHour - 7) / 14) * 100, 0), 100); // 07:00-21:00 arası
-                    document.getElementById('peakProgress').style.width = `${progress}%`;
-                    
-                    tracker.style.display = 'block';
-                } else {
-                    tracker.style.display = 'none';
-                }
-            } else {
-                tracker.style.display = 'none';
-            }
         }
 
         function updateTable() {
@@ -735,11 +707,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
                 
                 updateTable();
-                
-                // Peak tracker'ı güncelle
-                if (tableData.daily) {
-                    updateDailyPeakTracker(tableData.daily);
-                }
+                updateTodayPeak(); // YENİ: Peak kartını güncelle
             } else {
                 portfolioSummary.style.display = 'none';
                 priceHistory.style.display = 'none';
