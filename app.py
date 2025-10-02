@@ -567,6 +567,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
+            console.log('updateTodayPeak called:', { goldAmount, silverAmount });
+            
             if (goldAmount === 0 && silverAmount === 0) {
                 document.getElementById('todayPeakCard').style.display = 'none';
                 return;
@@ -574,6 +576,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             // Bugünün verilerinden peak'i bul
             const todayData = tableData.daily || [];
+            console.log('Today data:', todayData);
             
             if (todayData.length === 0) {
                 document.getElementById('todayPeakCard').style.display = 'none';
@@ -585,6 +588,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             todayData.forEach(record => {
                 const portfolioValue = (goldAmount * record.gold_price) + (silverAmount * record.silver_price);
+                console.log('Record:', record.time, 'Portfolio:', portfolioValue);
                 
                 if (portfolioValue > maxPortfolioValue) {
                     maxPortfolioValue = portfolioValue;
@@ -596,6 +600,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     };
                 }
             });
+            
+            console.log('Peak record found:', peakRecord);
             
             if (peakRecord) {
                 document.getElementById('peakTime').textContent = peakRecord.time;
