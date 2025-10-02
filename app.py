@@ -2,6 +2,7 @@
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
+Peak değer kartı dahil
 """
 from flask import Flask, jsonify, render_template_string
 from flask_cors import CORS
@@ -275,6 +276,55 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
         
+        .today-peak-card {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #8b4513;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .peak-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #8b4513;
+        }
+
+        .peak-time-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .peak-time {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .peak-gold, .peak-silver {
+            font-weight: 600;
+        }
+
+        .peak-portfolio {
+            font-size: 15px;
+            font-weight: 700;
+            color: #8b4513;
+        }
+
+        .peak-portfolio span {
+            font-size: 18px;
+            color: #ff6b35;
+        }
+        
         .price-history {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
             border-radius: 20px; padding: 16px 4px; border: 1px solid rgba(255, 255, 255, 0.3);
@@ -368,6 +418,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
             .price-table { margin: 0 4px; }
             .history-header { padding: 0 8px; }
+            .peak-time-row { flex-direction: column; gap: 6px; }
+            .peak-time, .peak-gold, .peak-silver { font-size: 12px; }
         }
     </style>
 </head>
@@ -403,6 +455,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     </div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
+                </div>
+            </div>
+            
+            <!-- Peak kartı -->
+            <div class="today-peak-card" id="todayPeakCard" style="display: none;">
+                <div class="peak-header">🏆 Bugünün Peak Değeri</div>
+                <div class="peak-details">
+                    <div class="peak-time-row">
+                        <span class="peak-time" id="peakTime">--:--</span>
+                        <span class="peak-gold" id="peakGold">0₺</span>
+                        <span class="peak-silver" id="peakSilver">0₺</span>
+                    </div>
+                    <div class="peak-portfolio">
+                        En Yüksek: <span id="peakPortfolioValue">0,00₺</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -494,6 +561,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (tableDataRes.success) {
                     tableData = tableDataRes.data;
+                    console.log('Table data received:', tableData);
                     updateTable();
                 }
                 
@@ -553,6 +621,58 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             });
         }
 
+        function updateTodayPeak() {
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            
+            console.log('updateTodayPeak called:', { goldAmount, silverAmount });
+            
+            if (goldAmount === 0 && silverAmount === 0) {
+                document.getElementById('todayPeakCard').style.display = 'none';
+                return;
+            }
+            
+            // Bugünün verilerinden peak'i bul
+            const todayData = tableData.daily || [];
+            console.log('Today data:', todayData);
+            
+            if (todayData.length === 0) {
+                document.getElementById('todayPeakCard').style.display = 'none';
+                return;
+            }
+            
+            let maxPortfolioValue = 0;
+            let peakRecord = null;
+            
+            todayData.forEach(record => {
+                const portfolioValue = (goldAmount * record.gold_price) + (silverAmount * record.silver_price);
+                console.log('Record:', record.time, 'Portfolio:', portfolioValue);
+                
+                if (portfolioValue > maxPortfolioValue) {
+                    maxPortfolioValue = portfolioValue;
+                    peakRecord = {
+                        time: record.time,
+                        gold_price: record.gold_price,
+                        silver_price: record.silver_price,
+                        portfolio_value: portfolioValue
+                    };
+                }
+            });
+            
+            console.log('Peak record found:', peakRecord);
+            
+            if (peakRecord) {
+                document.getElementById('peakTime').textContent = peakRecord.time;
+                document.getElementById('peakGold').textContent = formatPrice(peakRecord.gold_price);
+                document.getElementById('peakSilver').textContent = formatPrice(peakRecord.silver_price);
+                document.getElementById('peakPortfolioValue').textContent = formatCurrency(peakRecord.portfolio_value);
+                
+                document.getElementById('todayPeakCard').style.display = 'block';
+            } else {
+                document.getElementById('todayPeakCard').style.display = 'none';
+            }
+        }
+
         function getChangeClass(changePercent) {
             if (changePercent > 0) return 'positive';
             if (changePercent < 0) return 'negative';
@@ -595,6 +715,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
                 
                 updateTable();
+                updateTodayPeak(); // Peak kartını güncelle
             } else {
                 portfolioSummary.style.display = 'none';
                 priceHistory.style.display = 'none';
@@ -732,6 +853,7 @@ if __name__ == '__main__':
     print("  • 💾 Daha verimli depolama sistemi")
     print("  • 🏷️ Peak değer işaretleme (📊)")
     print("  • 🔄 Hafta sonu dahil 7/24 çalışma")
+    print("  • 🏆 Bugünün Peak kartı")
     print("=" * 60)
     print("📈 Veri Kaynakları:")
     print("  • Altın: YapıKredi (doviz.com)")
