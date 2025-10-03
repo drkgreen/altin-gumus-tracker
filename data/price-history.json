@@ -1,6 +1,5 @@
 {
   "records": [
-   
     {
       "timestamp": 1759464637.489788,
       "date": "2025-10-03",
@@ -238,10 +237,24 @@
         "gold": true,
         "silver": true
       }
+    },
+    {
+      "timestamp": 1759489656.570104,
+      "date": "2025-10-03",
+      "time": "11:07:36",
+      "gold_price": 5110.89,
+      "silver_price": 63.06,
+      "portfolio_value": 5173.950000000001,
+      "optimized": false,
+      "daily_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
     }
   ],
-  "last_update": "2025-10-03T10:53:47.442870+00:00",
-  "total_records": 105,
+  "last_update": "2025-10-03T11:07:36.570146+00:00",
+  "total_records": 18,
   "bot_version": "2.0.0",
   "last_optimization": "2025-10-01T23:10:58.324453+00:00",
   "optimization_stats": {
