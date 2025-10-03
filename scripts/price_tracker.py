@@ -135,11 +135,13 @@ def optimize_daily_data():
     # Dünün tarihini hesapla
     yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     
-    # Dünün verilerini bul
-    yesterday_records = [r for r in records if r.get("date") == yesterday]
+    # Dünün verilerini bul (optimize edilmemiş)
+    yesterday_records = [r for r in records 
+                        if r.get("date") == yesterday 
+                        and not r.get("optimized", False)]
     
     if not yesterday_records:
-        print(f"❌ {yesterday} tarihine ait veri bulunamadı!")
+        print(f"❌ {yesterday} tarihine ait optimize edilmemiş veri bulunamadı!")
         return
     
     print(f"📊 {yesterday} tarihine ait {len(yesterday_records)} kayıt bulundu")
@@ -157,7 +159,7 @@ def optimize_daily_data():
             
             if portfolio_value > max_portfolio_value:
                 max_portfolio_value = portfolio_value
-                peak_record = record
+                peak_record = record.copy()  # Kopyasını al
     
     if not peak_record:
         print(f"❌ {yesterday} tarihinde geçerli fiyat verisi bulunamadı!")
@@ -171,12 +173,12 @@ def optimize_daily_data():
         "peak_time": peak_record.get("time", "unknown")
     })
     
-    # Dünün diğer kayıtlarını sil
-    other_records = [r for r in records if r.get("date") != yesterday]
-    optimized_records = other_records + [peak_record]
+    # Dünün TÜM kayıtlarını sil ve sadece peak kaydı ekle
+    filtered_records = [r for r in records if r.get("date") != yesterday]
+    filtered_records.append(peak_record)
     
     # Veriyi güncelle
-    price_data["records"] = optimized_records
+    price_data["records"] = filtered_records
     price_data["last_optimization"] = datetime.now(timezone.utc).isoformat()
     price_data["optimization_stats"] = {
         "date": yesterday,
@@ -193,7 +195,7 @@ def optimize_daily_data():
         print(f"   📊 Peak Portföy: {max_portfolio_value:.2f} TL")
         print(f"   🕐 Peak Saat: {peak_record.get('time')}")
         print(f"   🗑️ Silinen kayıt: {len(yesterday_records) - 1}")
-        print(f"   💾 Toplam kayıt: {len(optimized_records)}")
+        print(f"   💾 Toplam kayıt: {len(filtered_records)}")
     else:
         print("❌ Optimizasyon kaydetme başarısız!")
 
