@@ -6,9 +6,9 @@ on:
     # 04:00-18:00 UTC = 07:00-21:00 Türkiye saati (UTC+3)
     - cron: '0,30 4-18 * * *'
     
-    # Gece optimizasyon işi - her gece 02:00 Türkiye saati
-    # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
-    - cron: '0 23 * * *'
+    # Gece optimizasyon işi - her gece 22:00 Türkiye saati
+    # 19:00 UTC = 22:00 Türkiye saati (UTC+3)
+    - cron: '0 19 * * *'
     
   workflow_dispatch: # Manuel tetikleme için
     inputs:
@@ -55,6 +55,17 @@ jobs:
       run: |
         mkdir -p data
         
+    - name: Debug - List files
+      run: |
+        echo "📂 Mevcut dizin yapısı:"
+        ls -la
+        echo ""
+        echo "📄 Python dosyaları:"
+        find . -name "*.py" -type f
+        echo ""
+        echo "📁 Dizin içeriği:"
+        tree -L 2 || ls -R
+        
     - name: Determine operation based on time
       run: |
         # Manuel tetikleme kontrolü
@@ -65,13 +76,13 @@ jobs:
           if [ "${{ github.event.inputs.operation }}" == "retroactive" ]; then
             echo "🔄 Geriye dönük optimizasyon başlatılıyor..."
             echo "📅 Son ${{ github.event.inputs.days }} gün optimize edilecek"
-            python scripts/price_tracker.py --retroactive --days ${{ github.event.inputs.days }}
+            python price_tracker.py --retroactive --days ${{ github.event.inputs.days }}
           elif [ "${{ github.event.inputs.operation }}" == "optimize" ]; then
             echo "🌙 Manuel optimizasyon başlatılıyor..."
-            python scripts/price_tracker.py --optimize
+            python price_tracker.py --optimize
           else
             echo "📊 Manuel veri toplama başlatılıyor..."
-            python scripts/price_tracker.py --collect
+            python price_tracker.py --collect
           fi
           exit 0
         fi
@@ -86,20 +97,20 @@ jobs:
         echo "🇹🇷 Türkiye Saati: $TURKEY_HOUR:$TURKEY_MINUTE"
         echo "📅 Tarih: $(date -u -d '+3 hours' +%Y-%m-%d)"
         
-        # Gece optimizasyon kontrolü (02:00 Türkiye saati)
-        if [ $TURKEY_HOUR -eq 2 ]; then
+        # Gece optimizasyon kontrolü (22:00 Türkiye saati)
+        if [ $TURKEY_HOUR -eq 22 ]; then
           echo "🌙 Gece optimizasyonu zamanı - başlatılıyor..."
-          python scripts/price_tracker.py --optimize
+          python price_tracker.py --optimize
           
         # Veri toplama saatleri kontrolü (07:00-21:00 Türkiye saati)
         elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -lt 21 ]; then
           echo "📊 Veri toplama saatleri ($TURKEY_HOUR:$TURKEY_MINUTE) - başlatılıyor..."
-          python scripts/price_tracker.py --collect
+          python price_tracker.py --collect
           
         else
           echo "⏰ Belirlenen saatler dışında ($TURKEY_HOUR:$TURKEY_MINUTE)"
           echo "   📊 Veri toplama: 07:00-21:00 TR"
-          echo "   🌙 Optimizasyon: 02:00 TR"
+          echo "   🌙 Optimizasyon: 22:00 TR"
           echo "   ❌ İşlem yapılmıyor"
           exit 0
         fi
@@ -182,7 +193,7 @@ jobs:
         echo "📋 İşlem Özeti:"
         echo "==============="
         
-        if [ $TURKEY_HOUR -eq 2 ]; then
+        if [ $TURKEY_HOUR -eq 22 ]; then
           echo "🌙 Gece optimizasyonu tamamlandı"
           echo "   • Bir önceki günün peak değeri saklandı"
           echo "   • Diğer veriler temizlendi"
@@ -195,12 +206,14 @@ jobs:
         
         echo ""
         echo "⏰ Bir sonraki çalışma:"
-        if [ $TURKEY_HOUR -eq 2 ]; then
+        if [ $TURKEY_HOUR -eq 22 ]; then
           echo "   📊 07:00 TR (Veri toplama başlangıcı)"
-        elif [ $TURKEY_HOUR -ge 20 ]; then
-          echo "   🌙 02:00 TR (Gece optimizasyonu)"
+        elif [ $TURKEY_HOUR -eq 21 ]; then
+          echo "   🌙 22:00 TR (Gece optimizasyonu)"
+        elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -lt 21 ]; then
+          echo "   📊 Bir sonraki veri toplama"
         else
-          echo "   📊 $(($TURKEY_HOUR + 1)):00 TR (Veri toplama devam)"
+          echo "   📊 07:00 TR (Veri toplama başlangıcı)"
         fi
         
         echo ""
