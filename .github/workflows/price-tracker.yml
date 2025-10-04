@@ -11,6 +11,21 @@ on:
     - cron: '0 23 * * *'
     
   workflow_dispatch: # Manuel tetikleme için
+    inputs:
+      operation:
+        description: 'İşlem türü'
+        required: true
+        default: 'collect'
+        type: choice
+        options:
+          - collect
+          - optimize
+          - retroactive
+      days:
+        description: 'Geriye dönük kaç gün (retroactive için)'
+        required: false
+        default: '7'
+        type: string
 
 # Aynı anda tek workflow çalışmasını sağla
 concurrency:
@@ -42,6 +57,26 @@ jobs:
         
     - name: Determine operation based on time
       run: |
+        # Manuel tetikleme kontrolü
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "🎯 Manuel tetikleme algılandı"
+          echo "📋 İşlem: ${{ github.event.inputs.operation }}"
+          
+          if [ "${{ github.event.inputs.operation }}" == "retroactive" ]; then
+            echo "🔄 Geriye dönük optimizasyon başlatılıyor..."
+            echo "📅 Son ${{ github.event.inputs.days }} gün optimize edilecek"
+            python scripts/price_tracker.py --retroactive --days ${{ github.event.inputs.days }}
+          elif [ "${{ github.event.inputs.operation }}" == "optimize" ]; then
+            echo "🌙 Manuel optimizasyon başlatılıyor..."
+            python scripts/price_tracker.py --optimize
+          else
+            echo "📊 Manuel veri toplama başlatılıyor..."
+            python scripts/price_tracker.py --collect
+          fi
+          exit 0
+        fi
+        
+        # Otomatik zamanlama
         # Türkiye saati hesapla (UTC+3)
         TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
         TURKEY_MINUTE=$(date -u -d '+3 hours' +%M)
