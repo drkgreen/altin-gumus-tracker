@@ -8,9 +8,29 @@ on:
     
     # Gece optimizasyon işi - her gece 02:00 Türkiye saati
     # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
-    - cron: '0 19 * * *'
+    - cron: '0 23 * * *'
     
   workflow_dispatch: # Manuel tetikleme için
+    inputs:
+      operation:
+        description: 'İşlem türü'
+        required: true
+        default: 'collect'
+        type: choice
+        options:
+          - collect
+          - optimize
+          - retroactive
+      days:
+        description: 'Geriye dönük kaç gün (retroactive için)'
+        required: false
+        default: '7'
+        type: string
+
+# Aynı anda tek workflow çalışmasını sağla
+concurrency:
+  group: metal-tracker
+  cancel-in-progress: false
 
 jobs:
   metal-tracker:
@@ -19,6 +39,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,6 +57,26 @@ jobs:
         
     - name: Determine operation based on time
       run: |
+        # Manuel tetikleme kontrolü
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "🎯 Manuel tetikleme algılandı"
+          echo "📋 İşlem: ${{ github.event.inputs.operation }}"
+          
+          if [ "${{ github.event.inputs.operation }}" == "retroactive" ]; then
+            echo "🔄 Geriye dönük optimizasyon başlatılıyor..."
+            echo "📅 Son ${{ github.event.inputs.days }} gün optimize edilecek"
+            python scripts/price_tracker.py --retroactive --days ${{ github.event.inputs.days }}
+          elif [ "${{ github.event.inputs.operation }}" == "optimize" ]; then
+            echo "🌙 Manuel optimizasyon başlatılıyor..."
+            python scripts/price_tracker.py --optimize
+          else
+            echo "📊 Manuel veri toplama başlatılıyor..."
+            python scripts/price_tracker.py --collect
+          fi
+          exit 0
+        fi
+        
+        # Otomatik zamanlama
         # Türkiye saati hesapla (UTC+3)
         TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
         TURKEY_MINUTE=$(date -u -d '+3 hours' +%M)
@@ -67,6 +109,10 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "Metal Tracker Bot v2.0"
         
+        # Remote değişiklikleri al
+        echo "🔄 Fetching remote changes..."
+        git fetch origin main
+        
         # Değişiklik varsa commit et
         if [ -f data/price-history.json ]; then
           git add data/price-history.json
@@ -84,7 +130,46 @@ jobs:
           git diff --staged --quiet || (
             echo "💾 Committing changes: $COMMIT_MSG"
             git commit -m "$COMMIT_MSG"
-            git push
+            
+            # Pull ve push işlemi - konflikt durumunda retry
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              echo "🔄 Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES"
+              
+              # Remote değişiklikleri al ve merge et
+              if git pull origin main --rebase; then
+                echo "✅ Pull successful"
+                
+                # Push işlemi
+                if git push origin main; then
+                  echo "✅ Push successful"
+                  break
+                else
+                  echo "⚠️ Push failed, retrying..."
+                fi
+              else
+                echo "⚠️ Pull failed, retrying..."
+              fi
+              
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              
+              # Son deneme değilse bekle
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "⏳ Waiting 5 seconds before retry..."
+                sleep 5
+                
+                # Yeniden fetch et
+                git fetch origin main
+              fi
+            done
+            
+            # Tüm denemeler başarısız olduysa
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "❌ Failed to push after $MAX_RETRIES attempts"
+              exit 1
+            fi
           )
         else
           echo "❌ No data file found - skipping commit"
