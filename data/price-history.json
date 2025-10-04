@@ -419,18 +419,10 @@
     "peak_time": "06:35:14",
     "removed_count": 18
   },
-  "last_retroactive_optimization": "2025-10-04T15:38:18.481645+00:00",
+  "last_retroactive_optimization": "2025-10-04T19:35:07.377390+00:00",
   "retroactive_optimization_stats": {
-    "days_processed": 1,
-    "total_removed": 30,
-    "results": [
-      {
-        "date": "2025-10-03",
-        "original_count": 31,
-        "peak_value": 5187.86,
-        "peak_time": "13:22:59",
-        "removed": 30
-      }
-    ]
+    "days_processed": 0,
+    "total_removed": 0,
+    "results": []
   }
 }
