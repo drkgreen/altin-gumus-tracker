@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0 - Fixed Mobile Design
+Metal Price Tracker Web App v2.0 - Final Mobile Design
 """
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -196,7 +196,7 @@ def index():
             background: #f8fafc;
             color: #334155;
             min-height: 100vh;
-            padding-bottom: 90px;
+            padding-bottom: 20px;
         }
         
         .header {
@@ -223,7 +223,12 @@ def index():
             gap: 6px;
         }
         .logo-icon { font-size: 20px; }
-        .refresh-btn {
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .header-btn {
             width: 38px;
             height: 38px;
             border-radius: 10px;
@@ -232,13 +237,17 @@ def index():
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .refresh-btn:active {
+        .header-btn:active {
             background: #e2e8f0;
             transform: scale(0.95);
         }
-        .refresh-btn.spinning { animation: spin 1s ease-in-out; }
+        .header-btn.spinning { animation: spin 1s ease-in-out; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
         .update-info {
             font-size: 11px;
             color: #64748b;
@@ -262,27 +271,6 @@ def index():
             display: none;
         }
         .portfolio-card.active { display: block; }
-        
-        .portfolio-prices {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .price-item {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 12px;
-        }
-        .price-item-label {
-            font-size: 11px;
-            opacity: 0.9;
-            margin-bottom: 6px;
-        }
-        .price-item-value {
-            font-size: 18px;
-            font-weight: 800;
-        }
         
         .portfolio-total {
             text-align: center;
@@ -323,6 +311,12 @@ def index():
             font-weight: 800;
             word-wrap: break-word;
             line-height: 1.2;
+            margin-bottom: 8px;
+        }
+        .portfolio-item-price {
+            font-size: 12px;
+            opacity: 0.85;
+            font-weight: 600;
         }
         
         .tabs {
@@ -399,37 +393,6 @@ def index():
             color: #0f172a;
             font-weight: 700;
         }
-        
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            box-shadow: 0 -1px 3px rgba(0,0,0,0.08);
-            padding: 10px 16px 20px;
-            display: flex;
-            justify-content: center;
-            z-index: 100;
-        }
-        .nav-btn {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            background: #6366f1;
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .nav-btn:active { transform: scale(0.98); }
         
         .modal {
             position: fixed;
@@ -546,24 +509,16 @@ def index():
                 <span class="logo-icon">📊</span>
                 <span>Metal Tracker</span>
             </div>
-            <button class="refresh-btn" onclick="fetchData()" id="refreshBtn">↻</button>
+            <div class="header-actions">
+                <button class="header-btn" onclick="fetchData()" id="refreshBtn">↻</button>
+                <button class="header-btn" onclick="openPortfolio()">⚙</button>
+            </div>
         </div>
         <div class="update-info" id="updateInfo">Yükleniyor...</div>
     </div>
 
     <div class="container">
         <div class="portfolio-card" id="portfolioCard">
-            <div class="portfolio-prices">
-                <div class="price-item">
-                    <div class="price-item-label">Altın Fiyatı</div>
-                    <div class="price-item-value" id="goldPricePortfolio">-</div>
-                </div>
-                <div class="price-item">
-                    <div class="price-item-label">Gümüş Fiyatı</div>
-                    <div class="price-item-value" id="silverPricePortfolio">-</div>
-                </div>
-            </div>
-            
             <div class="portfolio-total">
                 <div class="portfolio-total-label">Toplam Portföy</div>
                 <div class="portfolio-total-value" id="portfolioTotal">0 ₺</div>
@@ -573,10 +528,12 @@ def index():
                 <div class="portfolio-item">
                     <div class="portfolio-item-label">Altın</div>
                     <div class="portfolio-item-value" id="goldPortfolio">0 ₺</div>
+                    <div class="portfolio-item-price" id="goldPrice">-</div>
                 </div>
                 <div class="portfolio-item">
                     <div class="portfolio-item-label">Gümüş</div>
                     <div class="portfolio-item-value" id="silverPortfolio">0 ₺</div>
+                    <div class="portfolio-item-price" id="silverPrice">-</div>
                 </div>
             </div>
         </div>
@@ -599,13 +556,6 @@ def index():
                 <div>Veriler yükleniyor...</div>
             </div>
         </div>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="nav-btn" onclick="openPortfolio()">
-            <span>💼</span>
-            <span>Portföy Ayarları</span>
-        </button>
     </div>
 
     <div class="modal" id="portfolioModal">
@@ -658,13 +608,13 @@ def index():
                 if (gold.success) {
                     let p = gold.price.replace(/[^\\d,]/g, '');
                     goldPrice = parseFloat(p.replace(',', '.'));
-                    document.getElementById('goldPricePortfolio').textContent = gold.price;
+                    document.getElementById('goldPrice').textContent = gold.price;
                 }
                 
                 if (silver.success) {
                     let p = silver.price.replace(/[^\\d,]/g, '');
                     silverPrice = parseFloat(p.replace(',', '.'));
-                    document.getElementById('silverPricePortfolio').textContent = silver.price;
+                    document.getElementById('silverPrice').textContent = silver.price;
                 }
                 
                 if (table.success) {
