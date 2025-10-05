@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0 - Full Featured Mobile Design
+Metal Price Tracker Web App v2.0 - Overflow Fixed
 """
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -282,11 +282,12 @@ def index():
             font-weight: 600;
         }
         .price-value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 900;
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            word-break: break-all;
         }
         .silver .price-value {
             background: linear-gradient(135deg, #cbd5e1, #94a3b8);
@@ -312,8 +313,9 @@ def index():
             margin-bottom: 8px;
         }
         .portfolio-amount {
-            font-size: 42px;
+            font-size: clamp(28px, 8vw, 42px);
             font-weight: 900;
+            word-break: break-all;
         }
         .portfolio-metals {
             display: grid;
@@ -331,8 +333,9 @@ def index():
             margin-bottom: 8px;
         }
         .portfolio-metal-value {
-            font-size: 22px;
+            font-size: clamp(18px, 5vw, 22px);
             font-weight: 800;
+            word-break: break-all;
         }
         .period-tabs {
             display: flex;
@@ -363,40 +366,57 @@ def index():
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 16px;
+            padding: 16px 12px;
             margin-bottom: 12px;
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 16px;
-            align-items: center;
         }
         .history-item.peak {
             background: rgba(251, 191, 36, 0.1);
             border-color: rgba(251, 191, 36, 0.3);
         }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
         .history-time {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: #fbbf24;
-        }
-        .history-prices {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .history-price {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.8);
+            min-width: 50px;
         }
         .history-change {
             font-size: 16px;
             font-weight: 700;
             padding: 6px 12px;
             border-radius: 8px;
+            white-space: nowrap;
         }
         .history-change.positive { color: #10b981; background: rgba(16, 185, 129, 0.1); }
         .history-change.negative { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
         .history-change.neutral { color: rgba(255, 255, 255, 0.5); }
+        .history-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .history-label {
+            color: rgba(255, 255, 255, 0.6);
+            min-width: 60px;
+        }
+        .history-value {
+            color: #fff;
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+        }
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -707,14 +727,27 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
-                        <div class="history-time">${item.time}</div>
-                        <div class="history-prices">
-                            <div class="history-price">${formatPrice(item.gold_price)} Altın</div>
-                            <div class="history-price">${formatPrice(item.silver_price)} Gümüş</div>
-                            ${pv > 0 ? `<div class="history-price">${formatCurrency(pv)} Portföy</div>` : ''}
+                        <div class="history-header">
+                            <div class="history-time">${item.time}</div>
+                            <div class="history-change ${getChangeClass(item.change_percent)}">
+                                ${formatChange(item.change_percent)}
+                            </div>
                         </div>
-                        <div class="history-change ${getChangeClass(item.change_percent)}">
-                            ${formatChange(item.change_percent)}
+                        <div class="history-content">
+                            <div class="history-row">
+                                <span class="history-label">Altın:</span>
+                                <span class="history-value">${formatPrice(item.gold_price)}</span>
+                            </div>
+                            <div class="history-row">
+                                <span class="history-label">Gümüş:</span>
+                                <span class="history-value">${formatPrice(item.silver_price)}</span>
+                            </div>
+                            ${pv > 0 ? `
+                            <div class="history-row">
+                                <span class="history-label">Portföy:</span>
+                                <span class="history-value">${formatCurrency(pv)}</span>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -754,14 +787,27 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
-                        <div class="history-time">${item.time} 📊</div>
-                        <div class="history-prices">
-                            <div class="history-price">${formatPrice(item.gold_price)} Altın</div>
-                            <div class="history-price">${formatPrice(item.silver_price)} Gümüş</div>
-                            ${pv > 0 ? `<div class="history-price">${formatCurrency(pv)} Portföy</div>` : ''}
+                        <div class="history-header">
+                            <div class="history-time">${item.time} 📊</div>
+                            <div class="history-change ${getChangeClass(item.change_percent)}">
+                                ${formatChange(item.change_percent)}
+                            </div>
                         </div>
-                        <div class="history-change ${getChangeClass(item.change_percent)}">
-                            ${formatChange(item.change_percent)}
+                        <div class="history-content">
+                            <div class="history-row">
+                                <span class="history-label">Altın:</span>
+                                <span class="history-value">${formatPrice(item.gold_price)}</span>
+                            </div>
+                            <div class="history-row">
+                                <span class="history-label">Gümüş:</span>
+                                <span class="history-value">${formatPrice(item.silver_price)}</span>
+                            </div>
+                            ${pv > 0 ? `
+                            <div class="history-row">
+                                <span class="history-label">Portföy:</span>
+                                <span class="history-value">${formatCurrency(pv)}</span>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
