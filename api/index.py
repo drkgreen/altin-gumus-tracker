@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0 - Soft Mobile Design
+Metal Price Tracker Web App v2.0 - Fixed Mobile Design
 """
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -199,10 +199,9 @@ def index():
             padding-bottom: 90px;
         }
         
-        /* Header */
         .header {
             background: #ffffff;
-            padding: 16px 20px;
+            padding: 12px 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
@@ -216,146 +215,122 @@ def index():
             margin: 0 auto;
         }
         .logo {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: #0f172a;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
-        .logo-icon {
-            font-size: 24px;
-        }
+        .logo-icon { font-size: 20px; }
         .refresh-btn {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 10px;
             background: #f1f5f9;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .refresh-btn:active {
             background: #e2e8f0;
             transform: scale(0.95);
         }
-        .refresh-btn.spinning {
-            animation: spin 1s ease-in-out;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .refresh-btn.spinning { animation: spin 1s ease-in-out; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .update-info {
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         
-        /* Container */
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 16px;
         }
         
-        /* Price Cards */
-        .price-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .price-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .price-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-        .price-value {
-            font-size: 24px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-        .price-card.gold .price-value {
-            color: #d97706;
-        }
-        .price-card.silver .price-value {
-            color: #64748b;
-        }
-        .price-unit {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        
-        /* Portfolio Card */
         .portfolio-card {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
+            padding: 20px 16px;
+            margin-bottom: 20px;
             color: white;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
             display: none;
         }
-        .portfolio-card.active {
-            display: block;
+        .portfolio-card.active { display: block; }
+        
+        .portfolio-prices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
         }
-        .portfolio-header {
-            text-align: center;
-            margin-bottom: 20px;
+        .price-item {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 12px;
         }
-        .portfolio-label {
-            font-size: 13px;
+        .price-item-label {
+            font-size: 11px;
             opacity: 0.9;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
+        .price-item-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        
         .portfolio-total {
-            font-size: 36px;
-            font-weight: 900;
+            text-align: center;
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
+        .portfolio-total-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 6px;
+        }
+        .portfolio-total-value {
+            font-size: 28px;
+            font-weight: 900;
+            word-wrap: break-word;
+        }
+        
         .portfolio-breakdown {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
         .portfolio-item {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            padding: 16px;
+            padding: 12px 10px;
             text-align: center;
         }
         .portfolio-item-label {
             font-size: 11px;
             opacity: 0.9;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .portfolio-item-value {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 800;
+            word-wrap: break-word;
+            line-height: 1.2;
         }
         
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
             background: #ffffff;
-            padding: 6px;
+            padding: 5px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
@@ -376,17 +351,13 @@ def index():
             color: #0f172a;
         }
         
-        /* History List */
-        .history-section {
-            display: none;
-        }
-        .history-section.active {
-            display: block;
-        }
+        .history-section { display: none; }
+        .history-section.active { display: block; }
+        
         .history-item {
             background: #ffffff;
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px;
             margin-bottom: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
@@ -398,7 +369,7 @@ def index():
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .history-time {
             font-size: 14px;
@@ -406,30 +377,22 @@ def index():
             color: #0f172a;
         }
         .history-change {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
         }
-        .history-change.positive {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-        .history-change.negative {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .history-change.neutral {
-            background: #f1f5f9;
-            color: #64748b;
-        }
+        .history-change.positive { background: #dcfce7; color: #16a34a; }
+        .history-change.negative { background: #fee2e2; color: #dc2626; }
+        .history-change.neutral { background: #f1f5f9; color: #64748b; }
+        
         .history-prices {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
         .history-price {
-            font-size: 13px;
+            font-size: 12px;
             color: #475569;
         }
         .history-price strong {
@@ -437,7 +400,6 @@ def index():
             font-weight: 700;
         }
         
-        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -445,39 +407,30 @@ def index():
             right: 0;
             background: #ffffff;
             box-shadow: 0 -1px 3px rgba(0,0,0,0.08);
-            padding: 12px 20px 24px;
+            padding: 10px 16px 20px;
             display: flex;
             justify-content: center;
-            gap: 12px;
             z-index: 100;
         }
         .nav-btn {
-            flex: 1;
-            max-width: 200px;
+            width: 100%;
+            max-width: 400px;
             padding: 12px 20px;
-            border: 2px solid #e2e8f0;
+            border: none;
             border-radius: 12px;
-            background: #ffffff;
-            color: #64748b;
+            background: #6366f1;
+            color: white;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
-        .nav-btn:active {
-            transform: scale(0.98);
-        }
-        .nav-btn.primary {
-            background: #6366f1;
-            color: white;
-            border-color: #6366f1;
-        }
+        .nav-btn:active { transform: scale(0.98); }
         
-        /* Modal */
         .modal {
             position: fixed;
             top: 0;
@@ -489,9 +442,7 @@ def index():
             display: none;
             align-items: flex-end;
         }
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
         .modal-content {
             background: #ffffff;
             border-radius: 24px 24px 0 0;
@@ -509,10 +460,10 @@ def index():
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         .modal-title {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 800;
             color: #0f172a;
         }
@@ -526,9 +477,7 @@ def index():
             color: #64748b;
             cursor: pointer;
         }
-        .input-group {
-            margin-bottom: 20px;
-        }
+        .input-group { margin-bottom: 18px; }
         .input-label {
             display: block;
             margin-bottom: 8px;
@@ -552,7 +501,7 @@ def index():
         }
         .modal-actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         .btn {
             flex: 1;
@@ -564,9 +513,7 @@ def index():
             border: none;
             transition: all 0.3s ease;
         }
-        .btn:active {
-            transform: scale(0.98);
-        }
+        .btn:active { transform: scale(0.98); }
         .btn-primary {
             background: #6366f1;
             color: white;
@@ -576,7 +523,6 @@ def index():
             color: #64748b;
         }
         
-        /* Loading */
         .loading {
             text-align: center;
             padding: 40px 20px;
@@ -606,24 +552,23 @@ def index():
     </div>
 
     <div class="container">
-        <div class="price-section">
-            <div class="price-card gold">
-                <div class="price-label">Altın</div>
-                <div class="price-value" id="goldPrice">-</div>
-                <div class="price-unit">₺/gram</div>
-            </div>
-            <div class="price-card silver">
-                <div class="price-label">Gümüş</div>
-                <div class="price-value" id="silverPrice">-</div>
-                <div class="price-unit">₺/gram</div>
-            </div>
-        </div>
-
         <div class="portfolio-card" id="portfolioCard">
-            <div class="portfolio-header">
-                <div class="portfolio-label">Toplam Portföy Değeri</div>
-                <div class="portfolio-total" id="portfolioTotal">0,00 ₺</div>
+            <div class="portfolio-prices">
+                <div class="price-item">
+                    <div class="price-item-label">Altın Fiyatı</div>
+                    <div class="price-item-value" id="goldPricePortfolio">-</div>
+                </div>
+                <div class="price-item">
+                    <div class="price-item-label">Gümüş Fiyatı</div>
+                    <div class="price-item-value" id="silverPricePortfolio">-</div>
+                </div>
             </div>
+            
+            <div class="portfolio-total">
+                <div class="portfolio-total-label">Toplam Portföy</div>
+                <div class="portfolio-total-value" id="portfolioTotal">0 ₺</div>
+            </div>
+            
             <div class="portfolio-breakdown">
                 <div class="portfolio-item">
                     <div class="portfolio-item-label">Altın</div>
@@ -657,7 +602,7 @@ def index():
     </div>
 
     <div class="bottom-nav">
-        <button class="nav-btn primary" onclick="openPortfolio()">
+        <button class="nav-btn" onclick="openPortfolio()">
             <span>💼</span>
             <span>Portföy Ayarları</span>
         </button>
@@ -713,13 +658,13 @@ def index():
                 if (gold.success) {
                     let p = gold.price.replace(/[^\\d,]/g, '');
                     goldPrice = parseFloat(p.replace(',', '.'));
-                    document.getElementById('goldPrice').textContent = gold.price;
+                    document.getElementById('goldPricePortfolio').textContent = gold.price;
                 }
                 
                 if (silver.success) {
                     let p = silver.price.replace(/[^\\d,]/g, '');
                     silverPrice = parseFloat(p.replace(',', '.'));
-                    document.getElementById('silverPrice').textContent = silver.price;
+                    document.getElementById('silverPricePortfolio').textContent = silver.price;
                 }
                 
                 if (table.success) {
