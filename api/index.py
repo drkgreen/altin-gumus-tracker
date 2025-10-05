@@ -279,13 +279,8 @@ def index():
             border-radius: 12px;
             margin-bottom: 12px;
         }
-        .portfolio-total-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 6px;
-        }
         .portfolio-total-value {
-            font-size: 28px;
+            font-size: 34px;
             font-weight: 900;
             word-wrap: break-word;
         }
@@ -520,20 +515,19 @@ def index():
     <div class="container">
         <div class="portfolio-card" id="portfolioCard">
             <div class="portfolio-total">
-                <div class="portfolio-total-label">Toplam Portföy</div>
                 <div class="portfolio-total-value" id="portfolioTotal">0 ₺</div>
             </div>
             
             <div class="portfolio-breakdown">
                 <div class="portfolio-item">
                     <div class="portfolio-item-label">Altın</div>
-                    <div class="portfolio-item-value" id="goldPortfolio">0 ₺</div>
                     <div class="portfolio-item-price" id="goldPrice">-</div>
+                    <div class="portfolio-item-value" id="goldPortfolio">0 ₺</div>
                 </div>
                 <div class="portfolio-item">
                     <div class="portfolio-item-label">Gümüş</div>
-                    <div class="portfolio-item-value" id="silverPortfolio">0 ₺</div>
                     <div class="portfolio-item-price" id="silverPrice">-</div>
+                    <div class="portfolio-item-value" id="silverPortfolio">0 ₺</div>
                 </div>
             </div>
         </div>
