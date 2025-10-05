@@ -482,4 +482,236 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     updateTable();
                 }
                 
-                document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:
+                document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                updatePortfolio();
+                
+            } catch (error) {
+                
+            } finally {
+                setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
+            }
+        }
+
+        function switchPeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(period + 'Tab').classList.add('active');
+            
+            const timeHeader = document.getElementById('timeHeader');
+            if (period === 'daily') {
+                timeHeader.textContent = 'Saat';
+            } else if (period === 'weekly') {
+                timeHeader.textContent = 'Tarih';
+            }
+            
+            updateTable();
+        }
+
+        function updateTable() {
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            
+            if (!tableData[currentPeriod]) return;
+            
+            const tbody = document.getElementById('priceTableBody');
+            tbody.innerHTML = '';
+            
+            let maxPortfolioValue = 0;
+            let peakIndices = [];
+            
+            if (goldAmount > 0 || silverAmount > 0) {
+                tableData[currentPeriod].forEach((item, index) => {
+                    const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                    
+                    if (portfolioValue > maxPortfolioValue) {
+                        maxPortfolioValue = portfolioValue;
+                        peakIndices = [index];
+                    } else if (portfolioValue === maxPortfolioValue && portfolioValue > 0) {
+                        peakIndices.push(index);
+                    }
+                });
+            }
+            
+            tableData[currentPeriod].forEach((item, index) => {
+                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                
+                const row = document.createElement('tr');
+                
+                const isPeakRow = peakIndices.includes(index) && maxPortfolioValue > 0;
+                if (isPeakRow) {
+                    row.classList.add('peak-row');
+                }
+                
+                const timeDisplay = item.optimized ? 
+                    '<span title="Günün peak değeri (' + (item.peak_time || 'bilinmiyor') + ')">' + item.time + '</span>' : 
+                    item.time;
+                
+                row.innerHTML = 
+                    '<td class="time">' + timeDisplay + '</td>' +
+                    '<td class="price">' + formatPrice(item.gold_price) + '</td>' +
+                    '<td class="price">' + formatPrice(item.silver_price) + '</td>' +
+                    '<td class="portfolio">' + (portfolioValue > 0 ? formatCurrency(portfolioValue) : '-') + '</td>' +
+                    '<td class="change ' + getChangeClass(item.change_percent) + '">' + formatChange(item.change_percent) + '</td>';
+                tbody.appendChild(row);
+            });
+        }
+
+        function getChangeClass(changePercent) {
+            if (changePercent > 0) return 'positive';
+            if (changePercent < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function formatChange(changePercent) {
+            if (changePercent === 0) return '0.00%';
+            const sign = changePercent > 0 ? '+' : '';
+            return sign + changePercent.toFixed(2) + '%';
+        }
+
+        function togglePortfolio() {
+            document.getElementById('portfolioModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('portfolioModal').style.display = 'none';
+        }
+
+        function updatePortfolio() {
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            
+            const goldValue = goldAmount * currentGoldPrice;
+            const silverValue = silverAmount * currentSilverPrice;
+            const totalValue = goldValue + silverValue;
+            
+            const portfolioSummary = document.getElementById('portfolioSummary');
+            const priceHistory = document.getElementById('priceHistory');
+            
+            if (totalValue > 0) {
+                portfolioSummary.style.display = 'block';
+                priceHistory.style.display = 'block';
+                
+                document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
+                document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
+                document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
+                document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
+                document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+                
+                updateTable();
+            } else {
+                portfolioSummary.style.display = 'none';
+                priceHistory.style.display = 'none';
+            }
+            
+            savePortfolio();
+        }
+
+        function savePortfolio() {
+            const goldAmount = document.getElementById('goldAmount').value;
+            const silverAmount = document.getElementById('silverAmount').value;
+            
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            
+            document.cookie = 'goldAmount=' + goldAmount + '; expires=' + expiryDate.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie = 'silverAmount=' + silverAmount + '; expires=' + expiryDate.toUTCString() + '; path=/; SameSite=Lax';
+            
+            window.portfolioData = {
+                gold: goldAmount,
+                silver: silverAmount
+            };
+        }
+
+        function loadPortfolio() {
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [key, value] = cookie.trim().split('=');
+                acc[key] = value;
+                return acc;
+            }, {});
+            
+            if (cookies.goldAmount && cookies.goldAmount !== 'undefined') {
+                document.getElementById('goldAmount').value = cookies.goldAmount;
+            }
+            if (cookies.silverAmount && cookies.silverAmount !== 'undefined') {
+                document.getElementById('silverAmount').value = cookies.silverAmount;
+            }
+            
+            if (!cookies.goldAmount && window.portfolioData) {
+                document.getElementById('goldAmount').value = window.portfolioData.gold || '';
+                document.getElementById('silverAmount').value = window.portfolioData.silver || '';
+            }
+        }
+
+        function clearPortfolio() {
+            if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
+                document.getElementById('goldAmount').value = '';
+                document.getElementById('silverAmount').value = '';
+                
+                document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                
+                window.portfolioData = null;
+                
+                updatePortfolio();
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
+        }
+
+        function formatPrice(price) {
+            if (!price) return '0,00₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + '₺';
+        }
+
+        document.getElementById('portfolioModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        window.onload = function() {
+            loadPortfolio();
+            fetchPrice();
+            updatePortfolio();
+        };
+    </script>
+</body>
+</html>'''
+
+@app.route('/')
+def index():
+    return HTML_TEMPLATE
+
+@app.route('/api/gold-price')
+def api_gold_price():
+    try:
+        price = get_gold_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/silver-price')
+def api_silver_price():
+    try:
+        price = get_silver_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/table-data')
+def api_table_data():
+    try:
+        data = get_table_data()
+        return jsonify({'success': bool(data), 'data': data or {}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# Vercel serverless handler
+def handler(request):
+    return app(request.environ, lambda *args: None)
