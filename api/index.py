@@ -2,7 +2,7 @@
 """
 Metal Price Tracker Web App v2.0 - Vercel Serverless
 """
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, Response
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -686,7 +686,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
 @app.route('/')
 def index():
-    return HTML_TEMPLATE
+    return Response(HTML_TEMPLATE, mimetype='text/html')
 
 @app.route('/api/gold-price')
 def api_gold_price():
@@ -711,7 +711,3 @@ def api_table_data():
         return jsonify({'success': bool(data), 'data': data or {}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
-# Vercel serverless handler
-def handler(request):
-    return app(request.environ, lambda *args: None)
