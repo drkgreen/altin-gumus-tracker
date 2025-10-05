@@ -307,7 +307,7 @@ def index():
             margin-bottom: 6px;
         }
         .portfolio-item-value {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 800;
             word-wrap: break-word;
             line-height: 1.2;
