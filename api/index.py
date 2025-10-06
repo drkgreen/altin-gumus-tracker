@@ -354,6 +354,18 @@ def index():
             background: #fef3c7;
             border: 2px solid #fbbf24;
         }
+        
+        .history-portfolio-value {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
         .history-header {
             display: flex;
             justify-content: space-between;
@@ -664,6 +676,7 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
+                        ${pv > 0 ? `<div class="history-portfolio-value">${formatCurrency(pv)}</div>` : ''}
                         <div class="history-header">
                             <div class="history-time">${item.time}</div>
                             <div class="history-change ${getClass(item.change_percent)}">
@@ -673,7 +686,6 @@ def index():
                         <div class="history-prices">
                             <div class="history-price"><strong>${formatPrice(item.gold_price)}</strong> Altın</div>
                             <div class="history-price"><strong>${formatPrice(item.silver_price)}</strong> Gümüş</div>
-                            ${pv > 0 ? `<div class="history-price"><strong>${formatCurrency(pv)}</strong> Portföy</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -713,6 +725,7 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
+                        ${pv > 0 ? `<div class="history-portfolio-value">${formatCurrency(pv)}</div>` : ''}
                         <div class="history-header">
                             <div class="history-time">${item.time} 📊</div>
                             <div class="history-change ${getClass(item.change_percent)}">
@@ -722,7 +735,6 @@ def index():
                         <div class="history-prices">
                             <div class="history-price"><strong>${formatPrice(item.gold_price)}</strong> Altın</div>
                             <div class="history-price"><strong>${formatPrice(item.silver_price)}</strong> Gümüş</div>
-                            ${pv > 0 ? `<div class="history-price"><strong>${formatCurrency(pv)}</strong> Portföy</div>` : ''}
                         </div>
                     </div>
                 `;
