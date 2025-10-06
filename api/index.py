@@ -344,62 +344,60 @@ def index():
         .history-section.active { display: block; }
         
         .history-item {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            background: white;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .history-item.peak {
-            background: #fef3c7;
-            border: 2px solid #fbbf24;
-        }
-        
-        .history-portfolio-value {
-            text-align: center;
-            font-size: 20px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: #f8fafc;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #fff8dc 0%, #ffe4b5 100%);
         }
         
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .history-time {
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+        }
+        .history-portfolio {
+            font-size: 15px;
             font-weight: 700;
-            color: #0f172a;
+            color: #e67e22;
+        }
+        
+        .history-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-metals {
+            display: flex;
+            gap: 12px;
+        }
+        .history-metal {
+            font-size: 11px;
+            color: #777;
+        }
+        .history-metal span {
+            font-weight: 600;
+            color: #333;
         }
         .history-change {
-            font-size: 12px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f0f0f0;
         }
-        .history-change.positive { background: #dcfce7; color: #16a34a; }
-        .history-change.negative { background: #fee2e2; color: #dc2626; }
-        .history-change.neutral { background: #f1f5f9; color: #64748b; }
-        
-        .history-prices {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .history-price {
-            font-size: 12px;
-            color: #475569;
-        }
-        .history-price strong {
-            color: #0f172a;
-            font-weight: 700;
-        }
+        .history-change.positive { background: #d4edda; color: #155724; }
+        .history-change.negative { background: #f8d7da; color: #721c24; }
+        .history-change.neutral { background: #f0f0f0; color: #666; }
         
         .modal {
             position: fixed;
@@ -676,16 +674,18 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
-                        ${pv > 0 ? `<div class="history-portfolio-value">${formatCurrency(pv)}</div>` : ''}
                         <div class="history-header">
                             <div class="history-time">${item.time}</div>
+                            <div class="history-portfolio">${pv > 0 ? formatCurrency(pv) : '-'}</div>
+                        </div>
+                        <div class="history-footer">
+                            <div class="history-metals">
+                                <div class="history-metal">Altın: <span>${formatPrice(item.gold_price)}₺</span></div>
+                                <div class="history-metal">Gümüş: <span>${formatPrice(item.silver_price)}₺</span></div>
+                            </div>
                             <div class="history-change ${getClass(item.change_percent)}">
                                 ${formatChange(item.change_percent)}
                             </div>
-                        </div>
-                        <div class="history-prices">
-                            <div class="history-price"><strong>${formatPrice(item.gold_price)}</strong> Altın</div>
-                            <div class="history-price"><strong>${formatPrice(item.silver_price)}</strong> Gümüş</div>
                         </div>
                     </div>
                 `;
@@ -725,16 +725,18 @@ def index():
                 
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
-                        ${pv > 0 ? `<div class="history-portfolio-value">${formatCurrency(pv)}</div>` : ''}
                         <div class="history-header">
                             <div class="history-time">${item.time} 📊</div>
+                            <div class="history-portfolio">${pv > 0 ? formatCurrency(pv) : '-'}</div>
+                        </div>
+                        <div class="history-footer">
+                            <div class="history-metals">
+                                <div class="history-metal">Altın: <span>${formatPrice(item.gold_price)}₺</span></div>
+                                <div class="history-metal">Gümüş: <span>${formatPrice(item.silver_price)}₺</span></div>
+                            </div>
                             <div class="history-change ${getClass(item.change_percent)}">
                                 ${formatChange(item.change_percent)}
                             </div>
-                        </div>
-                        <div class="history-prices">
-                            <div class="history-price"><strong>${formatPrice(item.gold_price)}</strong> Altın</div>
-                            <div class="history-price"><strong>${formatPrice(item.silver_price)}</strong> Gümüş</div>
                         </div>
                     </div>
                 `;
