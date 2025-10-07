@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0 - Final Mobile Design
+Metal Price Tracker Web App v2.0 - Dark Modern Theme
 """
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -187,25 +187,26 @@ def index():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#f8fafc">
+    <meta name="theme-color" content="#0f172a">
     <title>Metal Tracker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8fafc;
-            color: #334155;
+            background: #0f172a;
+            color: #e2e8f0;
             min-height: 100vh;
             padding-bottom: 20px;
         }
         
         .header {
-            background: #ffffff;
+            background: #1e293b;
             padding: 12px 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid #334155;
         }
         .header-content {
             display: flex;
@@ -217,7 +218,7 @@ def index():
         .logo {
             font-size: 17px;
             font-weight: 700;
-            color: #0f172a;
+            color: #f1f5f9;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -232,8 +233,9 @@ def index():
             width: 38px;
             height: 38px;
             border-radius: 10px;
-            background: #f1f5f9;
-            border: none;
+            background: #334155;
+            border: 1px solid #475569;
+            color: #e2e8f0;
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -242,7 +244,7 @@ def index():
             justify-content: center;
         }
         .header-btn:active {
-            background: #e2e8f0;
+            background: #475569;
             transform: scale(0.95);
         }
         .header-btn.spinning { animation: spin 1s ease-in-out; }
@@ -250,7 +252,7 @@ def index():
         
         .update-info {
             font-size: 11px;
-            color: #64748b;
+            color: #94a3b8;
             text-align: center;
             margin-top: 6px;
         }
@@ -267,17 +269,19 @@ def index():
             padding: 20px 16px;
             margin-bottom: 20px;
             color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
             display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .portfolio-card.active { display: block; }
         
         .portfolio-total {
             text-align: center;
             padding: 16px 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             margin-bottom: 12px;
+            backdrop-filter: blur(10px);
         }
         .portfolio-total-value {
             font-size: 34px;
@@ -295,6 +299,7 @@ def index():
             border-radius: 12px;
             padding: 12px 10px;
             text-align: center;
+            backdrop-filter: blur(10px);
         }
         .portfolio-item-label {
             font-size: 11px;
@@ -318,10 +323,11 @@ def index():
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
-            background: #ffffff;
+            background: #1e293b;
             padding: 5px;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid #334155;
         }
         .tab {
             flex: 1;
@@ -329,29 +335,31 @@ def index():
             border: none;
             border-radius: 8px;
             background: transparent;
-            color: #64748b;
+            color: #94a3b8;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .tab.active {
-            background: #f1f5f9;
-            color: #0f172a;
+            background: #334155;
+            color: #f1f5f9;
         }
         
         .history-section { display: none; }
         .history-section.active { display: block; }
         
         .history-item {
-            background: white;
+            background: #1e293b;
             border-radius: 10px;
             padding: 10px 12px;
             margin-bottom: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            border: 1px solid #334155;
         }
         .history-item.peak {
-            background: linear-gradient(135deg, #fff8dc 0%, #ffe4b5 100%);
+            background: linear-gradient(135deg, #422006 0%, #92400e 100%);
+            border: 1px solid #d97706;
         }
         
         .history-header {
@@ -363,12 +371,12 @@ def index():
         .history-time {
             font-size: 12px;
             font-weight: 600;
-            color: #555;
+            color: #cbd5e1;
         }
         .history-portfolio {
             font-size: 15px;
             font-weight: 700;
-            color: #e67e22;
+            color: #f59e0b;
         }
         
         .history-footer {
@@ -382,22 +390,22 @@ def index():
         }
         .history-metal {
             font-size: 11px;
-            color: #777;
+            color: #94a3b8;
         }
         .history-metal span {
             font-weight: 600;
-            color: #333;
+            color: #e2e8f0;
         }
         .history-change {
             font-size: 11px;
             font-weight: 600;
             padding: 2px 6px;
             border-radius: 4px;
-            background: #f0f0f0;
+            background: #374151;
         }
-        .history-change.positive { background: #d4edda; color: #155724; }
-        .history-change.negative { background: #f8d7da; color: #721c24; }
-        .history-change.neutral { background: #f0f0f0; color: #666; }
+        .history-change.positive { background: #064e3b; color: #10b981; }
+        .history-change.negative { background: #7f1d1d; color: #ef4444; }
+        .history-change.neutral { background: #374151; color: #9ca3af; }
         
         .modal {
             position: fixed;
@@ -405,20 +413,23 @@ def index():
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.8);
             z-index: 200;
             display: none;
             align-items: flex-end;
+            backdrop-filter: blur(8px);
         }
         .modal.active { display: flex; }
         .modal-content {
-            background: #ffffff;
+            background: #1e293b;
             border-radius: 24px 24px 0 0;
             padding: 24px 20px 40px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
+            border: 1px solid #334155;
+            border-bottom: none;
         }
         @keyframes slideUp {
             from { transform: translateY(100%); }
@@ -433,16 +444,16 @@ def index():
         .modal-title {
             font-size: 19px;
             font-weight: 800;
-            color: #0f172a;
+            color: #f1f5f9;
         }
         .modal-close {
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: #f1f5f9;
-            border: none;
+            background: #334155;
+            border: 1px solid #475569;
             font-size: 20px;
-            color: #64748b;
+            color: #94a3b8;
             cursor: pointer;
         }
         .input-group { margin-bottom: 18px; }
@@ -451,21 +462,24 @@ def index():
             margin-bottom: 8px;
             font-weight: 600;
             font-size: 14px;
-            color: #334155;
+            color: #e2e8f0;
         }
         .input-field {
             width: 100%;
             padding: 14px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #334155;
             border-radius: 12px;
             font-size: 16px;
-            background: #f8fafc;
-            color: #0f172a;
+            background: #0f172a;
+            color: #f1f5f9;
         }
         .input-field:focus {
             outline: none;
             border-color: #6366f1;
-            background: #ffffff;
+            background: #1e293b;
+        }
+        .input-field::placeholder {
+            color: #64748b;
         }
         .modal-actions {
             display: flex;
@@ -487,19 +501,20 @@ def index():
             color: white;
         }
         .btn-secondary {
-            background: #f1f5f9;
-            color: #64748b;
+            background: #334155;
+            color: #94a3b8;
+            border: 1px solid #475569;
         }
         
         .loading {
             text-align: center;
             padding: 40px 20px;
-            color: #94a3b8;
+            color: #64748b;
         }
         .loading-spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #e2e8f0;
+            border: 3px solid #334155;
             border-top-color: #6366f1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -627,116 +642,67 @@ def index():
                 }
                 
                 document.getElementById('updateInfo').textContent = 
-                    'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                    `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}`;
                 
                 updatePortfolio();
                 
             } catch (error) {
-                document.getElementById('updateInfo').textContent = 'Hata oluştu';
+                document.getElementById('updateInfo').textContent = 'Güncelleme hatası';
             } finally {
-                setTimeout(() => btn.classList.remove('spinning'), 1000);
+                setTimeout(() => btn.classList.remove('spinning'), 500);
             }
         }
 
         function renderHistory() {
-            renderDaily();
-            renderWeekly();
-        }
-
-        function renderDaily() {
-            const section = document.getElementById('dailySection');
+            const data = tableData[currentTab] || [];
+            const section = document.getElementById(currentTab + 'Section');
             
-            if (!tableData.daily || tableData.daily.length === 0) {
-                section.innerHTML = '<div class="loading">Veri bulunamadı</div>';
+            if (data.length === 0) {
+                section.innerHTML = '<div class="loading"><div>Veri bulunamadı</div></div>';
                 return;
             }
+
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            const goldAmt = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmt = parseFloat(document.getElementById('silverAmount').value) || 0;
+            let maxPortfolioValue = 0;
+            let peakIndices = [];
             
-            let maxPV = 0;
-            let peakIdx = -1;
-            
-            if (goldAmt > 0 || silverAmt > 0) {
-                tableData.daily.forEach((item, i) => {
-                    const pv = (goldAmt * item.gold_price) + (silverAmt * item.silver_price);
-                    if (pv > maxPV) {
-                        maxPV = pv;
-                        peakIdx = i;
+            if (goldAmount > 0 || silverAmount > 0) {
+                data.forEach((item, index) => {
+                    const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                    
+                    if (portfolioValue > maxPortfolioValue) {
+                        maxPortfolioValue = portfolioValue;
+                        peakIndices = [index];
+                    } else if (portfolioValue === maxPortfolioValue && portfolioValue > 0) {
+                        peakIndices.push(index);
                     }
                 });
             }
-            
+
             let html = '';
-            tableData.daily.forEach((item, i) => {
-                const isPeak = i === peakIdx && maxPV > 0;
-                const pv = (goldAmt * item.gold_price) + (silverAmt * item.silver_price);
+            data.forEach((item, index) => {
+                const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                const isPeak = peakIndices.includes(index) && maxPortfolioValue > 0;
                 
+                const changeClass = item.change_percent > 0 ? 'positive' : 
+                                  item.change_percent < 0 ? 'negative' : 'neutral';
+                const changeText = item.change_percent === 0 ? '0.00%' : 
+                                 (item.change_percent > 0 ? '+' : '') + item.change_percent.toFixed(2) + '%';
+
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
                         <div class="history-header">
                             <div class="history-time">${item.time}</div>
-                            <div class="history-portfolio">${pv > 0 ? formatCurrency(pv) : '-'}</div>
+                            <div class="history-portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</div>
                         </div>
                         <div class="history-footer">
                             <div class="history-metals">
-                                <div class="history-metal">Altın: <span>${formatPrice(item.gold_price)}₺</span></div>
-                                <div class="history-metal">Gümüş: <span>${formatPrice(item.silver_price)}₺</span></div>
+                                <div class="history-metal">Altın: <span>${formatPrice(item.gold_price)}</span></div>
+                                <div class="history-metal">Gümüş: <span>${formatPrice(item.silver_price)}</span></div>
                             </div>
-                            <div class="history-change ${getClass(item.change_percent)}">
-                                ${formatChange(item.change_percent)}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            section.innerHTML = html;
-        }
-
-        function renderWeekly() {
-            const section = document.getElementById('weeklySection');
-            
-            if (!tableData.weekly || tableData.weekly.length === 0) {
-                section.innerHTML = '<div class="loading">Veri bulunamadı</div>';
-                return;
-            }
-            
-            const goldAmt = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmt = parseFloat(document.getElementById('silverAmount').value) || 0;
-            
-            let maxPV = 0;
-            let peakIdx = -1;
-            
-            if (goldAmt > 0 || silverAmt > 0) {
-                tableData.weekly.forEach((item, i) => {
-                    const pv = (goldAmt * item.gold_price) + (silverAmt * item.silver_price);
-                    if (pv > maxPV) {
-                        maxPV = pv;
-                        peakIdx = i;
-                    }
-                });
-            }
-            
-            let html = '';
-            tableData.weekly.forEach((item, i) => {
-                const isPeak = i === peakIdx && maxPV > 0;
-                const pv = (goldAmt * item.gold_price) + (silverAmt * item.silver_price);
-                
-                html += `
-                    <div class="history-item ${isPeak ? 'peak' : ''}">
-                        <div class="history-header">
-                            <div class="history-time">${item.time} 📊</div>
-                            <div class="history-portfolio">${pv > 0 ? formatCurrency(pv) : '-'}</div>
-                        </div>
-                        <div class="history-footer">
-                            <div class="history-metals">
-                                <div class="history-metal">Altın: <span>${formatPrice(item.gold_price)}₺</span></div>
-                                <div class="history-metal">Gümüş: <span>${formatPrice(item.silver_price)}₺</span></div>
-                            </div>
-                            <div class="history-change ${getClass(item.change_percent)}">
-                                ${formatChange(item.change_percent)}
-                            </div>
+                            <div class="history-change ${changeClass}">${changeText}</div>
                         </div>
                     </div>
                 `;
@@ -753,52 +719,45 @@ def index():
             
             document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
             document.getElementById(tab + 'Section').classList.add('active');
-        }
-
-        function openPortfolio() {
-            document.getElementById('portfolioModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('portfolioModal').classList.remove('active');
-        }
-
-        function saveAndClose() {
-            savePortfolio();
-            closeModal();
+            
+            renderHistory();
         }
 
         function updatePortfolio() {
-            const goldAmt = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmt = parseFloat(document.getElementById('silverAmount').value) || 0;
+            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            const goldVal = goldAmt * goldPrice;
-            const silverVal = silverAmt * silverPrice;
-            const total = goldVal + silverVal;
+            const goldValue = goldAmount * goldPrice;
+            const silverValue = silverAmount * silverPrice;
+            const totalValue = goldValue + silverValue;
             
-            const card = document.getElementById('portfolioCard');
+            const portfolioCard = document.getElementById('portfolioCard');
             
-            if (total > 0) {
-                card.classList.add('active');
-                document.getElementById('portfolioTotal').textContent = formatCurrency(total);
-                document.getElementById('goldPortfolio').textContent = formatCurrency(goldVal);
-                document.getElementById('silverPortfolio').textContent = formatCurrency(silverVal);
+            if (totalValue > 0) {
+                portfolioCard.classList.add('active');
+                
+                document.getElementById('portfolioTotal').textContent = formatCurrency(totalValue);
+                document.getElementById('goldPortfolio').textContent = formatCurrency(goldValue);
+                document.getElementById('silverPortfolio').textContent = formatCurrency(silverValue);
                 
                 renderHistory();
             } else {
-                card.classList.remove('active');
+                portfolioCard.classList.remove('active');
+                renderHistory();
             }
+            
+            savePortfolio();
         }
 
         function savePortfolio() {
-            const goldAmt = document.getElementById('goldAmount').value;
-            const silverAmt = document.getElementById('silverAmount').value;
+            const goldAmount = document.getElementById('goldAmount').value;
+            const silverAmount = document.getElementById('silverAmount').value;
             
-            const exp = new Date();
-            exp.setFullYear(exp.getFullYear() + 1);
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
             
-            document.cookie = `goldAmount=${goldAmt}; expires=${exp.toUTCString()}; path=/; SameSite=Lax`;
-            document.cookie = `silverAmount=${silverAmt}; expires=${exp.toUTCString()}; path=/; SameSite=Lax`;
+            document.cookie = `goldAmount=${goldAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            document.cookie = `silverAmount=${silverAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
         }
 
         function loadPortfolio() {
@@ -816,6 +775,19 @@ def index():
             }
         }
 
+        function openPortfolio() {
+            document.getElementById('portfolioModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('portfolioModal').classList.remove('active');
+        }
+
+        function saveAndClose() {
+            savePortfolio();
+            closeModal();
+        }
+
         function clearPortfolio() {
             if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
                 document.getElementById('goldAmount').value = '';
@@ -828,31 +800,19 @@ def index():
             }
         }
 
-        function getClass(change) {
-            if (change > 0) return 'positive';
-            if (change < 0) return 'negative';
-            return 'neutral';
-        }
-
-        function formatChange(change) {
-            if (change === 0) return '0.00%';
-            const sign = change > 0 ? '+' : '';
-            return `${sign}${change.toFixed(2)}%`;
-        }
-
-        function formatCurrency(amt) {
+        function formatCurrency(amount) {
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-            }).format(amt) + ' ₺';
+            }).format(amount) + ' ₺';
         }
 
         function formatPrice(price) {
-            if (!price) return '0,00';
+            if (!price) return '0,00 ₺';
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-            }).format(price);
+            }).format(price) + ' ₺';
         }
 
         document.getElementById('portfolioModal').addEventListener('click', function(e) {
@@ -867,7 +827,6 @@ def index():
     </script>
 </body>
 </html>'''
-    return Response(html, mimetype='text/html')
 
 @app.route('/api/gold-price')
 def api_gold_price():
@@ -892,3 +851,8 @@ def api_table_data():
         return jsonify({'success': bool(data), 'data': data or {}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
