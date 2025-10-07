@@ -2,10 +2,12 @@
 """
 Metal Price Tracker Web App v2.0 - Dark Modern Theme
 """
-from flask import Flask, jsonify, Response
+from flask import Flask, jsonify, render_template_string
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
+import json
+import os
 from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
@@ -180,9 +182,7 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
-@app.route('/')
-def index():
-    html = '''<!DOCTYPE html>
+HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -828,6 +828,10 @@ def index():
 </body>
 </html>'''
 
+@app.route('/')
+def index():
+    return render_template_string(HTML_TEMPLATE)
+
 @app.route('/api/gold-price')
 def api_gold_price():
     try:
@@ -853,6 +857,5 @@ def api_table_data():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
