@@ -321,7 +321,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .tabs {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 16px;
             background: #2d3748;
             padding: 5px;
@@ -331,16 +331,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .tab {
             flex: 1;
-            padding: 8px 6px;
+            padding: 10px;
             border: none;
             border-radius: 8px;
             background: transparent;
             color: #a0aec0;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
         }
         .tab.active {
             background: #4a5568;
@@ -534,87 +533,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             animation: spin 1s linear infinite;
             margin: 0 auto 12px;
         }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .stats-card {
-            background: #2d3748;
-            border-radius: 12px;
-            padding: 14px 12px;
-            border: 1px solid #4a5568;
-            text-align: center;
-        }
-        .stats-card-title {
-            font-size: 11px;
-            color: #a0aec0;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        .stats-card-value {
-            font-size: 16px;
-            font-weight: 800;
-            color: #f7fafc;
-            margin-bottom: 4px;
-        }
-        .stats-card-change {
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .stats-card-change.positive { background: #065f46; color: #34d399; }
-        .stats-card-change.negative { background: #991b1b; color: #f87171; }
-        .stats-card-change.neutral { background: #4a5568; color: #cbd5e1; }
-        
-        .analysis-list {
-            background: #2d3748;
-            border-radius: 12px;
-            padding: 14px;
-            border: 1px solid #4a5568;
-        }
-        .analysis-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #f7fafc;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .analysis-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #4a5568;
-        }
-        .analysis-item:last-child {
-            border-bottom: none;
-        }
-        .analysis-label {
-            font-size: 12px;
-            color: #a0aec0;
-            font-weight: 600;
-        }
-        .analysis-value {
-            font-size: 12px;
-            font-weight: 700;
-            color: #f7fafc;
-        }
-        .analysis-trend {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 6px;
-        }
-        .analysis-trend.bullish { background: #065f46; color: #34d399; }
-        .analysis-trend.bearish { background: #991b1b; color: #f87171; }
-        .analysis-trend.neutral { background: #4a5568; color: #cbd5e1; }
     </style>
 </head>
 <body>
@@ -655,7 +573,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         <div class="tabs">
             <button class="tab active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
             <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Haftalık</button>
-            <button class="tab" onclick="switchTab('stats')" id="statsTab">İstatistik</button>
         </div>
 
         <div class="history-section active" id="dailySection">
@@ -669,75 +586,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="loading">
                 <div class="loading-spinner"></div>
                 <div>Veriler yükleniyor...</div>
-            </div>
-        </div>
-
-        <div class="history-section" id="statsSection">
-            <div class="stats-grid">
-                <div class="stats-card">
-                    <div class="stats-card-title">30 Gün Değişim</div>
-                    <div class="stats-card-value" id="monthlyChange">+%8.5</div>
-                    <div class="stats-card-change positive">↗️ Yükseliş</div>
-                </div>
-                <div class="stats-card">
-                    <div class="stats-card-title">Volatilite</div>
-                    <div class="stats-card-value" id="volatility">%4.2</div>
-                    <div class="stats-card-change neutral">Orta</div>
-                </div>
-                <div class="stats-card">
-                    <div class="stats-card-title">Aylık En Yüksek</div>
-                    <div class="stats-card-value" id="monthlyHigh">5,247₺</div>
-                    <div class="stats-card-change positive">29.09</div>
-                </div>
-                <div class="stats-card">
-                    <div class="stats-card-title">Aylık En Düşük</div>
-                    <div class="stats-card-value" id="monthlyLow">4,692₺</div>
-                    <div class="stats-card-change negative">05.09</div>
-                </div>
-            </div>
-
-            <div class="analysis-list">
-                <div class="analysis-title">📊 Aylık Analiz Raporu</div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Toplam Kayıt Sayısı</div>
-                    <div class="analysis-value" id="totalRecords">1,247 <span class="analysis-trend neutral">veri</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Ortalama Fiyat</div>
-                    <div class="analysis-value" id="averagePrice">5,089₺ <span class="analysis-trend bullish">Stabil</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">En Kazançlı Gün</div>
-                    <div class="analysis-value" id="bestDay">+%2.8 <span class="analysis-trend bullish">15.09</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">En Kayıplı Gün</div>
-                    <div class="analysis-value" id="worstDay">-%2.1 <span class="analysis-trend bearish">08.09</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Ortalama Günlük Değişim</div>
-                    <div class="analysis-value" id="avgDailyChange">+%0.28 <span class="analysis-trend bullish">Pozitif</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Yükseliş Günü Sayısı</div>
-                    <div class="analysis-value" id="upDays">18 gün <span class="analysis-trend bullish">%60</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Düşüş Günü Sayısı</div>
-                    <div class="analysis-value" id="downDays">12 gün <span class="analysis-trend bearish">%40</span></div>
-                </div>
-                
-                <div class="analysis-item">
-                    <div class="analysis-label">Trend Durumu</div>
-                    <div class="analysis-value">Güçlü Yükseliş <span class="analysis-trend bullish">Boğa</span></div>
-                </div>
             </div>
         </div>
     </div>
@@ -819,11 +667,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function renderHistory() {
-            if (currentTab === 'stats') {
-                updateStatsSection();
-                return;
-            }
-            
             const data = tableData[currentTab] || [];
             const section = document.getElementById(currentTab + 'Section');
             
@@ -879,106 +722,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             });
             
             section.innerHTML = html;
-        }
-
-        function updateStatsSection() {
-            const dailyData = tableData.daily || [];
-            const weeklyData = tableData.weekly || [];
-            
-            if (dailyData.length === 0 && weeklyData.length === 0) return;
-            
-            // Son 30 günün verilerini al (tüm kayıtları birleştir)
-            const allData = [...dailyData, ...weeklyData];
-            const now = new Date();
-            const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-            
-            // Son 30 günün verilerini filtrele
-            const monthlyData = allData.filter(item => {
-                // Tarih formatını parse et
-                const itemDate = new Date();
-                if (item.time && item.time.includes('.')) {
-                    const dateParts = item.time.split(' ')[0].split('.');
-                    if (dateParts.length === 2) {
-                        itemDate.setDate(parseInt(dateParts[0]));
-                        itemDate.setMonth(parseInt(dateParts[1]) - 1);
-                    }
-                }
-                return itemDate >= thirtyDaysAgo;
-            });
-            
-            // Eğer filtrelenmiş veri yoksa tüm veriyi kullan
-            const dataToAnalyze = monthlyData.length > 0 ? monthlyData : allData.slice(0, 30);
-            
-            if (dataToAnalyze.length < 2) return;
-            
-            // İstatistikleri hesapla
-            const prices = dataToAnalyze.map(d => d.gold_price);
-            const silverPrices = dataToAnalyze.map(d => d.silver_price);
-            
-            const highest = Math.max(...prices);
-            const lowest = Math.min(...prices);
-            const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
-            
-            // İlk ve son fiyat karşılaştırması
-            const firstPrice = dataToAnalyze[dataToAnalyze.length - 1].gold_price;
-            const lastPrice = dataToAnalyze[0].gold_price;
-            const monthlyChangePercent = ((lastPrice - firstPrice) / firstPrice) * 100;
-            
-            // Volatilite hesapla
-            const variance = prices.reduce((sum, p) => sum + Math.pow(p - avgPrice, 2), 0) / prices.length;
-            const volatility = Math.sqrt(variance) / avgPrice * 100;
-            
-            // Günlük değişimleri analiz et
-            let dailyChanges = [];
-            let upDays = 0;
-            let downDays = 0;
-            let maxDailyChange = 0;
-            let minDailyChange = 0;
-            let maxChangeDate = '';
-            let minChangeDate = '';
-            
-            for (let i = 0; i < dataToAnalyze.length - 1; i++) {
-                const change = ((dataToAnalyze[i].gold_price - dataToAnalyze[i + 1].gold_price) / dataToAnalyze[i + 1].gold_price) * 100;
-                dailyChanges.push(change);
-                
-                if (change > 0) upDays++;
-                else if (change < 0) downDays++;
-                
-                if (change > maxDailyChange) {
-                    maxDailyChange = change;
-                    maxChangeDate = dataToAnalyze[i].time || 'N/A';
-                }
-                if (change < minDailyChange) {
-                    minDailyChange = change;
-                    minChangeDate = dataToAnalyze[i].time || 'N/A';
-                }
-            }
-            
-            const avgDailyChange = dailyChanges.length > 0 ? 
-                dailyChanges.reduce((sum, c) => sum + c, 0) / dailyChanges.length : 0;
-            
-            // Değerleri güncelle
-            document.getElementById('monthlyChange').textContent = 
-                (monthlyChangePercent >= 0 ? '+' : '') + monthlyChangePercent.toFixed(1) + '%';
-            document.getElementById('volatility').textContent = volatility.toFixed(1) + '%';
-            document.getElementById('monthlyHigh').textContent = formatPrice(highest).replace(' ₺', '₺');
-            document.getElementById('monthlyLow').textContent = formatPrice(lowest).replace(' ₺', '₺');
-            
-            // Analiz verilerini güncelle
-            document.getElementById('totalRecords').innerHTML = 
-                `${dataToAnalyze.length} <span class="analysis-trend neutral">veri</span>`;
-            document.getElementById('averagePrice').innerHTML = 
-                `${formatPrice(avgPrice).replace(' ₺', '₺')} <span class="analysis-trend bullish">Ortalama</span>`;
-            document.getElementById('bestDay').innerHTML = 
-                `+${maxDailyChange.toFixed(1)}% <span class="analysis-trend bullish">${maxChangeDate.split(' ')[0] || 'N/A'}</span>`;
-            document.getElementById('worstDay').innerHTML = 
-                `${minDailyChange.toFixed(1)}% <span class="analysis-trend bearish">${minChangeDate.split(' ')[0] || 'N/A'}</span>`;
-            document.getElementById('avgDailyChange').innerHTML = 
-                `${avgDailyChange >= 0 ? '+' : ''}${avgDailyChange.toFixed(2)}% <span class="analysis-trend ${avgDailyChange >= 0 ? 'bullish' : 'bearish'}">${avgDailyChange >= 0 ? 'Pozitif' : 'Negatif'}</span>`;
-            document.getElementById('upDays').innerHTML = 
-                `${upDays} gün <span class="analysis-trend bullish">${((upDays / (upDays + downDays)) * 100).toFixed(0)}%</span>`;
-            document.getElementById('downDays').innerHTML = 
-                `${downDays} gün <span class="analysis-trend bearish">${((downDays / (upDays + downDays)) * 100).toFixed(0)}%</span>`;
         }
 
         function switchTab(tab) {
