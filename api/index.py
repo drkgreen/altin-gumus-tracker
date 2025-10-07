@@ -187,26 +187,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1a202c">
     <title>Metal Tracker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f172a;
+            background: #1a202c;
             color: #e2e8f0;
             min-height: 100vh;
             padding-bottom: 20px;
         }
         
         .header {
-            background: #1e293b;
+            background: #2d3748;
             padding: 12px 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid #4a5568;
         }
         .header-content {
             display: flex;
@@ -218,7 +218,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .logo {
             font-size: 17px;
             font-weight: 700;
-            color: #f1f5f9;
+            color: #f7fafc;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -233,9 +233,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             width: 38px;
             height: 38px;
             border-radius: 10px;
-            background: #334155;
-            border: 1px solid #475569;
-            color: #e2e8f0;
+            background: #4a5568;
+            border: 1px solid #718096;
+            color: #f7fafc;
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -244,7 +244,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             justify-content: center;
         }
         .header-btn:active {
-            background: #475569;
+            background: #718096;
             transform: scale(0.95);
         }
         .header-btn.spinning { animation: spin 1s ease-in-out; }
@@ -252,7 +252,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .update-info {
             font-size: 11px;
-            color: #94a3b8;
+            color: #a0aec0;
             text-align: center;
             margin-top: 6px;
         }
@@ -323,11 +323,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
-            background: #1e293b;
+            background: #2d3748;
             padding: 5px;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            border: 1px solid #334155;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            border: 1px solid #4a5568;
         }
         .tab {
             flex: 1;
@@ -335,31 +335,32 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border: none;
             border-radius: 8px;
             background: transparent;
-            color: #94a3b8;
+            color: #a0aec0;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .tab.active {
-            background: #334155;
-            color: #f1f5f9;
+            background: #4a5568;
+            color: #f7fafc;
         }
         
         .history-section { display: none; }
         .history-section.active { display: block; }
         
         .history-item {
-            background: #1e293b;
+            background: #2d3748;
             border-radius: 10px;
             padding: 10px 12px;
             margin-bottom: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            border: 1px solid #334155;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            border: 1px solid #4a5568;
         }
         .history-item.peak {
-            background: linear-gradient(135deg, #422006 0%, #92400e 100%);
-            border: 1px solid #d97706;
+            background: linear-gradient(135deg, #744210 0%, #d69e2e 100%);
+            border: 1px solid #f6ad55;
+            color: #2d3748;
         }
         
         .history-header {
@@ -373,10 +374,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-weight: 600;
             color: #cbd5e1;
         }
+        .history-item.peak .history-time {
+            color: #2d3748;
+        }
         .history-portfolio {
             font-size: 15px;
             font-weight: 700;
-            color: #f59e0b;
+            color: #f6ad55;
+        }
+        .history-item.peak .history-portfolio {
+            color: #2d3748;
         }
         
         .history-footer {
@@ -390,22 +397,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .history-metal {
             font-size: 11px;
-            color: #94a3b8;
+            color: #a0aec0;
+        }
+        .history-item.peak .history-metal {
+            color: #2d3748;
         }
         .history-metal span {
             font-weight: 600;
             color: #e2e8f0;
+        }
+        .history-item.peak .history-metal span {
+            color: #1a202c;
         }
         .history-change {
             font-size: 11px;
             font-weight: 600;
             padding: 2px 6px;
             border-radius: 4px;
-            background: #374151;
+            background: #4a5568;
         }
-        .history-change.positive { background: #064e3b; color: #10b981; }
-        .history-change.negative { background: #7f1d1d; color: #ef4444; }
-        .history-change.neutral { background: #374151; color: #9ca3af; }
+        .history-change.positive { background: #065f46; color: #34d399; }
+        .history-change.negative { background: #991b1b; color: #f87171; }
+        .history-change.neutral { background: #4a5568; color: #cbd5e1; }
         
         .modal {
             position: fixed;
@@ -413,7 +426,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 200;
             display: none;
             align-items: flex-end;
@@ -421,14 +434,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .modal.active { display: flex; }
         .modal-content {
-            background: #1e293b;
+            background: #2d3748;
             border-radius: 24px 24px 0 0;
             padding: 24px 20px 40px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
-            border: 1px solid #334155;
+            border: 1px solid #4a5568;
             border-bottom: none;
         }
         @keyframes slideUp {
@@ -444,16 +457,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .modal-title {
             font-size: 19px;
             font-weight: 800;
-            color: #f1f5f9;
+            color: #f7fafc;
         }
         .modal-close {
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: #334155;
-            border: 1px solid #475569;
+            background: #4a5568;
+            border: 1px solid #718096;
             font-size: 20px;
-            color: #94a3b8;
+            color: #a0aec0;
             cursor: pointer;
         }
         .input-group { margin-bottom: 18px; }
@@ -467,19 +480,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .input-field {
             width: 100%;
             padding: 14px;
-            border: 2px solid #334155;
+            border: 2px solid #4a5568;
             border-radius: 12px;
             font-size: 16px;
-            background: #0f172a;
-            color: #f1f5f9;
+            background: #1a202c;
+            color: #f7fafc;
         }
         .input-field:focus {
             outline: none;
             border-color: #6366f1;
-            background: #1e293b;
+            background: #2d3748;
         }
         .input-field::placeholder {
-            color: #64748b;
+            color: #718096;
         }
         .modal-actions {
             display: flex;
@@ -501,20 +514,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             color: white;
         }
         .btn-secondary {
-            background: #334155;
-            color: #94a3b8;
-            border: 1px solid #475569;
+            background: #4a5568;
+            color: #a0aec0;
+            border: 1px solid #718096;
         }
         
         .loading {
             text-align: center;
             padding: 40px 20px;
-            color: #64748b;
+            color: #718096;
         }
         .loading-spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #334155;
+            border: 3px solid #4a5568;
             border-top-color: #6366f1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
