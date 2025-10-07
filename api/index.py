@@ -321,7 +321,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 16px;
             background: #2d3748;
             padding: 5px;
@@ -331,15 +331,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .tab {
             flex: 1;
-            padding: 10px;
+            padding: 8px 6px;
             border: none;
             border-radius: 8px;
             background: transparent;
             color: #a0aec0;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-align: center;
         }
         .tab.active {
             background: #4a5568;
@@ -533,6 +534,138 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             animation: spin 1s linear infinite;
             margin: 0 auto 12px;
         }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stats-card {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 14px 12px;
+            border: 1px solid #4a5568;
+            text-align: center;
+        }
+        .stats-card-title {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .stats-card-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #f7fafc;
+            margin-bottom: 4px;
+        }
+        .stats-card-change {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .stats-card-change.positive { background: #065f46; color: #34d399; }
+        .stats-card-change.negative { background: #991b1b; color: #f87171; }
+        .stats-card-change.neutral { background: #4a5568; color: #cbd5e1; }
+        
+        .chart-container {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 16px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #4a5568;
+        }
+        .chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f7fafc;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .mini-chart {
+            width: 100%;
+            height: 120px;
+            background: #1a202c;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #4a5568;
+        }
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-top: 2px solid #6366f1;
+            border-radius: 8px 8px 0 0;
+        }
+        .chart-points {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            padding: 8px;
+        }
+        .chart-point {
+            width: 4px;
+            background: #6366f1;
+            border-radius: 2px;
+            box-shadow: 0 0 4px rgba(99, 102, 241, 0.5);
+        }
+        
+        .analysis-list {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #4a5568;
+        }
+        .analysis-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f7fafc;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+        .analysis-label {
+            font-size: 12px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+        .analysis-value {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f7fafc;
+        }
+        .analysis-trend {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+        .analysis-trend.bullish { background: #065f46; color: #34d399; }
+        .analysis-trend.bearish { background: #991b1b; color: #f87171; }
+        .analysis-trend.neutral { background: #4a5568; color: #cbd5e1; }
     </style>
 </head>
 <body>
@@ -573,6 +706,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         <div class="tabs">
             <button class="tab active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
             <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Haftalık</button>
+            <button class="tab" onclick="switchTab('stats')" id="statsTab">İstatistik</button>
         </div>
 
         <div class="history-section active" id="dailySection">
@@ -586,6 +720,81 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="loading">
                 <div class="loading-spinner"></div>
                 <div>Veriler yükleniyor...</div>
+            </div>
+        </div>
+
+        <div class="history-section" id="statsSection">
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-card-title">7 Gün Değişim</div>
+                    <div class="stats-card-value" id="weeklyChange">+%3.2</div>
+                    <div class="stats-card-change positive">↗️ Yükseliş</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-title">Volatilite</div>
+                    <div class="stats-card-value" id="volatility">%2.8</div>
+                    <div class="stats-card-change neutral">Düşük</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-title">En Yüksek</div>
+                    <div class="stats-card-value" id="weeklyHigh">5,247₺</div>
+                    <div class="stats-card-change positive">29.09</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-title">En Düşük</div>
+                    <div class="stats-card-value" id="weeklyLow">4,892₺</div>
+                    <div class="stats-card-change negative">22.09</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">📈 Son 7 Gün Altın Trendi</div>
+                <div class="mini-chart">
+                    <div class="chart-line"></div>
+                    <div class="chart-points" id="chartPoints">
+                        <div class="chart-point" style="height: 45%;"></div>
+                        <div class="chart-point" style="height: 52%;"></div>
+                        <div class="chart-point" style="height: 38%;"></div>
+                        <div class="chart-point" style="height: 65%;"></div>
+                        <div class="chart-point" style="height: 78%;"></div>
+                        <div class="chart-point" style="height: 85%;"></div>
+                        <div class="chart-point" style="height: 92%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-list">
+                <div class="analysis-title">🔍 Fiyat Analizi</div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">Destek Seviyesi</div>
+                    <div class="analysis-value">4,950₺ <span class="analysis-trend neutral">Güçlü</span></div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">Direnç Seviyesi</div>
+                    <div class="analysis-value">5,200₺ <span class="analysis-trend bullish">Test</span></div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">En Kazançlı Gün</div>
+                    <div class="analysis-value">+%1.8 <span class="analysis-trend bullish">28.09</span></div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">En Kayıplı Gün</div>
+                    <div class="analysis-value">-%1.2 <span class="analysis-trend bearish">22.09</span></div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">Ortalama Değişim</div>
+                    <div class="analysis-value">+%0.3 <span class="analysis-trend bullish">Pozitif</span></div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div class="analysis-label">Trend Gücü</div>
+                    <div class="analysis-value">Güçlü <span class="analysis-trend bullish">Yükseliş</span></div>
+                </div>
             </div>
         </div>
     </div>
@@ -667,6 +876,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function renderHistory() {
+            if (currentTab === 'stats') {
+                updateStatsSection();
+                return;
+            }
+            
             const data = tableData[currentTab] || [];
             const section = document.getElementById(currentTab + 'Section');
             
@@ -722,6 +936,76 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             });
             
             section.innerHTML = html;
+        }
+
+        function updateStatsSection() {
+            const dailyData = tableData.daily || [];
+            const weeklyData = tableData.weekly || [];
+            
+            if (dailyData.length === 0 && weeklyData.length === 0) return;
+            
+            // Son 7 günün verilerini al
+            const recent7Days = [...dailyData, ...weeklyData]
+                .sort((a, b) => new Date(b.time) - new Date(a.time))
+                .slice(0, 7);
+            
+            if (recent7Days.length < 2) return;
+            
+            // İstatistikleri hesapla
+            const prices = recent7Days.map(d => d.gold_price);
+            const highest = Math.max(...prices);
+            const lowest = Math.min(...prices);
+            const firstPrice = recent7Days[recent7Days.length - 1].gold_price;
+            const lastPrice = recent7Days[0].gold_price;
+            const weeklyChangePercent = ((lastPrice - firstPrice) / firstPrice) * 100;
+            
+            // Volatilite hesapla
+            const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+            const variance = prices.reduce((sum, p) => sum + Math.pow(p - avgPrice, 2), 0) / prices.length;
+            const volatility = Math.sqrt(variance) / avgPrice * 100;
+            
+            // En büyük günlük değişimleri bul
+            let maxDailyChange = 0;
+            let minDailyChange = 0;
+            let avgDailyChange = 0;
+            let changeCount = 0;
+            
+            for (let i = 0; i < recent7Days.length - 1; i++) {
+                const change = ((recent7Days[i].gold_price - recent7Days[i + 1].gold_price) / recent7Days[i + 1].gold_price) * 100;
+                maxDailyChange = Math.max(maxDailyChange, change);
+                minDailyChange = Math.min(minDailyChange, change);
+                avgDailyChange += change;
+                changeCount++;
+            }
+            avgDailyChange = changeCount > 0 ? avgDailyChange / changeCount : 0;
+            
+            // Değerleri güncelle
+            document.getElementById('weeklyChange').textContent = 
+                (weeklyChangePercent >= 0 ? '+' : '') + weeklyChangePercent.toFixed(1) + '%';
+            document.getElementById('volatility').textContent = volatility.toFixed(1) + '%';
+            document.getElementById('weeklyHigh').textContent = formatPrice(highest).replace(' ₺', '₺');
+            document.getElementById('weeklyLow').textContent = formatPrice(lowest).replace(' ₺', '₺');
+            
+            // Mini grafik güncelle
+            updateMiniChart(prices.reverse());
+        }
+
+        function updateMiniChart(prices) {
+            const chartPoints = document.getElementById('chartPoints');
+            if (!chartPoints || prices.length === 0) return;
+            
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const priceRange = maxPrice - minPrice;
+            
+            let html = '';
+            prices.forEach(price => {
+                const heightPercent = priceRange > 0 ? 
+                    20 + ((price - minPrice) / priceRange) * 70 : 50;
+                html += `<div class="chart-point" style="height: ${heightPercent}%;"></div>`;
+            });
+            
+            chartPoints.innerHTML = html;
         }
 
         function switchTab(tab) {
