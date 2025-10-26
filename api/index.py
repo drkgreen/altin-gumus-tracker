@@ -29,19 +29,9 @@ def load_portfolio_settings():
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             return response.json()
-        return {
-            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-            "portfolio": {"gold_amount": 0, "silver_amount": 0},
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-            "version": "1.0"
-        }
+        return None
     except Exception:
-        return {
-            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-            "portfolio": {"gold_amount": 0, "silver_amount": 0},
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-            "version": "1.0"
-        }
+        return None
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -702,7 +692,7 @@ def index():
             </div>
             
             <div class="login-footer">
-                Varsayılan şifre: hello
+                Şifre: bitanem08
             </div>
         </div>
     </div>
@@ -1183,6 +1173,9 @@ def api_table_data():
 def api_portfolio_data():
     try:
         settings = load_portfolio_settings()
+        if not settings:
+            return jsonify({'success': False, 'error': 'Portfolio settings not found'})
+        
         return jsonify({
             'success': True, 
             'data': settings.get('portfolio', {'gold_amount': 0, 'silver_amount': 0})
@@ -1197,6 +1190,9 @@ def api_verify_password():
         password = data.get('password', '')
         
         settings = load_portfolio_settings()
+        if not settings:
+            return jsonify({'success': False, 'error': 'Portfolio settings not found'})
+        
         stored_hash = settings.get('password_hash', '')
         
         if verify_password(password, stored_hash):
@@ -1215,6 +1211,8 @@ def api_save_portfolio():
         new_password = data.get('new_password', '')
         
         settings = load_portfolio_settings()
+        if not settings:
+            return jsonify({'success': False, 'error': 'Portfolio settings not found'})
         
         settings['portfolio']['gold_amount'] = gold_amount
         settings['portfolio']['silver_amount'] = silver_amount
