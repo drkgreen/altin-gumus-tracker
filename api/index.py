@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0 - Dark Modern Theme
+Metal Price Tracker Web App v2.0 - Final Mobile Design
 """
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, Response
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
-import json
-import os
 from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
@@ -90,7 +88,8 @@ def get_weekly_optimized_data():
         weekly_temp = []
         now = datetime.now(timezone.utc)
         
-        for i in range(6, -1, -1):
+        # Son 30 güne çıkarıldı (29'dan 0'a doğru)
+        for i in range(29, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             
             day_record = next(
@@ -182,31 +181,32 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
-HTML_TEMPLATE = '''<!DOCTYPE html>
+@app.route('/')
+def index():
+    html = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#1a202c">
+    <meta name="theme-color" content="#f8fafc">
     <title>Metal Tracker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a202c;
-            color: #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
             min-height: 100vh;
             padding-bottom: 20px;
         }
         
         .header {
-            background: #2d3748;
+            background: #ffffff;
             padding: 12px 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid #4a5568;
         }
         .header-content {
             display: flex;
@@ -218,7 +218,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .logo {
             font-size: 17px;
             font-weight: 700;
-            color: #f7fafc;
+            color: #0f172a;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -233,9 +233,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             width: 38px;
             height: 38px;
             border-radius: 10px;
-            background: #4a5568;
-            border: 1px solid #718096;
-            color: #f7fafc;
+            background: #f1f5f9;
+            border: none;
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -244,7 +243,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             justify-content: center;
         }
         .header-btn:active {
-            background: #718096;
+            background: #e2e8f0;
             transform: scale(0.95);
         }
         .header-btn.spinning { animation: spin 1s ease-in-out; }
@@ -252,7 +251,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .update-info {
             font-size: 11px;
-            color: #a0aec0;
+            color: #64748b;
             text-align: center;
             margin-top: 6px;
         }
@@ -269,19 +268,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             padding: 20px 16px;
             margin-bottom: 20px;
             color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
             display: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .portfolio-card.active { display: block; }
         
         .portfolio-total {
             text-align: center;
             padding: 16px 12px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             margin-bottom: 12px;
-            backdrop-filter: blur(10px);
         }
         .portfolio-total-value {
             font-size: 34px;
@@ -299,7 +296,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border-radius: 12px;
             padding: 12px 10px;
             text-align: center;
-            backdrop-filter: blur(10px);
         }
         .portfolio-item-label {
             font-size: 11px;
@@ -323,11 +319,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
-            background: #2d3748;
+            background: #ffffff;
             padding: 5px;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            border: 1px solid #4a5568;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         .tab {
             flex: 1;
@@ -335,32 +330,29 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border: none;
             border-radius: 8px;
             background: transparent;
-            color: #a0aec0;
+            color: #64748b;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .tab.active {
-            background: #4a5568;
-            color: #f7fafc;
+            background: #f1f5f9;
+            color: #0f172a;
         }
         
         .history-section { display: none; }
         .history-section.active { display: block; }
         
         .history-item {
-            background: #2d3748;
+            background: white;
             border-radius: 10px;
             padding: 10px 12px;
             margin-bottom: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-            border: 1px solid #4a5568;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .history-item.peak {
-            background: linear-gradient(135deg, #744210 0%, #d69e2e 100%);
-            border: 1px solid #f6ad55;
-            color: #2d3748;
+            background: linear-gradient(135deg, #fff8dc 0%, #ffe4b5 100%);
         }
         
         .history-header {
@@ -372,18 +364,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .history-time {
             font-size: 12px;
             font-weight: 600;
-            color: #cbd5e1;
-        }
-        .history-item.peak .history-time {
-            color: #2d3748;
+            color: #555;
         }
         .history-portfolio {
             font-size: 15px;
             font-weight: 700;
-            color: #f6ad55;
-        }
-        .history-item.peak .history-portfolio {
-            color: #2d3748;
+            color: #e67e22;
         }
         
         .history-footer {
@@ -397,28 +383,22 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .history-metal {
             font-size: 11px;
-            color: #a0aec0;
-        }
-        .history-item.peak .history-metal {
-            color: #2d3748;
+            color: #777;
         }
         .history-metal span {
             font-weight: 600;
-            color: #e2e8f0;
-        }
-        .history-item.peak .history-metal span {
-            color: #1a202c;
+            color: #333;
         }
         .history-change {
             font-size: 11px;
             font-weight: 600;
             padding: 2px 6px;
             border-radius: 4px;
-            background: #4a5568;
+            background: #f0f0f0;
         }
-        .history-change.positive { background: #065f46; color: #34d399; }
-        .history-change.negative { background: #991b1b; color: #f87171; }
-        .history-change.neutral { background: #4a5568; color: #cbd5e1; }
+        .history-change.positive { background: #d4edda; color: #155724; }
+        .history-change.negative { background: #f8d7da; color: #721c24; }
+        .history-change.neutral { background: #f0f0f0; color: #666; }
         
         .modal {
             position: fixed;
@@ -426,23 +406,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 200;
             display: none;
             align-items: flex-end;
-            backdrop-filter: blur(8px);
         }
         .modal.active { display: flex; }
         .modal-content {
-            background: #2d3748;
+            background: #ffffff;
             border-radius: 24px 24px 0 0;
             padding: 24px 20px 40px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
-            border: 1px solid #4a5568;
-            border-bottom: none;
         }
         @keyframes slideUp {
             from { transform: translateY(100%); }
@@ -457,16 +434,16 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .modal-title {
             font-size: 19px;
             font-weight: 800;
-            color: #f7fafc;
+            color: #0f172a;
         }
         .modal-close {
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: #4a5568;
-            border: 1px solid #718096;
+            background: #f1f5f9;
+            border: none;
             font-size: 20px;
-            color: #a0aec0;
+            color: #64748b;
             cursor: pointer;
         }
         .input-group { margin-bottom: 18px; }
@@ -475,24 +452,21 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             margin-bottom: 8px;
             font-weight: 600;
             font-size: 14px;
-            color: #e2e8f0;
+            color: #334155;
         }
         .input-field {
             width: 100%;
             padding: 14px;
-            border: 2px solid #4a5568;
+            border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 16px;
-            background: #1a202c;
-            color: #f7fafc;
+            background: #f8fafc;
+            color: #0f172a;
         }
         .input-field:focus {
             outline: none;
             border-color: #6366f1;
-            background: #2d3748;
-        }
-        .input-field::placeholder {
-            color: #718096;
+            background: #ffffff;
         }
         .modal-actions {
             display: flex;
@@ -514,20 +488,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             color: white;
         }
         .btn-secondary {
-            background: #4a5568;
-            color: #a0aec0;
-            border: 1px solid #718096;
+            background: #f1f5f9;
+            color: #64748b;
         }
         
         .loading {
             text-align: center;
             padding: 40px 20px;
-            color: #718096;
+            color: #94a3b8;
         }
         .loading-spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #4a5568;
+            border: 3px solid #e2e8f0;
             border-top-color: #6366f1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -572,7 +545,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
-            <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Haftalık</button>
+            <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Aylık</button>
         </div>
 
         <div class="history-section active" id="dailySection">
@@ -654,9 +627,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     renderHistory();
                 }
                 
-                document.getElementById('updateInfo').textContent = 
-                    `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}`;
-                
+                document.getElementById('updateInfo').textContent = 'Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR');
                 updatePortfolio();
                 
             } catch (error) {
@@ -666,49 +637,48 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
+            
+            document.getElementById(tab + 'Tab').classList.add('active');
+            document.getElementById(tab + 'Section').classList.add('active');
+            
+            renderHistory();
+        }
+
         function renderHistory() {
-            const data = tableData[currentTab] || [];
             const section = document.getElementById(currentTab + 'Section');
+            const data = tableData[currentTab] || [];
             
             if (data.length === 0) {
-                section.innerHTML = '<div class="loading"><div>Veri bulunamadı</div></div>';
+                section.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Veri bulunamadı</div></div>';
                 return;
             }
 
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
             
-            let maxPortfolioValue = 0;
-            let peakIndices = [];
+            let html = '';
+            let maxPortfolio = 0;
             
             if (goldAmount > 0 || silverAmount > 0) {
-                data.forEach((item, index) => {
-                    const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                    
-                    if (portfolioValue > maxPortfolioValue) {
-                        maxPortfolioValue = portfolioValue;
-                        peakIndices = [index];
-                    } else if (portfolioValue === maxPortfolioValue && portfolioValue > 0) {
-                        peakIndices.push(index);
-                    }
-                });
+                maxPortfolio = Math.max(...data.map(d => (goldAmount * d.gold_price) + (silverAmount * d.silver_price)));
             }
-
-            let html = '';
-            data.forEach((item, index) => {
-                const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                const isPeak = peakIndices.includes(index) && maxPortfolioValue > 0;
+            
+            data.forEach(item => {
+                const portfolio = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                const isPeak = portfolio > 0 && portfolio === maxPortfolio;
                 
-                const changeClass = item.change_percent > 0 ? 'positive' : 
-                                  item.change_percent < 0 ? 'negative' : 'neutral';
-                const changeText = item.change_percent === 0 ? '0.00%' : 
-                                 (item.change_percent > 0 ? '+' : '') + item.change_percent.toFixed(2) + '%';
-
+                const changeClass = item.change_percent > 0 ? 'positive' : item.change_percent < 0 ? 'negative' : 'neutral';
+                const changeText = item.change_percent === 0 ? '0.00%' : (item.change_percent > 0 ? '+' : '') + item.change_percent.toFixed(2) + '%';
+                
                 html += `
                     <div class="history-item ${isPeak ? 'peak' : ''}">
                         <div class="history-header">
                             <div class="history-time">${item.time}</div>
-                            <div class="history-portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</div>
+                            <div class="history-portfolio">${portfolio > 0 ? formatCurrency(portfolio) : '-'}</div>
                         </div>
                         <div class="history-footer">
                             <div class="history-metals">
@@ -724,18 +694,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             section.innerHTML = html;
         }
 
-        function switchTab(tab) {
-            currentTab = tab;
-            
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tab + 'Tab').classList.add('active');
-            
-            document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(tab + 'Section').classList.add('active');
-            
-            renderHistory();
-        }
-
         function updatePortfolio() {
             const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
             const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
@@ -744,22 +702,53 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const silverValue = silverAmount * silverPrice;
             const totalValue = goldValue + silverValue;
             
-            const portfolioCard = document.getElementById('portfolioCard');
+            const card = document.getElementById('portfolioCard');
             
             if (totalValue > 0) {
-                portfolioCard.classList.add('active');
-                
+                card.classList.add('active');
                 document.getElementById('portfolioTotal').textContent = formatCurrency(totalValue);
                 document.getElementById('goldPortfolio').textContent = formatCurrency(goldValue);
                 document.getElementById('silverPortfolio').textContent = formatCurrency(silverValue);
-                
-                renderHistory();
             } else {
-                portfolioCard.classList.remove('active');
-                renderHistory();
+                card.classList.remove('active');
             }
             
+            renderHistory();
             savePortfolio();
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + ' ₺';
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + ' ₺';
+        }
+
+        function openPortfolio() {
+            document.getElementById('portfolioModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('portfolioModal').classList.remove('active');
+        }
+
+        function saveAndClose() {
+            closeModal();
+        }
+
+        function clearPortfolio() {
+            if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
+                document.getElementById('goldAmount').value = '';
+                document.getElementById('silverAmount').value = '';
+                updatePortfolio();
+            }
         }
 
         function savePortfolio() {
@@ -788,62 +777,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        function openPortfolio() {
-            document.getElementById('portfolioModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('portfolioModal').classList.remove('active');
-        }
-
-        function saveAndClose() {
-            savePortfolio();
-            closeModal();
-        }
-
-        function clearPortfolio() {
-            if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
-                document.getElementById('goldAmount').value = '';
-                document.getElementById('silverAmount').value = '';
-                
-                document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                
-                updatePortfolio();
-            }
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + ' ₺';
-        }
-
-        function formatPrice(price) {
-            if (!price) return '0,00 ₺';
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(price) + ' ₺';
-        }
-
-        document.getElementById('portfolioModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
         window.onload = function() {
             loadPortfolio();
             fetchData();
             updatePortfolio();
         };
+
+        document.getElementById('portfolioModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
     </script>
 </body>
 </html>'''
-
-@app.route('/')
-def index():
-    return render_template_string(HTML_TEMPLATE)
+    return html
 
 @app.route('/api/gold-price')
 def api_gold_price():
@@ -870,5 +816,6 @@ def api_table_data():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
+    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
