@@ -92,7 +92,6 @@ def get_daily_data():
         return []
 
 def get_weekly_optimized_data():
-    """Son 30 günün optimize edilmiş verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -100,49 +99,15 @@ def get_weekly_optimized_data():
         if not records:
             return []
         
-        # Tüm optimize edilmiş kayıtları al
         optimized_records = [
             r for r in records 
             if r.get("optimized") == True and r.get("daily_peak") == True
         ]
         
-        # Eğer optimize edilmiş kayıt yoksa, normal kayıtlardan günlük en yüksekleri al
-        if not optimized_records:
-            # Son 30 günün tüm kayıtlarını tarih gruplarına ayır
-            from collections import defaultdict
-            daily_groups = defaultdict(list)
-            
-            now = datetime.now(timezone.utc)
-            for i in range(29, -1, -1):
-                target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-                day_records = [r for r in records 
-                              if r.get("date") == target_date 
-                              and r.get("gold_price") 
-                              and r.get("silver_price")]
-                if day_records:
-                    daily_groups[target_date] = day_records
-            
-            # Her günün en yüksek portföy değerine sahip kaydını al
-            optimized_records = []
-            for date, day_records in daily_groups.items():
-                max_record = None
-                max_portfolio = 0
-                
-                for record in day_records:
-                    # Varsayılan portföy hesaplaması (1gr altın + 1gr gümüş)
-                    portfolio_value = record["gold_price"] + record["silver_price"]
-                    if portfolio_value > max_portfolio:
-                        max_portfolio = portfolio_value
-                        max_record = record.copy()
-                
-                if max_record:
-                    optimized_records.append(max_record)
-        
         weekly_data = []
         weekly_temp = []
         now = datetime.now(timezone.utc)
         
-        # Son 30 güne çıkarıldı (29'dan 0'a doğru)
         for i in range(29, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             
@@ -179,8 +144,7 @@ def get_weekly_optimized_data():
         
         return weekly_data
         
-    except Exception as e:
-        print(f"Weekly data error: {e}")
+    except Exception:
         return []
 
 def get_table_data():
@@ -197,23 +161,13 @@ def get_table_data():
         return {"daily": [], "weekly": []}
 
 def get_gold_price():
-    """Yapı Kredi altın fiyatını çeker - Geliştirilmiş hata kontrolü"""
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'tr-TR,tr;q=0.8,en-US;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=20)
+        headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
+        response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Birincil yöntem
         price_element = soup.find('span', {
             'data-socket-key': '6-gram-altin',
             'data-socket-attr': 'bid'
@@ -221,51 +175,19 @@ def get_gold_price():
         
         if price_element:
             return price_element.get_text(strip=True)
-        
-        # Alternatif yöntemler
-        # Gram altın içeren span'ları ara
-        all_spans = soup.find_all('span')
-        for span in all_spans:
-            text = span.get_text(strip=True)
-            if ',' in text and len(text) > 4 and len(text) < 10:
-                # Sayı formatına uygun mu kontrol et
-                try:
-                    # Türk para formatını kontrol et (örn: 5.123,45)
-                    test_num = text.replace('.', '').replace(',', '.')
-                    float_val = float(test_num)
-                    if 1000 < float_val < 10000:  # Makul altın fiyat aralığı
-                        return text
-                except:
-                    continue
-        
-        print(f"Gold price element not found. Page content length: {len(response.text)}")
         return None
         
-    except requests.RequestException as e:
-        print(f"Request error for gold price: {e}")
-        return None
     except Exception as e:
-        print(f"General error for gold price: {e}")
-        return None
+        raise Exception(f"Gold price error: {str(e)}")
 
 def get_silver_price():
-    """VakıfBank gümüş fiyatını çeker - Geliştirilmiş hata kontrolü"""
     try:
         url = "https://m.doviz.com/altin/vakifbank/gumus"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'tr-TR,tr;q=0.8,en-US;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=20)
+        headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
+        response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Birincil yöntem
         price_element = soup.find('span', {
             'data-socket-key': '5-gumus',
             'data-socket-attr': 'bid'
@@ -273,32 +195,10 @@ def get_silver_price():
         
         if price_element:
             return price_element.get_text(strip=True)
-        
-        # Alternatif yöntemler
-        # Gümüş içeren span'ları ara
-        all_spans = soup.find_all('span')
-        for span in all_spans:
-            text = span.get_text(strip=True)
-            if ',' in text and len(text) > 3 and len(text) < 8:
-                # Sayı formatına uygun mu kontrol et
-                try:
-                    # Türk para formatını kontrol et (örn: 62,45)
-                    test_num = text.replace('.', '').replace(',', '.')
-                    float_val = float(test_num)
-                    if 10 < float_val < 200:  # Makul gümüş fiyat aralığı
-                        return text
-                except:
-                    continue
-        
-        print(f"Silver price element not found. Page content length: {len(response.text)}")
         return None
         
-    except requests.RequestException as e:
-        print(f"Request error for silver price: {e}")
-        return None
     except Exception as e:
-        print(f"General error for silver price: {e}")
-        return None
+        raise Exception(f"Silver price error: {str(e)}")
 
 @app.route('/')
 def index():
@@ -614,19 +514,6 @@ def index():
             <div class="loading">
                 <div class="loading-spinner"></div>
                 <div>Veriler yükleniyor...</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- En Alta Debug Paneli -->
-    <div class="debug-container">
-        <div class="debug-panel" id="debugPanel">
-            <div class="debug-header" onclick="toggleDebug()">
-                <span class="debug-title">🔧 API Debug Bilgileri</span>
-                <span class="debug-toggle" id="debugToggle">▼</span>
-            </div>
-            <div class="debug-content-wrapper" id="debugContentWrapper">
-                <div class="debug-content" id="apiDebugContent">Henüz veri yüklenmedi...</div>
             </div>
         </div>
     </div>
@@ -1095,121 +982,30 @@ def logout():
 
 @app.route('/api/gold-price')
 def api_gold_price():
-    if 'authenticated' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
     try:
         price = get_gold_price()
-        
-        # Debug bilgisi ekle
-        debug_info = {
-            'raw_price': price,
-            'price_found': price is not None,
-            'price_type': type(price).__name__ if price else None,
-            'scraping_url': 'https://m.doviz.com/altin/yapikredi/gram-altin'
-        }
-        
-        if price:
-            # Fiyatı temizle ve kontrol et
-            clean_price = price.replace('.', '').replace(',', '.')
-            try:
-                float_price = float(clean_price)
-                debug_info['cleaned_price'] = clean_price
-                debug_info['parsed_float'] = float_price
-            except ValueError as e:
-                debug_info['parse_error'] = str(e)
-        
-        return jsonify({
-            'success': bool(price), 
-            'price': price or '',
-            'debug': debug_info
-        })
+        return jsonify({'success': bool(price), 'price': price or ''})
     except Exception as e:
-        return jsonify({
-            'success': False, 
-            'error': str(e),
-            'debug': {
-                'exception': str(e), 
-                'exception_type': type(e).__name__,
-                'scraping_url': 'https://m.doviz.com/altin/yapikredi/gram-altin'
-            }
-        })
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/silver-price')
 def api_silver_price():
-    if 'authenticated' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
     try:
         price = get_silver_price()
-        
-        # Debug bilgisi ekle
-        debug_info = {
-            'raw_price': price,
-            'price_found': price is not None,
-            'price_type': type(price).__name__ if price else None,
-            'scraping_url': 'https://m.doviz.com/altin/vakifbank/gumus'
-        }
-        
-        if price:
-            # Fiyatı temizle ve kontrol et
-            clean_price = price.replace('.', '').replace(',', '.')
-            try:
-                float_price = float(clean_price)
-                debug_info['cleaned_price'] = clean_price
-                debug_info['parsed_float'] = float_price
-            except ValueError as e:
-                debug_info['parse_error'] = str(e)
-        
-        return jsonify({
-            'success': bool(price), 
-            'price': price or '',
-            'debug': debug_info
-        })
+        return jsonify({'success': bool(price), 'price': price or ''})
     except Exception as e:
-        return jsonify({
-            'success': False, 
-            'error': str(e),
-            'debug': {
-                'exception': str(e), 
-                'exception_type': type(e).__name__,
-                'scraping_url': 'https://m.doviz.com/altin/vakifbank/gumus'
-            }
-        })
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/table-data')
 def api_table_data():
-    if 'authenticated' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
     try:
         data = get_table_data()
-        
-        # Debug bilgisi ekle
-        debug_info = {
-            'daily_count': len(data.get('daily', [])),
-            'weekly_count': len(data.get('weekly', [])),
-            'daily_sample': data.get('daily', [])[:2] if data.get('daily') else [],
-            'weekly_sample': data.get('weekly', [])[:2] if data.get('weekly') else []
-        }
-        
-        return jsonify({
-            'success': bool(data), 
-            'data': data or {},
-            'debug': debug_info
-        })
+        return jsonify({'success': bool(data), 'data': data or {}})
     except Exception as e:
-        return jsonify({
-            'success': False, 
-            'error': str(e),
-            'debug': {'exception': str(e), 'exception_type': type(e).__name__}
-        })
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/portfolio-config')
 def api_portfolio_config():
-    if 'authenticated' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
     try:
         config = load_portfolio_config()
         # Şifreyi döndürme
