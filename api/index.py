@@ -197,13 +197,23 @@ def get_table_data():
         return {"daily": [], "weekly": []}
 
 def get_gold_price():
+    """Yapı Kredi altın fiyatını çeker - Geliştirilmiş hata kontrolü"""
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
-        headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
-        response = requests.get(url, headers=headers, timeout=15)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'tr-TR,tr;q=0.8,en-US;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=20)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        # Birincil yöntem
         price_element = soup.find('span', {
             'data-socket-key': '6-gram-altin',
             'data-socket-attr': 'bid'
@@ -211,19 +221,51 @@ def get_gold_price():
         
         if price_element:
             return price_element.get_text(strip=True)
+        
+        # Alternatif yöntemler
+        # Gram altın içeren span'ları ara
+        all_spans = soup.find_all('span')
+        for span in all_spans:
+            text = span.get_text(strip=True)
+            if ',' in text and len(text) > 4 and len(text) < 10:
+                # Sayı formatına uygun mu kontrol et
+                try:
+                    # Türk para formatını kontrol et (örn: 5.123,45)
+                    test_num = text.replace('.', '').replace(',', '.')
+                    float_val = float(test_num)
+                    if 1000 < float_val < 10000:  # Makul altın fiyat aralığı
+                        return text
+                except:
+                    continue
+        
+        print(f"Gold price element not found. Page content length: {len(response.text)}")
         return None
         
+    except requests.RequestException as e:
+        print(f"Request error for gold price: {e}")
+        return None
     except Exception as e:
-        raise Exception(f"Gold price error: {str(e)}")
+        print(f"General error for gold price: {e}")
+        return None
 
 def get_silver_price():
+    """VakıfBank gümüş fiyatını çeker - Geliştirilmiş hata kontrolü"""
     try:
         url = "https://m.doviz.com/altin/vakifbank/gumus"
-        headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
-        response = requests.get(url, headers=headers, timeout=15)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'tr-TR,tr;q=0.8,en-US;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=20)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        # Birincil yöntem
         price_element = soup.find('span', {
             'data-socket-key': '5-gumus',
             'data-socket-attr': 'bid'
@@ -231,10 +273,32 @@ def get_silver_price():
         
         if price_element:
             return price_element.get_text(strip=True)
+        
+        # Alternatif yöntemler
+        # Gümüş içeren span'ları ara
+        all_spans = soup.find_all('span')
+        for span in all_spans:
+            text = span.get_text(strip=True)
+            if ',' in text and len(text) > 3 and len(text) < 8:
+                # Sayı formatına uygun mu kontrol et
+                try:
+                    # Türk para formatını kontrol et (örn: 62,45)
+                    test_num = text.replace('.', '').replace(',', '.')
+                    float_val = float(test_num)
+                    if 10 < float_val < 200:  # Makul gümüş fiyat aralığı
+                        return text
+                except:
+                    continue
+        
+        print(f"Silver price element not found. Page content length: {len(response.text)}")
         return None
         
+    except requests.RequestException as e:
+        print(f"Request error for silver price: {e}")
+        return None
     except Exception as e:
-        raise Exception(f"Silver price error: {str(e)}")
+        print(f"General error for silver price: {e}")
+        return None
 
 @app.route('/')
 def index():
@@ -552,10 +616,18 @@ def index():
                 <div>Veriler yükleniyor...</div>
             </div>
         </div>
-        
+    </div>
+    
+    <!-- En Alta Debug Paneli -->
+    <div class="debug-container">
         <div class="debug-panel" id="debugPanel">
-            <div class="debug-title">API Debug Bilgileri:</div>
-            <div class="debug-content" id="apiDebugContent">Henüz veri yüklenmedi...</div>
+            <div class="debug-header" onclick="toggleDebug()">
+                <span class="debug-title">🔧 API Debug Bilgileri</span>
+                <span class="debug-toggle" id="debugToggle">▼</span>
+            </div>
+            <div class="debug-content-wrapper" id="debugContentWrapper">
+                <div class="debug-content" id="apiDebugContent">Henüz veri yüklenmedi...</div>
+            </div>
         </div>
     </div>
 
@@ -1028,23 +1100,25 @@ def api_gold_price():
     
     try:
         price = get_gold_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/silver-price')
-def api_silver_price():
-    if 'authenticated' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'})
-    
-    try:
-        price = get_silver_price()
+        
         # Debug bilgisi ekle
         debug_info = {
             'raw_price': price,
             'price_found': price is not None,
-            'price_type': type(price).__name__ if price else None
+            'price_type': type(price).__name__ if price else None,
+            'scraping_url': 'https://m.doviz.com/altin/yapikredi/gram-altin'
         }
+        
+        if price:
+            # Fiyatı temizle ve kontrol et
+            clean_price = price.replace('.', '').replace(',', '.')
+            try:
+                float_price = float(clean_price)
+                debug_info['cleaned_price'] = clean_price
+                debug_info['parsed_float'] = float_price
+            except ValueError as e:
+                debug_info['parse_error'] = str(e)
+        
         return jsonify({
             'success': bool(price), 
             'price': price or '',
@@ -1054,7 +1128,53 @@ def api_silver_price():
         return jsonify({
             'success': False, 
             'error': str(e),
-            'debug': {'exception': str(e), 'exception_type': type(e).__name__}
+            'debug': {
+                'exception': str(e), 
+                'exception_type': type(e).__name__,
+                'scraping_url': 'https://m.doviz.com/altin/yapikredi/gram-altin'
+            }
+        })
+
+@app.route('/api/silver-price')
+def api_silver_price():
+    if 'authenticated' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'})
+    
+    try:
+        price = get_silver_price()
+        
+        # Debug bilgisi ekle
+        debug_info = {
+            'raw_price': price,
+            'price_found': price is not None,
+            'price_type': type(price).__name__ if price else None,
+            'scraping_url': 'https://m.doviz.com/altin/vakifbank/gumus'
+        }
+        
+        if price:
+            # Fiyatı temizle ve kontrol et
+            clean_price = price.replace('.', '').replace(',', '.')
+            try:
+                float_price = float(clean_price)
+                debug_info['cleaned_price'] = clean_price
+                debug_info['parsed_float'] = float_price
+            except ValueError as e:
+                debug_info['parse_error'] = str(e)
+        
+        return jsonify({
+            'success': bool(price), 
+            'price': price or '',
+            'debug': debug_info
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False, 
+            'error': str(e),
+            'debug': {
+                'exception': str(e), 
+                'exception_type': type(e).__name__,
+                'scraping_url': 'https://m.doviz.com/altin/vakifbank/gumus'
+            }
         })
 
 @app.route('/api/table-data')
