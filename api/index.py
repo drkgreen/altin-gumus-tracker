@@ -516,6 +516,11 @@ def index():
                 <div>Veriler yükleniyor...</div>
             </div>
         </div>
+        
+        <div class="debug-panel" id="debugPanel">
+            <div class="debug-title">API Debug Bilgileri:</div>
+            <div class="debug-content" id="apiDebugContent">Henüz veri yüklenmedi...</div>
+        </div>
     </div>
 
     <script>
@@ -998,9 +1003,23 @@ def api_silver_price():
     
     try:
         price = get_silver_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
+        # Debug bilgisi ekle
+        debug_info = {
+            'raw_price': price,
+            'price_found': price is not None,
+            'price_type': type(price).__name__ if price else None
+        }
+        return jsonify({
+            'success': bool(price), 
+            'price': price or '',
+            'debug': debug_info
+        })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({
+            'success': False, 
+            'error': str(e),
+            'debug': {'exception': str(e), 'exception_type': type(e).__name__}
+        })
 
 @app.route('/api/table-data')
 def api_table_data():
@@ -1009,9 +1028,26 @@ def api_table_data():
     
     try:
         data = get_table_data()
-        return jsonify({'success': bool(data), 'data': data or {}})
+        
+        # Debug bilgisi ekle
+        debug_info = {
+            'daily_count': len(data.get('daily', [])),
+            'weekly_count': len(data.get('weekly', [])),
+            'daily_sample': data.get('daily', [])[:2] if data.get('daily') else [],
+            'weekly_sample': data.get('weekly', [])[:2] if data.get('weekly') else []
+        }
+        
+        return jsonify({
+            'success': bool(data), 
+            'data': data or {},
+            'debug': debug_info
+        })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({
+            'success': False, 
+            'error': str(e),
+            'debug': {'exception': str(e), 'exception_type': type(e).__name__}
+        })
 
 @app.route('/api/portfolio-config')
 def api_portfolio_config():
