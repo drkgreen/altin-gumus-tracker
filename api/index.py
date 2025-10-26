@@ -92,6 +92,7 @@ def get_daily_data():
         return []
 
 def get_weekly_optimized_data():
+    """Son 30 günün optimize edilmiş verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -99,15 +100,49 @@ def get_weekly_optimized_data():
         if not records:
             return []
         
+        # Tüm optimize edilmiş kayıtları al
         optimized_records = [
             r for r in records 
             if r.get("optimized") == True and r.get("daily_peak") == True
         ]
         
+        # Eğer optimize edilmiş kayıt yoksa, normal kayıtlardan günlük en yüksekleri al
+        if not optimized_records:
+            # Son 30 günün tüm kayıtlarını tarih gruplarına ayır
+            from collections import defaultdict
+            daily_groups = defaultdict(list)
+            
+            now = datetime.now(timezone.utc)
+            for i in range(29, -1, -1):
+                target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+                day_records = [r for r in records 
+                              if r.get("date") == target_date 
+                              and r.get("gold_price") 
+                              and r.get("silver_price")]
+                if day_records:
+                    daily_groups[target_date] = day_records
+            
+            # Her günün en yüksek portföy değerine sahip kaydını al
+            optimized_records = []
+            for date, day_records in daily_groups.items():
+                max_record = None
+                max_portfolio = 0
+                
+                for record in day_records:
+                    # Varsayılan portföy hesaplaması (1gr altın + 1gr gümüş)
+                    portfolio_value = record["gold_price"] + record["silver_price"]
+                    if portfolio_value > max_portfolio:
+                        max_portfolio = portfolio_value
+                        max_record = record.copy()
+                
+                if max_record:
+                    optimized_records.append(max_record)
+        
         weekly_data = []
         weekly_temp = []
         now = datetime.now(timezone.utc)
         
+        # Son 30 güne çıkarıldı (29'dan 0'a doğru)
         for i in range(29, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             
@@ -144,7 +179,8 @@ def get_weekly_optimized_data():
         
         return weekly_data
         
-    except Exception:
+    except Exception as e:
+        print(f"Weekly data error: {e}")
         return []
 
 def get_table_data():
