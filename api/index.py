@@ -797,6 +797,34 @@ def login():
         .error-message.show {
             display: block;
         }
+        
+        .debug-logs {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        
+        .debug-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+        
+        .debug-content {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -821,6 +849,11 @@ def login():
                 Giriş Yap
             </button>
         </form>
+        
+        <div class="debug-logs" id="debugLogs">
+            <div class="debug-title">Debug Logları:</div>
+            <div class="debug-content" id="debugContent">Henüz giriş denenmedi...</div>
+        </div>
     </div>
 
     <script>
@@ -830,6 +863,10 @@ def login():
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginBtn');
+            const debugContent = document.getElementById('debugContent');
+            
+            // Debug logları temizle
+            debugContent.innerHTML = 'Login işlemi başlatılıyor...<br>';
             
             // Hata mesajını gizle
             errorMessage.classList.remove('show');
@@ -839,6 +876,8 @@ def login():
             loginBtn.textContent = 'Giriş yapılıyor...';
             
             try {
+                debugContent.innerHTML += `Şifre gönderiliyor: "${password}"<br>`;
+                
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -849,14 +888,35 @@ def login():
                 
                 const result = await response.json();
                 
+                // Debug bilgilerini güzel formatta göster
+                if (result.debug) {
+                    debugContent.innerHTML += '<br><strong>Debug Bilgileri:</strong><br>';
+                    debugContent.innerHTML += `• Alınan şifre: "${result.debug.received_password}"<br>`;
+                    debugContent.innerHTML += `• Şifre uzunluğu: ${result.debug.password_length}<br>`;
+                    debugContent.innerHTML += `• Generate edilen hash: ${result.debug.generated_hash}<br>`;
+                    debugContent.innerHTML += `• GitHub'dan okunan hash: ${result.debug.stored_hash}<br>`;
+                    debugContent.innerHTML += `• Config yüklendi mi: ${result.debug.config_loaded}<br>`;
+                    debugContent.innerHTML += `• Hash'ler eşleşiyor mu: ${result.debug.hashes_match}<br>`;
+                    debugContent.innerHTML += `• Login sonucu: ${result.debug.login_result}<br>`;
+                    
+                    if (result.debug.error) {
+                        debugContent.innerHTML += `• Hata: ${result.debug.error}<br>`;
+                    }
+                }
+                
                 if (result.success) {
-                    window.location.href = '/';
+                    debugContent.innerHTML += 'Login başarılı! Ana sayfaya yönlendiriliyor...<br>';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
                 } else {
+                    debugContent.innerHTML += `Login başarısız: ${result.error}<br>`;
                     errorMessage.classList.add('show');
                     document.getElementById('password').value = '';
                     document.getElementById('password').focus();
                 }
             } catch (error) {
+                debugContent.innerHTML += `Bağlantı hatası: ${error.message}<br>`;
                 errorMessage.textContent = 'Bağlantı hatası! Lütfen tekrar deneyin.';
                 errorMessage.classList.add('show');
             } finally {
@@ -887,14 +947,33 @@ def api_login():
         data = request.get_json()
         password = data.get('password', '')
         
+        # Debug bilgileri
+        debug_info = {
+            'received_password': password,
+            'password_length': len(password),
+            'password_bytes': password.encode().hex()
+        }
+        
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        debug_info['generated_hash'] = password_hash
+        
+        config = load_portfolio_config()
+        stored_hash = config.get("password_hash", "")
+        debug_info['stored_hash'] = stored_hash
+        debug_info['config_loaded'] = bool(config)
+        debug_info['hashes_match'] = password_hash == stored_hash
+        
         if verify_password(password):
             session['authenticated'] = True
             session.permanent = True
-            return jsonify({'success': True})
+            debug_info['login_result'] = 'SUCCESS'
+            return jsonify({'success': True, 'debug': debug_info})
         else:
-            return jsonify({'success': False, 'error': 'Invalid password'})
+            debug_info['login_result'] = 'FAILED'
+            return jsonify({'success': False, 'error': 'Invalid password', 'debug': debug_info})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        debug_info = {'error': str(e), 'error_type': type(e).__name__}
+        return jsonify({'success': False, 'error': str(e), 'debug': debug_info})
 
 @app.route('/logout', methods=['POST'])
 def logout():
