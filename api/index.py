@@ -209,7 +209,80 @@ def get_weekly_optimized_data():
             const btn = document.getElementById('refreshBtn');
             btn.classList.add('spinning');
             
-            try
+            try {
+                const [goldRes, silverRes, tableRes, configRes] = await Promise.all([
+                    fetch('/api/gold-price'),
+                    fetch('/api/silver-price'),
+                    fetch('/api/table-data'),
+                    fetch('/api/portfolio-config')
+                ]);
+                
+                const goldData = await goldRes.json();
+                const silverData = await silverRes.json();
+                const tableDataRes = await tableRes.json();
+                const configData = await configRes.json();
+                
+                if (goldData.success) {
+                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
+                    currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('goldPrice').textContent = goldData.price;
+                }
+                
+                if (silverData.success) {
+                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
+                    currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('silverPrice').textContent = silverData.price;
+                }
+                
+                if (configData.success) {
+                    portfolioConfig = configData.config;
+                }
+                
+                if (tableDataRes.success) {
+                    tableData = tableDataRes.data;
+                    renderHistory();
+                    updateStatistics();
+                }
+                
+                document.getElementById('updateInfo').textContent = 'Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR');
+                updatePortfolio();
+                
+            } catch (error) {
+                document.getElementById('updateInfo').textContent = 'Güncelleme hatası';
+            } finally {
+                setTimeout(() => btn.classList.remove('spinning'), 500);
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + ' ₺';
+        }
+
+        function formatPrice(price) {
+            if (!price) return '0,00 ₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + ' ₺';
+        }
+
+        function logout() {
+            if (confirm('Oturumu kapatmak istediğinize emin misiniz?')) {
+                fetch('/logout', {method: 'POST'}).then(() => {
+                    window.location.href = '/login';
+                });
+            }
+        }
+
+        window.onload = function() {
+            fetchData();
+        };
+    </script>
+</body>
+</html>'''
             )
             
             if day_record:
@@ -662,13 +735,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         @media (max-width: 400px) {
             .container { max-width: 100%; padding: 0 1px; }
             .history-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
-            .metal-name { font-size: 17px; }
-            .metal-price { font-size: 16px; }
-            .metal-value { font-size: 24px; }
-            .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 8px 4px; font-size: 11px; }
-            .price-table th { font-size: 10px; }
+            .portfolio-breakdown { flex-direction: column; gap: 12px; }
+            .portfolio-item-label { font-size: 17px; }
+            .portfolio-item-price { font-size: 16px; }
+            .portfolio-item-value { font-size: 24px; }
+            .portfolio-item { padding: 20px; min-height: 130px; }
             .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
         }
     </style>
