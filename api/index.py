@@ -172,17 +172,22 @@ def get_weekly_optimized_data():
     except Exception:
         return []
 
-def calculate_statistics():
-    """Tüm verilerden maksimum değerleri hesapla"""
+def calculate_statistics(data_type='all'):
+    """Belirtilen veri tipinden maksimum değerleri hesapla"""
     try:
-        daily_data = get_daily_data()
-        weekly_data = get_weekly_optimized_data()
         config = load_portfolio_config()
         
-        # Tüm verileri birleştir
-        all_data = daily_data + weekly_data
+        if data_type == 'daily':
+            data = get_daily_data()
+        elif data_type == 'weekly':
+            data = get_weekly_optimized_data()
+        else:
+            # Tüm veriler için
+            daily_data = get_daily_data()
+            weekly_data = get_weekly_optimized_data()
+            data = daily_data + weekly_data
         
-        if not all_data:
+        if not data:
             return {
                 "max_gold_price": 0,
                 "max_silver_price": 0,
@@ -190,8 +195,8 @@ def calculate_statistics():
             }
         
         # Maksimum değerleri bul
-        max_gold = max(item["gold_price"] for item in all_data)
-        max_silver = max(item["silver_price"] for item in all_data)
+        max_gold = max(item["gold_price"] for item in data)
+        max_silver = max(item["silver_price"] for item in data)
         
         # Portföy hesaplaması için config'den miktarları al
         gold_amount = config.get("gold_amount", 0)
@@ -202,7 +207,7 @@ def calculate_statistics():
         if gold_amount > 0 or silver_amount > 0:
             portfolio_values = [
                 (gold_amount * item["gold_price"]) + (silver_amount * item["silver_price"])
-                for item in all_data
+                for item in data
             ]
             max_portfolio = max(portfolio_values) if portfolio_values else 0
         
@@ -224,16 +229,29 @@ def get_table_data():
     try:
         daily_data = get_daily_data()
         weekly_data = get_weekly_optimized_data()
-        stats = calculate_statistics()
+        
+        # Her sekme için ayrı istatistik hesapla
+        daily_stats = calculate_statistics('daily')
+        weekly_stats = calculate_statistics('weekly')
         
         return {
             "daily": daily_data,
             "weekly": weekly_data,
-            "statistics": stats
+            "statistics": {
+                "daily": daily_stats,
+                "weekly": weekly_stats
+            }
         }
         
     except Exception:
-        return {"daily": [], "weekly": [], "statistics": {}}
+        return {
+            "daily": [], 
+            "weekly": [], 
+            "statistics": {
+                "daily": {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0},
+                "weekly": {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
+            }
+        }
 
 def get_gold_price():
     """Yapı Kredi altın fiyatını çeker"""
@@ -287,8 +305,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%);
-            min-height: 100vh; padding: 20px; color: white;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh; padding: 20px; color: #e2e8f0;
         }
         .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
         
@@ -311,12 +329,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
         
         .portfolio-summary {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 24px; padding: 24px 20px; color: white;
-            box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
         }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
+        .portfolio-info { font-size: 12px; opacity: 0.8; margin-top: 8px; }
         .portfolio-metals {
             display: flex; justify-content: center; gap: 6px;
             margin: 20px 10px 0 10px;
@@ -377,54 +398,52 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         
         .price-history {
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px 4px; border: 1px solid rgba(255, 255, 255, 0.3);
-            margin: 0 -10px; width: calc(100% + 20px);
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .history-header {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
-            padding: 0 16px;
         }
-        .history-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
+        .history-title { font-size: 18px; font-weight: 700; color: #ffffff; }
         .period-tabs {
             display: flex; gap: 8px;
-            background: #f8f9fa; border-radius: 10px; padding: 4px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 4px;
         }
         .period-tab {
             padding: 8px 16px; border: none; border-radius: 6px;
-            background: transparent; color: #6c757d;
+            background: transparent; color: rgba(255, 255, 255, 0.7);
             font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
-        .period-tab.active { background: white; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .period-tab.active { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
         
         .price-table {
-            overflow-x: auto; border-radius: 12px; background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 0 8px;
+            overflow-x: auto; border-radius: 12px; background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .price-table table {
             width: 100%; border-collapse: collapse;
         }
         .price-table th {
-            background: #f8f9fa; padding: 12px 8px; text-align: left;
-            font-weight: 600; color: #495057; font-size: 13px;
-            border-bottom: 2px solid #e9ecef; white-space: nowrap;
+            background: rgba(255, 255, 255, 0.1); padding: 12px 8px; text-align: left;
+            font-weight: 600; color: rgba(255, 255, 255, 0.9); font-size: 13px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1); white-space: nowrap;
         }
         .price-table td {
-            padding: 12px 8px; border-bottom: 1px solid #f1f3f4;
-            font-size: 13px; color: #495057; white-space: nowrap;
+            padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px; color: #e2e8f0; white-space: nowrap;
         }
         .price-table tr:hover {
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.05);
         }
-        .price-table .time { font-weight: 600; color: #2c3e50; }
+        .price-table .time { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
         .price-table .price { font-weight: 600; }
-        .price-table .portfolio { font-weight: 700; color: #e67e22; }
+        .price-table .portfolio { font-weight: 700; color: #ffd700; }
         .price-table .change {
             font-weight: 600; font-size: 13px;
         }
-        .change.positive { color: #27ae60; }
-        .change.negative { color: #e74c3c; }
-        .change.neutral { color: #95a5a6; }
+        .change.positive { color: #4ade80; }
+        .change.negative { color: #f87171; }
+        .change.neutral { color: rgba(255, 255, 255, 0.7); }
         
         @media (max-width: 400px) {
             .container { max-width: 100%; padding: 0 1px; }
@@ -585,11 +604,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function updateStatistics() {
-            if (tableData.statistics) {
-                const stats = tableData.statistics;
+            if (tableData.statistics && tableData.statistics[currentPeriod]) {
+                const stats = tableData.statistics[currentPeriod];
                 document.getElementById('maxGoldPrice').textContent = formatPrice(stats.max_gold_price);
                 document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
                 document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
+                
+                // İstatistik başlığını güncelle
+                const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
+                document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
             }
         }
 
@@ -606,6 +629,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             updateTable();
+            updateStatistics(); // İstatistikleri de güncelle
         }
 
         function updateTable() {
