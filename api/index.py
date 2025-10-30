@@ -155,7 +155,7 @@ def get_weekly_optimized_data():
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
             weekly_data.append({
-                "time": f"{day_data['time']} ",  # Peak değer işareti
+                "time": f"{day_data['time']} 📊",  # Peak değer işareti
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
                 "change_percent": change_percent,
@@ -716,6 +716,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 </body>
 </html>'''
 
+@app.before_request
+def make_session_permanent():
+    """Her request'te session'ı kalıcı yap"""
+    session.permanent = True
+
 @app.route('/')
 def index():
     if 'authenticated' not in session:
@@ -941,8 +946,10 @@ def api_login():
         password = data.get('password', '')
         
         if verify_password(password):
+            session.permanent = True  # Bu satır önemli!
             session['authenticated'] = True
-            session.permanent = True
+            # Session'un kalıcı olduğundan emin ol
+            app.permanent_session_lifetime = timedelta(days=30)
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'error': 'Invalid password'})
@@ -991,10 +998,15 @@ def api_portfolio_config():
 if __name__ == '__main__':
     # Kalıcı session ayarları (30 gün)
     app.permanent_session_lifetime = timedelta(days=30)
-    app.config['SESSION_PERMANENT'] = True
-    app.config['SESSION_COOKIE_SECURE'] = False  # HTTPS için True yapılabilir
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    
+    # Session cookie ayarları - kalıcı olması için
+    app.config.update(
+        SESSION_COOKIE_SECURE=False,  # HTTPS için True yapın
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_PERMANENT=False,  # Bu False olmalı, session.permanent ile kontrol edilecek
+        PERMANENT_SESSION_LIFETIME=timedelta(days=30)
+    )
     
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
