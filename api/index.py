@@ -129,7 +129,20 @@ def get_weekly_optimized_data():
             # O günün optimize edilmiş kaydını bul
             day_record = next(
                 (r for r in optimized_records if r.get("date") == target_date), 
-                None
+                        <div class="statistics-section">
+            <div class="statistics-title">✨ Maksimum Değerler</div>
+            <div class="statistics-grid">
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
+                    <div class="stat-value" id="maxGoldPrice">0 ₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
+                    <div class="stat-value" id="maxSilverPrice">0 ₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
+                    
             )
             
             if day_record:
@@ -304,168 +317,539 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh; padding: 20px; color: #e2e8f0;
-        }
-        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
-        
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .header-left { display: flex; align-items: center; gap: 12px; }
-        .logo { font-size: 18px; font-weight: 700; color: white; }
-        .version { font-size: 11px; color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 8px; }
-        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
-        .actions { display: flex; gap: 10px; }
-        .action-btn {
-            width: 44px; height: 44px; border-radius: 12px;
-            background: rgba(255, 255, 255, 0.2); border: none;
-            color: white; font-size: 18px; cursor: pointer;
-            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
-        }
-        .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
-        
-        .portfolio-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px; padding: 24px 20px; color: white;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
-        .portfolio-info { font-size: 12px; opacity: 0.8; margin-top: 8px; }
-        .portfolio-metals {
-            display: flex; justify-content: center; gap: 6px;
-            margin: 20px 10px 0 10px;
-        }
-        .metal-item {
-            flex: 1; 
-            background: rgba(255, 255, 255, 0.15); 
-            border-radius: 16px; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh; 
             padding: 16px;
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-height: 140px;
+            color: #ffffff;
+            overflow-x: hidden;
         }
-        .metal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .metal-name { font-size: 16px; font-weight: 600; }
-        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
-        .metal-value { font-size: 22px; font-weight: 700; }
-        .metal-amount { font-size: 12px; opacity: 0.7; margin-top: 8px; }
         
-        .statistics-section {
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+        
+        .container { 
+            max-width: 450px; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Glass card mixin styles */
+        .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+        }
+        
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .logo { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.5px;
+        }
+        
+        .version { 
+            font-size: 10px; 
+            color: rgba(255, 255, 255, 0.7); 
+            background: rgba(255, 255, 255, 0.15); 
+            padding: 2px 8px; 
+            border-radius: 8px; 
+            font-weight: 600;
+            margin-top: 2px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .update-time { 
+            font-size: 13px; 
+            color: rgba(255, 255, 255, 0.8); 
+            font-weight: 500;
+        }
+        
+        .actions { 
+            display: flex; 
+            gap: 8px; 
+        }
+        
+        .action-btn {
+            width: 44px; 
+            height: 44px; 
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff; 
+            font-size: 18px; 
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn:hover::before {
+            left: 100%;
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
+        .portfolio-summary {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.2) 0%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 28px;
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: 
+                0 16px 40px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .portfolio-summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.6), 
+                transparent);
+        }
+        
+        .portfolio-amount { 
+            font-size: 48px; 
+            font-weight: 900; 
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            letter-spacing: -1px;
+        }
+        
+        .portfolio-info { 
+            font-size: 13px; 
+            color: rgba(255, 255, 255, 0.8); 
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+        
+        .portfolio-metals {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .metal-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px 16px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .metal-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        }
+        
+        .metal-name { 
+            font-size: 14px; 
+            font-weight: 700; 
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metal-price { 
+            font-size: 13px; 
+            color: rgba(255, 255, 255, 0.7); 
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .metal-value { 
+            font-size: 22px; 
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metal-amount { 
+            font-size: 11px; 
+            color: rgba(255, 255, 255, 0.6); 
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .statistics-section {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
         .statistics-title {
             font-size: 18px;
-            font-weight: 700;
-            color: #ffd700;
-            margin-bottom: 16px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 20px;
             text-align: center;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+        
         .statistics-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
         }
+        
         .stat-item {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 10px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px 12px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                #ffd700 0%, 
+                #ffed4e 50%, 
+                #ffd700 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .stat-item:hover::before {
+            opacity: 1;
+        }
+        
         .stat-label {
             font-size: 11px;
-            opacity: 0.8;
+            color: rgba(255, 255, 255, 0.8);
             margin-bottom: 8px;
-            line-height: 1.2;
+            line-height: 1.3;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
+        
         .stat-value {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             color: #ffd700;
             word-wrap: break-word;
+            text-shadow: 0 2px 6px rgba(255, 215, 0, 0.3);
         }
         
         .price-history {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
+        
         .history-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .history-title { font-size: 18px; font-weight: 700; color: #ffffff; }
+        
+        .history-title { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
         .period-tabs {
-            display: flex; gap: 8px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 4px;
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
         .period-tab {
-            padding: 8px 16px; border: none; border-radius: 6px;
-            background: transparent; color: rgba(255, 255, 255, 0.7);
-            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
-        .period-tab.active { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+        
+        .period-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
         
         .price-table {
-            width: 100%; 
-            border-radius: 12px; 
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: hidden;
+            overflow-x: auto;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
+        
         .price-table table {
-            width: 100%; 
+            width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
+        
         .price-table th {
-            background: rgba(255, 255, 255, 0.1); 
-            padding: 12px 6px; 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 14px 12px;
             text-align: left;
-            font-weight: 600; 
-            color: rgba(255, 255, 255, 0.9); 
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 12px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .price-table th:nth-child(1) { width: 18%; } /* Saat */
-        .price-table th:nth-child(2) { width: 22%; } /* Altın */
-        .price-table th:nth-child(3) { width: 22%; } /* Gümüş */
-        .price-table th:nth-child(4) { width: 24%; } /* Portföy */
-        .price-table th:nth-child(5) { width: 14%; } /* Değişim */
         
         .price-table td {
-            padding: 12px 6px; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 12px; 
-            color: #e2e8f0; 
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-weight: 500;
         }
+        
+        .price-table tr {
+            transition: all 0.2s ease;
+        }
+        
         .price-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
         }
-        .price-table .time { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
-        .price-table .price { font-weight: 600; }
-        .price-table .portfolio { font-weight: 700; color: #ffd700; }
+        
+        .price-table .time { 
+            font-weight: 700; 
+            color: #ffffff;
+        }
+        
+        .price-table .price { 
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .price-table .portfolio { 
+            font-weight: 800; 
+            color: #ffd700;
+            text-shadow: 0 1px 4px rgba(255, 215, 0, 0.3);
+        }
+        
         .price-table .change {
-            font-weight: 600; font-size: 11px;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
         }
-        .change.positive { color: #4ade80; }
-        .change.negative { color: #f87171; }
-        .change.neutral { color: rgba(255, 255, 255, 0.7); }
+        
+        .change.positive { 
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            text-shadow: 0 1px 4px rgba(0, 255, 136, 0.3);
+        }
+        
+        .change.negative { 
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.15);
+            text-shadow: 0 1px 4px rgba(255, 71, 87, 0.3);
+        }
+        
+        .change.neutral { 
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .container { gap: 16px; }
+            
+            .header {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .portfolio-amount { font-size: 40px; }
+            
+            .portfolio-metals {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .statistics-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .history-header {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .price-table th, .price-table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
         
         @media (max-width: 400px) {
             .container { max-width: 100%; padding: 0 1px; }
@@ -475,8 +859,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .metal-price { font-size: 16px; }
             .metal-value { font-size: 24px; }
             .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 8px 4px; font-size: 11px; }
-            .price-table th { font-size: 10px; }
+            .price-table th, .price-table td { padding: 10px 6px; font-size: 12px; }
+            .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
+            .price-table { margin: 0 4px; }
+            .history-header { padding: 0 8px; }
             .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
         }
     </style>
@@ -485,9 +871,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <div>
-                    <div class="logo">Metal Tracker</div>
-                    <div class="version">v2.0</div>
+                <div class="logo-section">
+                    <div class="logo">💎 Metal Tracker</div>
+                    <div class="version">v2.0 Glass</div>
                 </div>
                 <div class="update-time" id="headerTime">--:--</div>
             </div>
