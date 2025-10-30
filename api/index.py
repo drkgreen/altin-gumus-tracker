@@ -503,6 +503,24 @@ def index():
             <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Aylık</button>
         </div>
 
+        <div class="stats-summary" id="statsSummary">
+            <div class="stat-item">
+                <div class="stat-label">En Yüksek Altın</div>
+                <div class="stat-value" id="maxGoldPrice">-</div>
+                <div class="stat-secondary" id="maxGoldDate">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">En Yüksek Gümüş</div>
+                <div class="stat-value" id="maxSilverPrice">-</div>
+                <div class="stat-secondary" id="maxSilverDate">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">En Yüksek Portföy</div>
+                <div class="stat-value" id="maxPortfolioValue">-</div>
+                <div class="stat-secondary" id="maxPortfolioDate">-</div>
+            </div>
+        </div>
+
         <div class="history-section active" id="dailySection">
             <div class="loading">
                 <div class="loading-spinner"></div>
@@ -937,6 +955,8 @@ def api_portfolio_config():
 
 if __name__ == '__main__':
     import os
-    app.permanent_session_lifetime = timedelta(days=30)  # 30 gün session
+    from datetime import timedelta
+    app.permanent_session_lifetime = timedelta(days=365)  # 1 yıl session
+    app.config['SESSION_PERMANENT'] = True
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
