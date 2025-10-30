@@ -142,6 +142,209 @@ def get_weekly_optimized_data():
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
+                    <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="price-history" id="priceHistory">
+            <div class="history-header">
+                <div class="history-title">📈 Fiyat Geçmişi</div>
+                <div class="period-tabs">
+                    <button class="period-tab active" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
+                    <button class="period-tab" onclick="switchPeriod('weekly')" id="weeklyTab">Aylık</button>
+                </div>
+            </div>
+            <div class="price-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="timeHeader">Saat</th>
+                            <th>Altın</th>
+                            <th>Gümüş</th>
+                            <th>Portföy</th>
+                            <th>Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGoldPrice = 0;
+        let currentSilverPrice = 0;
+        let tableData = {};
+        let currentPeriod = 'daily';
+        let portfolioConfig = {};
+
+        async function fetchPrice() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            try {
+                refreshBtn.style.transform = 'rotate(360deg)';
+                
+                const [goldRes, silverRes, tableRes, configRes] = await Promise.all([
+                    fetch('/api/gold-price'),
+                    fetch('/api/silver-price'),
+                    fetch('/api/table-data'),
+                    fetch('/api/portfolio-config')
+                ]);
+                
+                const goldData = await goldRes.json();
+                const silverData = await silverRes.json();
+                const tableDataRes = await tableRes.json();
+                const configData = await configRes.json();
+                
+                if (goldData.success) {
+                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
+                    currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('goldCurrentPrice').textContent = goldData.price;
+                }
+                
+                if (silverData.success) {
+                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
+                    currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('silverCurrentPrice').textContent = silverData.price;
+                }
+                
+                if (configData.success) {
+                    portfolioConfig = configData.config;
+                    document.getElementById('goldAmount').textContent = portfolioConfig.gold_amount + ' gr';
+                    document.getElementById('silverAmount').textContent = portfolioConfig.silver_amount + ' gr';
+                }
+                
+                if (tableDataRes.success) {
+                    tableData = tableDataRes.data;
+                    updateTable();
+                    updateStatistics();
+                }
+                
+                document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                updatePortfolio();
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+            } finally {
+                setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
+            }
+        }
+
+        function updateStatistics() {
+            if (tableData.statistics && tableData.statistics[currentPeriod]) {
+                const stats = tableData.statistics[currentPeriod];
+                document.getElementById('maxGoldPrice').textContent = formatPrice(stats.max_gold_price);
+                document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
+                document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
+                
+                // İstatistik başlığını güncelle
+                const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
+                document.querySelector('.statistics-title').textContent = `✨ ${periodText} Maksimum Değerler`;
+            }
+        }
+
+        function switchPeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(period + 'Tab').classList.add('active');
+            
+            const timeHeader = document.getElementById('timeHeader');
+            if (period === 'daily') {
+                timeHeader.textContent = 'Saat';
+            } else if (period === 'weekly') {
+                timeHeader.textContent = 'Tarih';
+            }
+            
+            updateTable();
+            updateStatistics(); // İstatistikleri de güncelle
+        }
+
+        function updateTable() {
+            const goldAmount = portfolioConfig.gold_amount || 0;
+            const silverAmount = portfolioConfig.silver_amount || 0;
+            
+            if (!tableData[currentPeriod]) return;
+            
+            const tbody = document.getElementById('priceTableBody');
+            tbody.innerHTML = '';
+            
+            tableData[currentPeriod].forEach((item) => {
+                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                
+                const row = document.createElement('tr');
+                
+                const timeDisplay = item.optimized ? 
+                    `<span title="Günün peak değeri (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
+                    item.time;
+                
+                row.innerHTML = `
+                    <td class="time">${timeDisplay}</td>
+                    <td class="price">${formatPrice(item.gold_price)}</td>
+                    <td class="price">${formatPrice(item.silver_price)}</td>
+                    <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
+                    <td class="change ${getChangeClass(item.change_percent)}">${formatChange(item.change_percent)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getChangeClass(changePercent) {
+            if (changePercent > 0) return 'positive';
+            if (changePercent < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function formatChange(changePercent) {
+            if (changePercent === 0) return '0.00%';
+            const sign = changePercent > 0 ? '+' : '';
+            return `${sign}${changePercent.toFixed(2)}%`;
+        }
+
+        function updatePortfolio() {
+            const goldAmount = portfolioConfig.gold_amount || 0;
+            const silverAmount = portfolioConfig.silver_amount || 0;
+            
+            const goldValue = goldAmount * currentGoldPrice;
+            const silverValue = silverAmount * currentSilverPrice;
+            const totalValue = goldValue + silverValue;
+            
+            document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
+            document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
+            document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
+        }
+
+        function formatPrice(price) {
+            if (!price) return '0,00₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + '₺';
+        }
+
+        function logout() {
+            if (confirm('Oturumu kapatmak istediğinize emin misiniz?')) {
+                fetch('/logout', {method: 'POST'}).then(() => {
+                    window.location.href = '/login';
+                });
+            }
+        }
+
+        window.onload = function() {
+            fetchPrice();
+        };
+    </script>
+</body>
+</html>'''
                     
             )
             
