@@ -129,9 +129,29 @@ def get_weekly_optimized_data():
             # O günün optimize edilmiş kaydını bul
             day_record = next(
                 (r for r in optimized_records if r.get("date") == target_date), 
-                        function renderHistory() {
-            const section = document.getElementById(currentTab + 'Section');
-            const data = tableData[currentTab] || [];
+                                if (configData.success) {
+                    portfolioConfig = configData.config;
+                }
+                
+                if (tableDataRes.success) {
+                    tableData = tableDataRes.data;
+                    renderHistory();
+                    updateStatistics();
+                }
+                
+                document.getElementById('updateInfo').textContent = 'Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR');
+                updatePortfolio();
+                
+            } catch (error) {
+                document.getElementById('updateInfo').textContent = 'Güncelleme hatası';
+            } finally {
+                setTimeout(() => refreshBtn.classList.remove('spinning'), 500);
+            }
+        }
+
+        function renderHistory() {
+            const section = document.getElementById(currentPeriod + 'Section');
+            const data = tableData[currentPeriod] || [];
             
             if (data.length === 0) {
                 section.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Veri bulunamadı</div></div>';
@@ -175,6 +195,30 @@ def get_weekly_optimized_data():
             section.innerHTML = html;
         }
 
+        function updateStatistics() {
+            if (tableData.statistics && tableData.statistics[currentPeriod]) {
+                const stats = tableData.statistics[currentPeriod];
+                document.getElementById('maxGoldPrice').textContent = formatPrice(stats.max_gold_price);
+                document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
+                document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
+                
+                const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
+                document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
+            }
+        }
+
+        function switchPeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
+            
+            document.getElementById(period + 'Tab').classList.add('active');
+            document.getElementById(period + 'Section').classList.add('active');
+            
+            renderHistory();
+            updateStatistics();
+        }
+
         function updatePortfolio() {
             const goldAmount = portfolioConfig.gold_amount || 0;
             const silverAmount = portfolioConfig.silver_amount || 0;
@@ -183,24 +227,11 @@ def get_weekly_optimized_data():
             const silverValue = silverAmount * currentSilverPrice;
             const totalValue = goldValue + silverValue;
             
-            document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-            document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
-            document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
-            document.getElementById('portfolioInfo').textContent = `Altın: ${goldAmount}gr | Gümüş: ${silverAmount}gr`;
+            document.getElementById('portfolioTotal').textContent = formatCurrency(totalValue);
+            document.getElementById('goldPortfolio').textContent = formatCurrency(goldValue);
+            document.getElementById('silverPortfolio').textContent = formatCurrency(silverValue);
             
             renderHistory();
-        }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
-            
-            document.getElementById(tab + 'Tab').classList.add('active');
-            document.getElementById(tab + 'Section').classList.add('active');
-            
-            renderHistory();
-            updateStatistics();
         }
 
         function formatCurrency(amount) {
@@ -211,6 +242,7 @@ def get_weekly_optimized_data():
         }
 
         function formatPrice(price) {
+            if (!price) return '0,00 ₺';
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -226,8 +258,11 @@ def get_weekly_optimized_data():
         }
 
         window.onload = function() {
-            fetchData();
+            fetchPrice();
         };
+    </script>
+</body>
+</html>'''
             )
             
             if day_record:
@@ -473,28 +508,35 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             padding: 16px;
         }
         
-        .portfolio-summary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        .portfolio-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
             padding: 20px 16px;
             margin-bottom: 20px;
             color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .portfolio-total {
             text-align: center;
             padding: 16px 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             margin-bottom: 12px;
+            backdrop-filter: blur(10px);
         }
         .portfolio-total-value {
             font-size: 34px;
             font-weight: 900;
             word-wrap: break-word;
         }
-        .portfolio-info { font-size: 12px; opacity: 0.8; margin-top: 8px; }
+        .portfolio-info {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
         
         .portfolio-breakdown {
             display: grid;
@@ -506,6 +548,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border-radius: 12px;
             padding: 12px 10px;
             text-align: center;
+            backdrop-filter: blur(10px);
         }
         .portfolio-item-label {
             font-size: 11px;
@@ -528,6 +571,33 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-size: 10px;
             opacity: 0.7;
             margin-top: 4px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
         }
         
         .statistics-section {
@@ -568,33 +638,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             font-weight: 800;
             color: #ffd700;
             word-wrap: break-word;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 5px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .tab {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
         }
         
         .history-section { display: none; }
@@ -675,93 +718,99 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         
         @media (max-width: 400px) {
-        @media (max-width: 400px) {
             .container { max-width: 100%; padding: 0 1px; }
             .history-header { flex-direction: column; gap: 12px; }
-            .portfolio-breakdown { flex-direction: column; gap: 12px; }
-            .portfolio-item-label { font-size: 17px; }
-            .portfolio-item-price { font-size: 16px; }
-            .portfolio-item-value { font-size: 24px; }
-            .portfolio-item { padding: 20px; min-height: 130px; }
+            .portfolio-breakdown { grid-template-columns: 1fr; gap: 12px; }
+            .portfolio-item-label { font-size: 12px; }
+            .portfolio-item-price { font-size: 13px; }
+            .portfolio-item-value { font-size: 16px; }
+            .portfolio-item { padding: 16px; min-height: 120px; }
             .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">
-                <span class="logo-icon">📊</span>
-                <span>Metal Tracker</span>
-            </div>
-            <div class="header-actions">
-                <button class="header-btn" onclick="fetchData()" id="refreshBtn">↻</button>
-                <button class="header-btn" onclick="logout()" title="Çıkış">🚪</button>
-            </div>
-        </div>
-        <div class="update-info" id="updateInfo">Yükleniyor...</div>
-    </div>
-
     <div class="container">
-            <div class="portfolio-summary">
-                <div class="portfolio-total">
-                    <div class="portfolio-total-value" id="totalAmount">0,00 ₺</div>
-                    <div class="portfolio-info" id="portfolioInfo">Altın: 0gr | Gümüş: 0gr</div>
+        <div class="header">
+            <div class="header-left">
+                <div>
+                    <div class="logo">Metal Tracker</div>
+                    <div class="version">v2.0</div>
                 </div>
-                
-                <div class="portfolio-breakdown">
-                    <div class="portfolio-item">
-                        <div class="portfolio-item-label">Altın</div>
-                        <div class="portfolio-item-price" id="goldCurrentPrice">0,00 ₺/gr</div>
-                        <div class="portfolio-item-value" id="goldPortfolioValue">0,00 ₺</div>
-                        <div class="portfolio-item-amount" id="goldAmount">0 gram</div>
+                <div class="update-time" id="headerTime">--:--</div>
+            </div>
+            <div class="actions">
+                <button class="action-btn" onclick="fetchPrice()" id="refreshBtn">⟳</button>
+                <button class="action-btn" onclick="logout()" title="Çıkış">🚪</button>
+            </div>
+        </div>
+        
+        <div class="portfolio-summary" id="portfolioSummary">
+            <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
+            <div class="portfolio-metals">
+                <div class="metal-item">
+                    <div class="metal-header">
+                        <div class="metal-name">Altın</div>
                     </div>
-                    <div class="portfolio-item">
-                        <div class="portfolio-item-label">Gümüş</div>
-                        <div class="portfolio-item-price" id="silverCurrentPrice">0,00 ₺/gr</div>
-                        <div class="portfolio-item-value" id="silverPortfolioValue">0,00 ₺</div>
-                        <div class="portfolio-item-amount" id="silverAmount">0 gram</div>
-                    </div>
+                    <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
+                    <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
+                    <div class="metal-amount" id="goldAmount">0 gr</div>
                 </div>
-            </div>
-            
-            <div class="statistics-section">
-                <div class="statistics-title">📊 Günlük Maksimum Değerler</div>
-                <div class="statistics-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
-                        <div class="stat-value" id="maxGoldPrice">0 ₺</div>
+                <div class="metal-item">
+                    <div class="metal-header">
+                        <div class="metal-name">Gümüş</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
-                        <div class="stat-value" id="maxSilverPrice">0 ₺</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
-                        <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
-                <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Aylık</button>
-            </div>
-
-            <div class="history-section active" id="dailySection">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Veriler yükleniyor...</div>
-                </div>
-            </div>
-
-            <div class="history-section" id="weeklySection">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Veriler yükleniyor...</div>
+                    <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
+                    <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
+                    <div class="metal-amount" id="silverAmount">0 gr</div>
                 </div>
             </div>
         </div>
+        
+        <div class="statistics-section">
+            <div class="statistics-title">📊 Maksimum Değerler</div>
+            <div class="statistics-grid">
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
+                    <div class="stat-value" id="maxGoldPrice">0 ₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
+                    <div class="stat-value" id="maxSilverPrice">0 ₺</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
+                    <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="price-history" id="priceHistory">
+            <div class="history-header">
+                <div class="history-title">Fiyat Geçmişi</div>
+                <div class="period-tabs">
+                    <button class="period-tab active" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
+                    <button class="period-tab" onclick="switchPeriod('weekly')" id="weeklyTab">Aylık</button>
+                </div>
+            </div>
+            <div class="price-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="timeHeader">Saat</th>
+                            <th>Altın</th>
+                            <th>Gümüş</th>
+                            <th>Portföy</th>
+                            <th>Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
         let currentGoldPrice = 0;
@@ -789,15 +838,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const configData = await configRes.json();
                 
                 if (goldData.success) {
-                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
+                    let cleanPrice = goldData.price.replace(/[^\d,]/g, '');
                     currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    document.getElementById('goldCurrentPrice').textContent = goldData.price;
+                    document.getElementById('goldPrice').textContent = goldData.price;
                 }
                 
                 if (silverData.success) {
-                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
+                    let cleanPrice = silverData.price.replace(/[^\d,]/g, '');
                     currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    document.getElementById('silverCurrentPrice').textContent = silverData.price;
+                    document.getElementById('silverPrice').textContent = silverData.price;
                 }
                 
                 if (configData.success) {
@@ -808,7 +857,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (tableDataRes.success) {
                     tableData = tableDataRes.data;
-                    updateTable();
+                    renderHistory();
                     updateStatistics();
                 }
                 
