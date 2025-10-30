@@ -612,7 +612,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 // İstatistik başlığını güncelle
                 const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
-                document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
+                document.querySelector('.statistics-title').textContent = `${periodText} Maksimum Değerler`;
             }
         }
 
