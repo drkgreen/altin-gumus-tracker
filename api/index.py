@@ -2,9 +2,9 @@
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
-Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi (DÜZELTİLDİ)
+Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi (GÜÇLÜ ÇÖZÜM)
 """
-from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for
+from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -16,18 +16,10 @@ import secrets
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = secrets.token_hex(16)
 
-# Session kalıcılığı için önemli ayarlar
-app.config.update(
-    SECRET_KEY=secrets.token_hex(16),
-    PERMANENT_SESSION_LIFETIME=timedelta(days=365),  # 1 yıl
-    SESSION_COOKIE_SECURE=False,  # HTTP için False, HTTPS için True
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_MAX_AGE=365*24*60*60,  # 1 yıl (saniye cinsinden)
-    SESSION_PERMANENT=True  # Varsayılan olarak permanent
-)
+# Secret key sabit olsun (her restart'ta değişmesin)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'metal_tracker_secret_key_2024_permanent')
+app.secret_key = SECRET_KEY
 
 def load_portfolio_config():
     """GitHub'dan portföy ayarlarını ve hash'lenmiş şifreyi yükler"""
@@ -305,6 +297,40 @@ def get_silver_price():
         
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
+
+def is_authenticated():
+    """Kullanıcının doğrulanıp doğrulanmadığını kontrol et"""
+    # Session kontrolü
+    if session.get('authenticated'):
+        return True
+    
+    # Cookie kontrolü (alternatif yöntem)
+    auth_token = request.cookies.get('auth_token')
+    if auth_token:
+        # Basit token doğrulama (gerçek projede daha güvenli olmalı)
+        expected_token = hashlib.sha256(f"{SECRET_KEY}_authenticated".encode()).hexdigest()
+        if auth_token == expected_token:
+            # Session'ı yeniden oluştur
+            session.permanent = True
+            session['authenticated'] = True
+            return True
+    
+    return False
+
+def set_auth_cookie(response):
+    """Doğrulama cookie'si ekle"""
+    auth_token = hashlib.sha256(f"{SECRET_KEY}_authenticated".encode()).hexdigest()
+    # Cookie'yi 1 yıl süreyle ayarla
+    expires = datetime.now() + timedelta(days=365)
+    response.set_cookie(
+        'auth_token', 
+        auth_token,
+        expires=expires,
+        httponly=True,
+        secure=False,  # HTTPS için True yapın
+        samesite='Lax'
+    )
+    return response
 
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
@@ -727,20 +753,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 </body>
 </html>'''
 
-@app.before_request
-def make_session_permanent():
-    """Her request'te session'ı kalıcı yap"""
-    session.permanent = True
-
 @app.route('/')
 def index():
-    if 'authenticated' not in session:
+    if not is_authenticated():
         return redirect(url_for('login'))
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/login')
 def login():
-    if 'authenticated' in session:
+    if is_authenticated():
         return redirect(url_for('index'))
     
     html = '''<!DOCTYPE html>
@@ -957,9 +978,15 @@ def api_login():
         password = data.get('password', '')
         
         if verify_password(password):
-            session.permanent = True  # Kritik: Session'ı kalıcı yap
+            # Session ayarla
+            session.permanent = True
             session['authenticated'] = True
-            return jsonify({'success': True})
+            
+            # Response oluştur ve cookie ekle
+            response = make_response(jsonify({'success': True}))
+            response = set_auth_cookie(response)
+            
+            return response
         else:
             return jsonify({'success': False, 'error': 'Invalid password'})
     except Exception as e:
@@ -968,7 +995,10 @@ def api_login():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({'success': True})
+    response = make_response(jsonify({'success': True}))
+    # Auth cookie'sini sil
+    response.set_cookie('auth_token', '', expires=0)
+    return response
 
 @app.route('/api/gold-price')
 def api_gold_price():
@@ -1005,5 +1035,8 @@ def api_portfolio_config():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
+    # Session kalıcılığı için önemli ayarlar
+    app.permanent_session_lifetime = timedelta(days=365)
+    
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
