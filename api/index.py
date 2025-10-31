@@ -2,7 +2,7 @@
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
-Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi (GÜÇLÜ ÇÖZÜM)
+Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi + Dark Blue Glassmorphism Tema
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -337,172 +337,587 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Tracker v2.0</title>
+    <title>Metal Tracker v2.0 - Dark Blue</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh; padding: 20px; color: #e2e8f0;
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
         }
-        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #1e3a5f 75%, #0f172a 100%);
+            background-attachment: fixed;
+            min-height: 100vh; 
+            padding: 20px; 
+            color: #e2e8f0;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 24px; 
+            padding: 0 4px; 
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Glassmorphism Card Base */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
         
         .header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
-        .logo { font-size: 18px; font-weight: 700; color: white; }
-        .version { font-size: 11px; color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 8px; }
-        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
-        .actions { display: flex; gap: 10px; }
+        
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #f8fafc;
+            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .version { 
+            font-size: 11px; 
+            color: rgba(148, 163, 184, 0.8); 
+            background: rgba(59, 130, 246, 0.2); 
+            padding: 4px 10px; 
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .update-time { 
+            font-size: 15px; 
+            color: rgba(203, 213, 225, 0.9);
+            font-weight: 500;
+        }
+        
+        .actions { 
+            display: flex; 
+            gap: 12px; 
+        }
+        
         .action-btn {
-            width: 44px; height: 44px; border-radius: 12px;
-            background: rgba(255, 255, 255, 0.2); border: none;
-            color: white; font-size: 18px; cursor: pointer;
-            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+            width: 48px; 
+            height: 48px; 
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0; 
+            font-size: 20px; 
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
         }
-        .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .action-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .action-btn:hover { 
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+        }
         
         .portfolio-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px; padding: 24px 20px; color: white;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
+            backdrop-filter: blur(24px);
+            border-radius: 28px; 
+            padding: 32px 24px; 
+            color: white;
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
-        .portfolio-info { font-size: 12px; opacity: 0.8; margin-top: 8px; }
+        
+        .portfolio-summary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+        
+        .portfolio-amount { 
+            font-size: 48px; 
+            font-weight: 900; 
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
         .portfolio-metals {
-            display: flex; justify-content: center; gap: 6px;
-            margin: 20px 10px 0 10px;
+            display: flex; 
+            justify-content: center; 
+            gap: 12px;
+            margin: 24px 0 0 0;
         }
+        
         .metal-item {
-            flex: 1; 
-            background: rgba(255, 255, 255, 0.15); 
-            border-radius: 16px; 
-            padding: 16px;
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-height: 140px;
+            flex: 1;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px);
+            border-radius: 20px; 
+            padding: 20px 16px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            min-height: 160px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
-        .metal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .metal-name { font-size: 16px; font-weight: 600; }
-        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
-        .metal-value { font-size: 22px; font-weight: 700; }
-        .metal-amount { font-size: 12px; opacity: 0.7; margin-top: 8px; }
+        
+        .metal-item:hover {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+        }
+        
+        .metal-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.6), rgba(147, 51, 234, 0.6));
+        }
+        
+        .metal-header { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            margin-bottom: 16px; 
+        }
+        
+        .metal-name { 
+            font-size: 18px; 
+            font-weight: 700;
+            color: #f8fafc;
+        }
+        
+        .metal-price { 
+            font-size: 16px; 
+            color: rgba(203, 213, 225, 0.8); 
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        
+        .metal-value { 
+            font-size: 26px; 
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .metal-amount { 
+            font-size: 13px; 
+            color: rgba(148, 163, 184, 0.8); 
+            margin-top: 12px;
+            font-weight: 500;
+        }
         
         .statistics-section {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.5);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
+        
         .statistics-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffd700;
-            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
             text-align: center;
         }
+        
         .statistics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
+        
         .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 10px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px 12px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .stat-item:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        
         .stat-label {
-            font-size: 11px;
-            opacity: 0.8;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            font-size: 12px;
+            color: rgba(148, 163, 184, 0.9);
+            margin-bottom: 12px;
+            line-height: 1.3;
+            font-weight: 500;
         }
+        
         .stat-value {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
-            color: #ffd700;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             word-wrap: break-word;
         }
         
         .price-history {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(20px);
+            border-radius: 24px; 
+            padding: 20px; 
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
+        
         .history-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px;
         }
-        .history-title { font-size: 18px; font-weight: 700; color: #ffffff; }
+        
+        .history-title { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #f8fafc;
+        }
+        
         .period-tabs {
-            display: flex; gap: 8px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 4px;
+            display: flex; 
+            gap: 4px;
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 16px; 
+            padding: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            backdrop-filter: blur(12px);
         }
+        
         .period-tab {
-            padding: 8px 16px; border: none; border-radius: 6px;
-            background: transparent; color: rgba(255, 255, 255, 0.7);
-            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 12px;
+            background: transparent; 
+            color: rgba(203, 213, 225, 0.7);
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
-        .period-tab.active { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+        
+        .period-tab.active { 
+            background: rgba(59, 130, 246, 0.6);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .period-tab:hover:not(.active) {
+            background: rgba(59, 130, 246, 0.2);
+            color: #e2e8f0;
+        }
         
         .price-table {
-            overflow-x: auto; border-radius: 12px; background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto; 
+            border-radius: 16px; 
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            backdrop-filter: blur(12px);
         }
-        .price-table table {
-            width: 100%; border-collapse: collapse;
-        }
-        .price-table th {
-            background: rgba(255, 255, 255, 0.1); padding: 12px 8px; text-align: left;
-            font-weight: 600; color: rgba(255, 255, 255, 0.9); font-size: 13px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1); white-space: nowrap;
-        }
-        .price-table td {
-            padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 13px; color: #e2e8f0; white-space: nowrap;
-        }
-        .price-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .price-table .time { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
-        .price-table .price { font-weight: 600; }
-        .price-table .portfolio { font-weight: 700; color: #ffd700; }
-        .price-table .change {
-            font-weight: 600; font-size: 13px;
-        }
-        .change.positive { color: #4ade80; }
-        .change.negative { color: #f87171; }
-        .change.neutral { color: rgba(255, 255, 255, 0.7); }
         
+        .price-table table {
+            width: 100%; 
+            border-collapse: collapse;
+        }
+        
+        .price-table th {
+            background: rgba(15, 23, 42, 0.8); 
+            padding: 16px 12px; 
+            text-align: left;
+            font-weight: 700; 
+            color: #f8fafc; 
+            font-size: 14px;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2); 
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+        
+        .price-table td {
+            padding: 16px 12px; 
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 14px; 
+            color: #e2e8f0; 
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+       .price-table .time { 
+            font-weight: 700; 
+            color: #f8fafc;
+        }
+        
+        .price-table .price { 
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        
+        .price-table .portfolio { 
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .price-table .change {
+            font-weight: 700; 
+            font-size: 14px;
+        }
+        
+        .change.positive { 
+            color: #10b981;
+            text-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .change.negative { 
+            color: #ef4444;
+            text-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+        }
+        
+        .change.neutral { 
+            color: rgba(148, 163, 184, 0.8); 
+        }
+        
+        /* Responsive Design */
         @media (max-width: 400px) {
-            .container { max-width: 100%; padding: 0 1px; }
-            .history-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
-            .metal-name { font-size: 17px; }
-            .metal-price { font-size: 16px; }
-            .metal-value { font-size: 24px; }
-            .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 10px 6px; font-size: 12px; }
-            .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
-            .price-table { margin: 0 4px; }
-            .history-header { padding: 0 8px; }
-            .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
+            .container { 
+                max-width: 100%; 
+                padding: 0 2px; 
+                gap: 20px;
+            }
+            
+            .header {
+                padding: 16px 20px;
+            }
+            
+            .logo {
+                font-size: 18px;
+            }
+            
+            .portfolio-amount {
+                font-size: 40px;
+            }
+            
+            .history-header { 
+                flex-direction: column; 
+                gap: 16px; 
+            }
+            
+            .portfolio-metals { 
+                flex-direction: column; 
+                gap: 16px; 
+            }
+            
+            .metal-name { 
+                font-size: 17px; 
+            }
+            
+            .metal-price { 
+                font-size: 15px; 
+            }
+            
+            .metal-value { 
+                font-size: 24px; 
+            }
+            
+            .metal-item { 
+                padding: 24px 20px; 
+                min-height: 140px; 
+            }
+            
+            .price-table th, .price-table td { 
+                padding: 12px 8px; 
+                font-size: 13px; 
+            }
+            
+            .statistics-grid { 
+                grid-template-columns: 1fr; 
+                gap: 12px; 
+            }
+            
+            .stat-item {
+                padding: 16px 12px;
+            }
+            
+            .period-tab {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Scroll Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .glass-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .container > *:nth-child(1) { animation-delay: 0.1s; }
+        .container > *:nth-child(2) { animation-delay: 0.2s; }
+        .container > *:nth-child(3) { animation-delay: 0.3s; }
+        .container > *:nth-child(4) { animation-delay: 0.4s; }
+        
+        /* Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <div class="header glass-card">
             <div class="header-left">
-                <div>
+                <div class="logo-section">
                     <div class="logo">Metal Tracker</div>
                     <div class="version">v2.0</div>
                 </div>
@@ -514,7 +929,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="portfolio-summary" id="portfolioSummary">
+        <div class="portfolio-summary glass-card" id="portfolioSummary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
@@ -536,7 +951,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="statistics-section">
+        <div class="statistics-section glass-card">
             <div class="statistics-title">📊 Maksimum Değerler</div>
             <div class="statistics-grid">
                 <div class="stat-item">
@@ -554,7 +969,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="price-history" id="priceHistory">
+        <div class="price-history glass-card" id="priceHistory">
             <div class="history-header">
                 <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
@@ -593,6 +1008,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
+                refreshBtn.style.background = 'rgba(59, 130, 246, 0.3)';
                 
                 const [goldRes, silverRes, tableRes, configRes] = await Promise.all([
                     fetch('/api/gold-price'),
@@ -635,8 +1051,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
             } catch (error) {
                 console.error('Fetch error:', error);
+                refreshBtn.style.background = 'rgba(239, 68, 68, 0.3)';
             } finally {
-                setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
+                setTimeout(() => {
+                    refreshBtn.style.transform = 'rotate(0deg)';
+                    refreshBtn.style.background = 'rgba(30, 41, 59, 0.8)';
+                }, 500);
             }
         }
 
@@ -666,7 +1086,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             updateTable();
-            updateStatistics(); // İstatistikleri de güncelle
+            updateStatistics();
         }
 
         function updateTable() {
@@ -678,10 +1098,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const tbody = document.getElementById('priceTableBody');
             tbody.innerHTML = '';
             
-            tableData[currentPeriod].forEach((item) => {
+            tableData[currentPeriod].forEach((item, index) => {
                 let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 
                 const row = document.createElement('tr');
+                row.style.animationDelay = `${index * 0.05}s`;
                 
                 const timeDisplay = item.optimized ? 
                     `<span title="Günün peak değeri (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
@@ -746,297 +1167,25 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
+        // Loading animation on page load
         window.onload = function() {
-            fetchPrice();
+            // Add staggered fade-in animation
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+            
+            setTimeout(() => {
+                fetchPrice();
+            }, 800);
         };
     </script>
 </body>
-</html>'''
-
-@app.route('/')
-def index():
-    if not is_authenticated():
-        return redirect(url_for('login'))
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/login')
-def login():
-    if is_authenticated():
-        return redirect(url_for('index'))
-    
-    html = '''<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#1e3c72">
-    <title>Metal Tracker - Giriş</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .login-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px 30px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: 900;
-            color: #ffffff;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .logo-icon { font-size: 28px; }
-        
-        .subtitle {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 32px;
-        }
-        
-        .form-group {
-            margin-bottom: 24px;
-            text-align: left;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            color: #e2e8f0;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            transition: all 0.3s ease;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 16px;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .login-btn:active {
-            transform: translateY(0);
-        }
-        
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            color: #f87171;
-            font-size: 14px;
-            display: none;
-        }
-        
-        .error-message.show {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="logo">
-            <span class="logo-icon">📊</span>
-            <span>Metal Tracker</span>
-        </div>
-        <div class="subtitle">Güvenli giriş yapın</div>
-        
-        <form onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label class="form-label">Şifre</label>
-                <input type="password" class="form-input" id="password" placeholder="Şifrenizi girin" required autocomplete="current-password">
-            </div>
-            
-            <div class="error-message" id="errorMessage">
-                Hatalı şifre! Lütfen tekrar deneyin.
-            </div>
-            
-            <button type="submit" class="login-btn" id="loginBtn">
-                Giriş Yap
-            </button>
-        </form>
-    </div>
-
-    <script>
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            const loginBtn = document.getElementById('loginBtn');
-            
-            errorMessage.classList.remove('show');
-            
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Giriş yapılıyor...';
-            
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ password: password })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    window.location.href = '/';
-                } else {
-                    errorMessage.classList.add('show');
-                    document.getElementById('password').value = '';
-                    document.getElementById('password').focus();
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Bağlantı hatası! Lütfen tekrar deneyin.';
-                errorMessage.classList.add('show');
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Giriş Yap';
-            }
-        }
-        
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleLogin(e);
-            }
-        });
-        
-        window.onload = function() {
-            document.getElementById('password').focus();
-        };
-    </script>
-</body>
-</html>'''
-    return html
-
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    try:
-        data = request.get_json()
-        password = data.get('password', '')
-        
-        if verify_password(password):
-            # Session ayarla
-            session.permanent = True
-            session['authenticated'] = True
-            
-            # Response oluştur ve cookie ekle
-            response = make_response(jsonify({'success': True}))
-            response = set_auth_cookie(response)
-            
-            return response
-        else:
-            return jsonify({'success': False, 'error': 'Invalid password'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.clear()
-    response = make_response(jsonify({'success': True}))
-    # Auth cookie'sini sil
-    response.set_cookie('auth_token', '', expires=0)
-    return response
-
-@app.route('/api/gold-price')
-def api_gold_price():
-    try:
-        price = get_gold_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/silver-price')
-def api_silver_price():
-    try:
-        price = get_silver_price()
-        return jsonify({'success': bool(price), 'price': price or ''})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/table-data')
-def api_table_data():
-    try:
-        data = get_table_data()
-        return jsonify({'success': bool(data), 'data': data or {}})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/portfolio-config')
-def api_portfolio_config():
-    try:
-        config = load_portfolio_config()
-        # Şifreyi döndürme
-        config.pop('password_hash', None)
-        return jsonify({'success': True, 'config': config})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-if __name__ == '__main__':
-    # Session kalıcılığı için önemli ayarlar
-    app.permanent_session_lifetime = timedelta(days=365)
-    
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+</html>
