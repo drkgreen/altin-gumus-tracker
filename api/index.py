@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Metal Price Tracker Web App v3.0
-Neon Cyberpunk Dashboard Theme
-BÖLÜM 1: Backend Fonksiyonlar ve Veri İşleme
+Neon Cyberpunk Dashboard Theme - Tam Çalışan Sürüm
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -298,9 +297,8 @@ def set_auth_cookie(response):
         samesite='Lax'
     )
     return response
-# BÖLÜM 2: HTML TEMPLATES VE CSS - NEON CYBERPUNK THEME
 
-# NEON CYBERPUNK ANA SAYFA TEMPLATE
+# HTML TEMPLATES
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -322,7 +320,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             position: relative;
         }
         
-        /* Animated background */
         body::before {
             content: '';
             position: fixed;
@@ -382,6 +379,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             border-radius: 15px;
             z-index: -1;
             animation: borderGlow 3s linear infinite;
+            background-size: 400% 400%;
         }
         
         @keyframes borderGlow {
@@ -389,7 +387,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             100% { background-position: 100% 50%; }
         }
         
-        /* Header full width */
         .header-card {
             grid-column: 1 / -1;
             background: rgba(20, 20, 40, 0.9);
@@ -402,6 +399,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .header-card::before {
             background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff);
+            background-size: 400% 400%;
         }
         
         .header-left {
@@ -453,6 +451,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             transition: all 0.3s ease;
             text-transform: uppercase;
             font-size: 12px;
+            font-family: 'Orbitron', monospace;
         }
         
         .cyber-btn:hover {
@@ -460,7 +459,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             transform: scale(1.05);
         }
         
-        /* Portfolio Summary */
         .portfolio-card {
             background: rgba(20, 0, 40, 0.8);
             border: 2px solid #ffff00;
@@ -469,6 +467,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .portfolio-card::before {
             background: linear-gradient(45deg, #ffff00, #ff00ff, #ffff00);
+            background-size: 400% 400%;
         }
         
         .portfolio-title {
@@ -526,7 +525,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             margin-top: 5px;
         }
         
-        /* Statistics Card */
         .stats-card {
             background: rgba(0, 20, 0, 0.8);
             border: 2px solid #00ff00;
@@ -534,6 +532,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .stats-card::before {
             background: linear-gradient(45deg, #00ff00, #ffff00, #00ff00);
+            background-size: 400% 400%;
         }
         
         .stats-title {
@@ -572,7 +571,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             text-shadow: 0 0 8px #00ff00;
         }
         
-        /* Data Table Card - Full width */
         .data-card {
             grid-column: 1 / -1;
             background: rgba(40, 0, 40, 0.8);
@@ -581,6 +579,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .data-card::before {
             background: linear-gradient(45deg, #ff00ff, #ffff00, #ff00ff);
+            background-size: 400% 400%;
         }
         
         .data-header {
@@ -611,6 +610,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             transition: all 0.3s ease;
             font-size: 12px;
             text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
         }
         
         .tab-btn.active {
@@ -659,7 +659,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #ff0000; }
         .change.neutral { color: #888; }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
@@ -676,7 +675,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="neon-card header-card">
             <div class="header-left">
                 <div class="logo">⚡ METAL TRACKER v3.0</div>
@@ -689,7 +687,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- Portfolio Summary -->
         <div class="neon-card portfolio-card">
             <div class="portfolio-title">PORTFOLIO VALUE</div>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
@@ -709,7 +706,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- Statistics -->
         <div class="neon-card stats-card">
             <div class="stats-title">⚡ MAX VALUES</div>
             <div class="stats-grid">
@@ -728,7 +724,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- Data Table -->
         <div class="neon-card data-card">
             <div class="data-header">
                 <div class="data-title">⚡ PRICE DATA STREAM</div>
@@ -749,7 +744,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
-                        <!-- Dynamic content -->
                     </tbody>
                 </table>
             </div>
@@ -794,36 +788,425 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 if (configData.success) {
                     portfolioConfig = configData.config;
-# BÖLÜM 3: FLASK ROUTES VE ANA PROGRAM
+                    document.getElementById('goldAmount').textContent = portfolioConfig.gold_amount + ' gr';
+                    document.getElementById('silverAmount').textContent = portfolioConfig.silver_amount + ' gr';
+                }
+                
+                if (tableDataRes.success) {
+                    tableData = tableDataRes.data;
+                    updateTable();
+                    updateStatistics();
+                }
+                
+                updatePortfolio();
+                document.getElementById('updateTime').textContent = 'LAST SYNC: ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+                document.getElementById('updateTime').textContent = 'SYNC ERROR';
+            } finally {
+                refreshBtn.textContent = 'SYNC';
+                refreshBtn.style.transform = 'scale(1)';
+            }
+        }
 
-# FLASK ROUTES
+        function updateStatistics() {
+            if (tableData.statistics && tableData.statistics[currentPeriod]) {
+                const stats = tableData.statistics[currentPeriod];
+                document.getElementById('maxGold').textContent = formatPrice(stats.max_gold_price);
+                document.getElementById('maxSilver').textContent = formatPrice(stats.max_silver_price);
+                document.getElementById('maxPortfolio').textContent = formatCurrency(stats.max_portfolio_value);
+            }
+        }
+
+        function switchTab(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(period + 'Tab').classList.add('active');
+            
+            const timeHeader = document.getElementById('timeHeader');
+            timeHeader.textContent = period === 'daily' ? 'TIME' : 'DATE';
+            
+            updateTable();
+            updateStatistics();
+        }
+
+        function updateTable() {
+            const goldAmount = portfolioConfig.gold_amount || 0;
+            const silverAmount = portfolioConfig.silver_amount || 0;
+            
+            if (!tableData[currentPeriod]) return;
+            
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            tableData[currentPeriod].forEach((item) => {
+                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                
+                const row = document.createElement('tr');
+                
+                const timeDisplay = item.optimized ? 
+                    `<span title="Peak değer (${item.peak_time || 'unknown'})">${item.time}</span>` : 
+                    item.time;
+                
+                row.innerHTML = `
+                    <td class="time">${timeDisplay}</td>
+                    <td class="price">${formatPrice(item.gold_price)}</td>
+                    <td class="price">${formatPrice(item.silver_price)}</td>
+                    <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
+                    <td class="change ${getChangeClass(item.change_percent)}">${formatChange(item.change_percent)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getChangeClass(changePercent) {
+            if (changePercent > 0) return 'positive';
+            if (changePercent < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function formatChange(changePercent) {
+            if (changePercent === 0) return '0.00%';
+            const sign = changePercent > 0 ? '+' : '';
+            return `${sign}${changePercent.toFixed(2)}%`;
+        }
+
+        function updatePortfolio() {
+            const goldAmount = portfolioConfig.gold_amount || 0;
+            const silverAmount = portfolioConfig.silver_amount || 0;
+            
+            const goldValue = goldAmount * currentGoldPrice;
+            const silverValue = silverAmount * currentSilverPrice;
+            const totalValue = goldValue + silverValue;
+            
+            document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
+            document.getElementById('goldValue').textContent = formatCurrency(goldValue);
+            document.getElementById('silverValue').textContent = formatCurrency(silverValue);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + '₺';
+        }
+
+        function formatPrice(price) {
+            if (!price) return '0,00₺';
+            return new Intl.NumberFormat('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price) + '₺';
+        }
+
+        function logout() {
+            if (confirm('EXIT SYSTEM?')) {
+                fetch('/logout', {method: 'POST'}).then(() => {
+                    window.location.href = '/login';
+                });
+            }
+        }
+
+        setInterval(fetchData, 300000);
+        window.onload = function() { fetchData(); };
+    </script>
+</body>
+</html>'''
+
+LOGIN_TEMPLATE = '''<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ SYSTEM ACCESS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 30%, #ff00ff30 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, #00ffff30 0%, transparent 50%),
+                linear-gradient(45deg, #1a0033 0%, #000 50%, #003333 100%);
+            z-index: -1;
+            animation: backgroundShift 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes backgroundShift {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(5deg) scale(1.1); }
+        }
+        
+        .login-container {
+            background: rgba(10, 10, 20, 0.9);
+            border: 2px solid #00ffff;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.5),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+            border-radius: 20px;
+            z-index: -1;
+            animation: borderRotate 4s linear infinite;
+            background-size: 400% 400%;
+        }
+        
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        .system-header {
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ff00ff;
+            text-shadow: 0 0 20px #ff00ff;
+            margin-bottom: 10px;
+        }
+        
+        .access-text {
+            font-size: 14px;
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            color: #ffff00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(0, 20, 20, 0.8);
+            color: #00ffff;
+            font-family: 'Orbitron', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            background: rgba(20, 0, 20, 0.8);
+        }
+        
+        .form-input::placeholder {
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .access-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .access-btn:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.8);
+            transform: scale(1.02);
+        }
+        
+        .access-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #ff6666;
+            font-size: 12px;
+            text-transform: uppercase;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+            animation: errorPulse 0.5s ease-in-out;
+        }
+        
+        @keyframes errorPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .system-info {
+            font-size: 10px;
+            color: #666;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="system-header">
+            <div class="logo">⚡ METAL TRACKER</div>
+            <div class="access-text">SYSTEM ACCESS</div>
+        </div>
+        
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label">ACCESS CODE</label>
+                <input type="password" class="form-input" id="password" placeholder="ENTER CODE" required>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                ACCESS DENIED - INVALID CODE
+            </div>
+            
+            <button type="submit" class="access-btn" id="loginBtn">
+                CONNECT
+            </button>
+        </form>
+        
+        <div class="system-info">
+            SECURE CONNECTION ESTABLISHED<br>
+            METAL TRACKER v3.0 - CYBERPUNK EDITION
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            errorMessage.classList.remove('show');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'CONNECTING...';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loginBtn.textContent = 'ACCESS GRANTED';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    errorMessage.classList.add('show');
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
+                }
+            } catch (error) {
+                errorMessage.textContent = 'CONNECTION ERROR - RETRY';
+                errorMessage.classList.add('show');
+            } finally {
+                setTimeout(() => {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'CONNECT';
+                }, 1000);
+            }
+        }
+        
+        window.onload = function() {
+            document.getElementById('password').focus();
+        };
+    </script>
+</body>
+</html>'''
+
 @app.route('/')
 def index():
-    """Ana sayfa - authentication kontrolü ile"""
     if not is_authenticated():
         return redirect(url_for('login'))
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/login')
 def login():
-    """Login sayfası - zaten giriş yapılmışsa ana sayfaya yönlendir"""
     if is_authenticated():
         return redirect(url_for('index'))
     return LOGIN_TEMPLATE
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    """Login API endpoint - şifre doğrulama ve session oluşturma"""
     try:
         data = request.get_json()
         password = data.get('password', '')
         
         if verify_password(password):
-            # Kalıcı session oluştur
             session.permanent = True
             session['authenticated'] = True
             
-            # Response oluştur ve auth cookie ekle
             response = make_response(jsonify({'success': True}))
             response = set_auth_cookie(response)
             
@@ -835,16 +1218,13 @@ def api_login():
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    """Logout API endpoint - session ve cookie temizleme"""
     session.clear()
     response = make_response(jsonify({'success': True}))
-    # Auth cookie'sini sil
     response.set_cookie('auth_token', '', expires=0)
     return response
 
 @app.route('/api/gold-price')
 def api_gold_price():
-    """Altın fiyatı API endpoint"""
     try:
         price = get_gold_price()
         return jsonify({'success': bool(price), 'price': price or ''})
@@ -853,7 +1233,6 @@ def api_gold_price():
 
 @app.route('/api/silver-price')
 def api_silver_price():
-    """Gümüş fiyatı API endpoint"""
     try:
         price = get_silver_price()
         return jsonify({'success': bool(price), 'price': price or ''})
@@ -862,7 +1241,6 @@ def api_silver_price():
 
 @app.route('/api/table-data')
 def api_table_data():
-    """Tablo verisi API endpoint"""
     try:
         data = get_table_data()
         return jsonify({'success': bool(data), 'data': data or {}})
@@ -871,33 +1249,14 @@ def api_table_data():
 
 @app.route('/api/portfolio-config')
 def api_portfolio_config():
-    """Portföy konfigürasyonu API endpoint"""
     try:
         config = load_portfolio_config()
-        # Güvenlik: şifreyi döndürme
         config.pop('password_hash', None)
         return jsonify({'success': True, 'config': config})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-# ANA PROGRAM
 if __name__ == '__main__':
-    """Ana program - Flask uygulamasını başlat"""
-    
-    # Session kalıcılığı için önemli ayarlar
     app.permanent_session_lifetime = timedelta(days=365)
-    
-    # Port ayarı (Heroku uyumlu)
     port = int(os.environ.get('PORT', 5000))
-    
-    # Uygulamayı başlat
-    print("🚀 Metal Tracker v3.0 - Cyberpunk Edition Starting...")
-    print(f"⚡ Server running on port: {port}")
-    print("🔒 Secure session system: ACTIVE")
-    print("🌐 Ready for connections...")
-    
-    app.run(
-        host='0.0.0.0',    # Tüm network interface'lerde dinle
-        port=port,         # Port numarası
-        debug=False        # Production için debug=False
-    )
+    app.run(host='0.0.0.0', port=port, debug=False)
