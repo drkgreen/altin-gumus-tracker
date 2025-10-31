@@ -433,7 +433,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 14px;
+            padding: 14px 18px;
         }
         
         .header-left { display: flex; align-items: center; gap: 10px; }
@@ -461,19 +461,19 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .portfolio-summary {
             background: linear-gradient(135deg, rgba(29, 78, 216, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
             border: 1px solid rgba(96, 165, 250, 0.3);
-            border-radius: 18px; padding: 16px 14px; color: white; text-align: center;
+            border-radius: 18px; padding: 20px; color: white; text-align: center;
             backdrop-filter: blur(25px);
             box-shadow: 0 8px 32px rgba(29, 78, 216, 0.3);
         }
         
-        .portfolio-amount { font-size: 36px; font-weight: 900; margin-bottom: 12px; color: #60a5fa; }
+        .portfolio-amount { font-size: 36px; font-weight: 900; margin-bottom: 16px; color: #60a5fa; }
         
-        .portfolio-metals { display: flex; gap: 8px; margin-top: 12px; }
+        .portfolio-metals { display: flex; gap: 8px; margin-top: 16px; }
         .metal-item {
             flex: 1; 
             background: rgba(15, 23, 42, 0.6); 
             border: 1px solid rgba(59, 130, 246, 0.25);
-            border-radius: 14px; padding: 10px; min-height: 100px;
+            border-radius: 14px; padding: 14px; min-height: 120px;
             backdrop-filter: blur(15px);
         }
         
@@ -574,7 +574,18 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.negative { color: #f87171; }
         .change.neutral { color: #94a3b8; }
         
-
+        @media (max-width: 400px) {
+            .container { padding: 0 5px; }
+            .portfolio-metals { flex-direction: column; gap: 10px; }
+            .history-header { flex-direction: column; gap: 8px; }
+            .statistics-grid { grid-template-columns: 1fr; gap: 6px; }
+            .stat-item { padding: 8px 6px; }
+            .stat-label { font-size: 8px; }
+            .stat-value { font-size: 12px; }
+            .stat-date { font-size: 7px; }
+            .peak-info { font-size: 9px; padding: 6px; }
+            .price-table th, .price-table td { padding: 8px 4px; font-size: 11px; }
+        }
     </style>
 </head>
 <body>
