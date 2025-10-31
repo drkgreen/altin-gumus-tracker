@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.0
-Neon Cyberpunk Dashboard Theme - Tam Çalışan Sürüm
+Metal Price Tracker Web App v3.1
+Soft Dark Theme - Göz Dostu ve Konforlu Tasarım
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -16,12 +16,10 @@ import secrets
 app = Flask(__name__)
 CORS(app)
 
-# Secret key sabit olsun
 SECRET_KEY = os.environ.get('SECRET_KEY', 'metal_tracker_secret_key_2024_permanent')
 app.secret_key = SECRET_KEY
 
 def load_portfolio_config():
-    """GitHub'dan portföy ayarlarını ve hash'lenmiş şifreyi yükler"""
     try:
         url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/portfolio-config.json"
         response = requests.get(url, timeout=10)
@@ -32,13 +30,11 @@ def load_portfolio_config():
         return {"gold_amount": 0, "silver_amount": 0, "password_hash": ""}
 
 def verify_password(password):
-    """Şifreyi hash'leyip GitHub'daki hash ile karşılaştırır"""
     config = load_portfolio_config()
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     return password_hash == config.get("password_hash", "")
 
 def load_price_history():
-    """GitHub'dan fiyat geçmişini yükler"""
     try:
         url = "https://raw.githubusercontent.com/drkgreen/altin-gumus-tracker/main/data/price-history.json"
         response = requests.get(url, timeout=10)
@@ -49,7 +45,6 @@ def load_price_history():
         return {"records": []}
 
 def get_daily_data():
-    """Son 2 günün tüm verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -101,7 +96,6 @@ def get_daily_data():
         return []
 
 def get_weekly_optimized_data():
-    """Son 30 günün optimize edilmiş verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -147,7 +141,7 @@ def get_weekly_optimized_data():
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
             weekly_data.append({
-                "time": f"{day_data['time']} ⚡",
+                "time": f"{day_data['time']} 📈",
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
                 "change_percent": change_percent,
@@ -163,7 +157,6 @@ def get_weekly_optimized_data():
         return []
 
 def calculate_statistics(data_type='all'):
-    """Maksimum değerleri hesapla"""
     try:
         config = load_portfolio_config()
         
@@ -203,7 +196,6 @@ def calculate_statistics(data_type='all'):
         return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
 
 def get_table_data():
-    """Tablo verilerini getir"""
     try:
         daily_data = get_daily_data()
         weekly_data = get_weekly_optimized_data()
@@ -228,7 +220,6 @@ def get_table_data():
         }
 
 def get_gold_price():
-    """Yapı Kredi altın fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -249,7 +240,6 @@ def get_gold_price():
         raise Exception(f"Gold price error: {str(e)}")
 
 def get_silver_price():
-    """Vakıfbank gümüş fiyatını çeker"""
     try:
         url = "https://m.doviz.com/altin/vakifbank/gumus"
         headers = {'User-Agent': 'Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0'}
@@ -270,7 +260,6 @@ def get_silver_price():
         raise Exception(f"Silver price error: {str(e)}")
 
 def is_authenticated():
-    """Kullanıcının doğrulanıp doğrulanmadığını kontrol et"""
     if session.get('authenticated'):
         return True
     
@@ -285,7 +274,6 @@ def is_authenticated():
     return False
 
 def set_auth_cookie(response):
-    """Doğrulama cookie'si ekle"""
     auth_token = hashlib.sha256(f"{SECRET_KEY}_authenticated".encode()).hexdigest()
     expires = datetime.now() + timedelta(days=365)
     response.set_cookie(
@@ -298,46 +286,23 @@ def set_auth_cookie(response):
     )
     return response
 
-# HTML TEMPLATES
+# SOFT DARK THEME - GÖZ DOSTU
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Metal Tracker v3.0</title>
+    <title>Metal Tracker v3.1</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Orbitron', monospace;
-            background: #0a0a0f;
-            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+            color: #e4e4e7;
             min-height: 100vh;
             padding: 20px;
-            overflow-x: hidden;
-            position: relative;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 25% 25%, #ff00ff20 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, #00ffff20 0%, transparent 50%),
-                linear-gradient(45deg, #1a0033 0%, #000 50%, #003333 100%);
-            z-index: -1;
-            animation: backgroundShift 10s ease-in-out infinite alternate;
-        }
-        
-        @keyframes backgroundShift {
-            0% { transform: translateX(-10px) translateY(-10px); }
-            100% { transform: translateX(10px) translateY(10px); }
+            line-height: 1.5;
         }
         
         .container {
@@ -349,78 +314,57 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             gap: 20px;
         }
         
-        .neon-card {
-            background: rgba(10, 10, 20, 0.8);
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.3),
-                inset 0 0 20px rgba(0, 255, 255, 0.05);
-            position: relative;
+        .card {
+            background: rgba(45, 45, 63, 0.8);
+            border: 1px solid rgba(156, 163, 175, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(8px);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        .neon-card:hover {
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.5),
-                inset 0 0 30px rgba(0, 255, 255, 0.1);
+        .card:hover {
+            border-color: rgba(156, 163, 175, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
         
-        .neon-card::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
-            border-radius: 15px;
-            z-index: -1;
-            animation: borderGlow 3s linear infinite;
-            background-size: 400% 400%;
-        }
-        
-        @keyframes borderGlow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        
-        .header-card {
+        /* Header */
+        .header {
             grid-column: 1 / -1;
-            background: rgba(20, 20, 40, 0.9);
-            border: 2px solid #ff00ff;
+            background: rgba(55, 65, 81, 0.9);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 25px;
-        }
-        
-        .header-card::before {
-            background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff);
-            background-size: 400% 400%;
+            padding: 20px 24px;
         }
         
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
         
         .logo {
             font-size: 24px;
-            font-weight: 900;
-            color: #ff00ff;
-            text-shadow: 0 0 10px #ff00ff;
+            font-weight: 700;
+            color: #f9fafb;
         }
         
-        .status-indicator {
-            width: 12px;
-            height: 12px;
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: #00ff00;
-            box-shadow: 0 0 10px #00ff00;
+            background: #10b981;
             animation: pulse 2s infinite;
         }
         
@@ -429,157 +373,146 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             50% { opacity: 0.5; }
         }
         
-        .update-time {
-            font-size: 14px;
-            color: #00ffff;
-            text-shadow: 0 0 5px #00ffff;
-        }
-        
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         
-        .cyber-btn {
-            padding: 8px 16px;
-            background: linear-gradient(45deg, #ff00ff, #00ffff);
+        .btn {
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
-            color: #000;
-            font-weight: 700;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            font-size: 12px;
-            font-family: 'Orbitron', monospace;
+            transition: all 0.2s ease;
+            font-size: 14px;
         }
         
-        .cyber-btn:hover {
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
-            transform: scale(1.05);
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
         }
         
-        .portfolio-card {
-            background: rgba(20, 0, 40, 0.8);
-            border: 2px solid #ffff00;
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(107, 114, 128, 0.3);
+            color: #e5e7eb;
+            border: 1px solid rgba(156, 163, 175, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(107, 114, 128, 0.5);
+        }
+        
+        /* Portfolio Card */
+        .portfolio {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
             text-align: center;
         }
         
-        .portfolio-card::before {
-            background: linear-gradient(45deg, #ffff00, #ff00ff, #ffff00);
-            background-size: 400% 400%;
-        }
-        
         .portfolio-title {
-            font-size: 18px;
-            color: #ffff00;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px #ffff00;
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .portfolio-amount {
-            font-size: 32px;
-            font-weight: 900;
-            color: #00ff00;
-            text-shadow: 0 0 15px #00ff00;
-            margin-bottom: 20px;
+            font-size: 36px;
+            font-weight: 800;
+            color: #f9fafb;
+            margin-bottom: 24px;
         }
         
-        .metal-grid {
+        .metals-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 16px;
         }
         
-        .metal-info {
-            background: rgba(0, 20, 20, 0.6);
-            border: 1px solid #00ffff;
-            border-radius: 10px;
-            padding: 15px;
+        .metal {
+            background: rgba(75, 85, 99, 0.3);
+            border-radius: 12px;
+            padding: 16px;
             text-align: center;
         }
         
         .metal-name {
             font-size: 14px;
-            color: #00ffff;
+            color: #9ca3af;
             margin-bottom: 8px;
             text-transform: uppercase;
         }
         
         .metal-price {
-            font-size: 12px;
-            color: #ffffff;
-            margin-bottom: 5px;
+            font-size: 13px;
+            color: #d1d5db;
+            margin-bottom: 8px;
         }
         
         .metal-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            color: #ffff00;
-            text-shadow: 0 0 8px #ffff00;
+            color: #f9fafb;
         }
         
         .metal-amount {
-            font-size: 10px;
-            color: #888;
-            margin-top: 5px;
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
         }
         
-        .stats-card {
-            background: rgba(0, 20, 0, 0.8);
-            border: 2px solid #00ff00;
-        }
-        
-        .stats-card::before {
-            background: linear-gradient(45deg, #00ff00, #ffff00, #00ff00);
-            background-size: 400% 400%;
+        /* Stats Card */
+        .stats {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
         
         .stats-title {
             font-size: 16px;
-            color: #00ff00;
-            margin-bottom: 15px;
+            color: #9ca3af;
+            margin-bottom: 20px;
             text-align: center;
-            text-shadow: 0 0 10px #00ff00;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 12px;
         }
         
-        .stat-item {
-            background: rgba(0, 40, 0, 0.6);
-            border: 1px solid #00ff00;
+        .stat {
+            background: rgba(75, 85, 99, 0.3);
             border-radius: 8px;
-            padding: 10px;
+            padding: 16px;
             text-align: center;
         }
         
         .stat-label {
-            font-size: 10px;
-            color: #88ff88;
-            margin-bottom: 5px;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
             text-transform: uppercase;
         }
         
         .stat-value {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            color: #00ff00;
-            text-shadow: 0 0 8px #00ff00;
+            color: #10b981;
         }
         
-        .data-card {
+        /* Data Table */
+        .data {
             grid-column: 1 / -1;
-            background: rgba(40, 0, 40, 0.8);
-            border: 2px solid #ff00ff;
-        }
-        
-        .data-card::before {
-            background: linear-gradient(45deg, #ff00ff, #ffff00, #ff00ff);
-            background-size: 400% 400%;
+            background: rgba(55, 65, 81, 0.6);
         }
         
         .data-header {
@@ -591,114 +524,119 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .data-title {
             font-size: 18px;
-            color: #ff00ff;
-            text-shadow: 0 0 10px #ff00ff;
+            color: #f9fafb;
+            font-weight: 600;
         }
         
-        .tab-buttons {
+        .tabs {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            background: rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
+            padding: 4px;
         }
         
-        .tab-btn {
-            padding: 8px 15px;
-            background: rgba(40, 0, 40, 0.8);
-            border: 1px solid #ff00ff;
-            border-radius: 5px;
-            color: #ff00ff;
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #9ca3af;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 12px;
-            text-transform: uppercase;
-            font-family: 'Orbitron', monospace;
+            transition: all 0.2s ease;
+            font-size: 14px;
         }
         
-        .tab-btn.active {
-            background: #ff00ff;
-            color: #000;
-            box-shadow: 0 0 15px #ff00ff;
+        .tab.active {
+            background: #3b82f6;
+            color: white;
         }
         
-        .data-table {
-            background: rgba(0, 0, 20, 0.8);
-            border-radius: 10px;
+        .table-wrapper {
+            background: rgba(75, 85, 99, 0.2);
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid #00ffff;
+            border: 1px solid rgba(156, 163, 175, 0.1);
         }
         
-        .data-table table {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
         
-        .data-table th {
-            background: rgba(0, 40, 40, 0.8);
-            color: #00ffff;
-            padding: 12px 8px;
+        th {
+            background: rgba(75, 85, 99, 0.4);
+            color: #d1d5db;
+            padding: 12px 16px;
             text-align: left;
-            font-size: 12px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #00ffff;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(156, 163, 175, 0.2);
         }
         
-        .data-table td {
-            padding: 10px 8px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            font-size: 11px;
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(156, 163, 175, 0.1);
+            font-size: 14px;
         }
         
-        .data-table tr:hover {
-            background: rgba(0, 255, 255, 0.1);
+        tr:hover {
+            background: rgba(75, 85, 99, 0.2);
         }
         
-        .data-table .time { color: #ffff00; font-weight: 700; }
-        .data-table .price { color: #00ffff; }
-        .data-table .portfolio { color: #00ff00; font-weight: 700; }
-        .data-table .change { font-weight: 700; }
-        .change.positive { color: #00ff00; }
-        .change.negative { color: #ff0000; }
-        .change.neutral { color: #888; }
+        .time { color: #60a5fa; font-weight: 600; }
+        .price { color: #e5e7eb; }
+        .portfolio { color: #10b981; font-weight: 600; }
+        .change { font-weight: 600; }
+        .change.positive { color: #10b981; }
+        .change.negative { color: #ef4444; }
+        .change.neutral { color: #9ca3af; }
         
+        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
-                gap: 15px;
-                padding: 0 10px;
+                gap: 16px;
+                padding: 0 12px;
             }
             
-            .metal-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .data-header { flex-direction: column; gap: 10px; }
-            .portfolio-amount { font-size: 24px; }
+            .metals-grid { grid-template-columns: 1fr; }
+            .data-header { flex-direction: column; gap: 12px; }
+            .portfolio-amount { font-size: 28px; }
+            th, td { padding: 10px 12px; font-size: 13px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="neon-card header-card">
+        <!-- Header -->
+        <div class="card header">
             <div class="header-left">
-                <div class="logo">⚡ METAL TRACKER v3.0</div>
-                <div class="status-indicator"></div>
-                <div class="update-time" id="updateTime">SYSTEM ONLINE</div>
+                <div class="logo">📊 Metal Tracker</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Online</span>
+                </div>
             </div>
             <div class="header-actions">
-                <button class="cyber-btn" onclick="fetchData()" id="refreshBtn">SYNC</button>
-                <button class="cyber-btn" onclick="logout()">EXIT</button>
+                <button class="btn btn-primary" onclick="fetchData()" id="refreshBtn">Güncelle</button>
+                <button class="btn btn-secondary" onclick="logout()">Çıkış</button>
             </div>
         </div>
         
-        <div class="neon-card portfolio-card">
-            <div class="portfolio-title">PORTFOLIO VALUE</div>
+        <!-- Portfolio -->
+        <div class="card portfolio">
+            <div class="portfolio-title">Portföy Değeri</div>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
-            <div class="metal-grid">
-                <div class="metal-info">
-                    <div class="metal-name">GOLD</div>
+            <div class="metals-grid">
+                <div class="metal">
+                    <div class="metal-name">Altın</div>
                     <div class="metal-price" id="goldPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="goldValue">0,00 ₺</div>
                     <div class="metal-amount" id="goldAmount">0 gr</div>
                 </div>
-                <div class="metal-info">
-                    <div class="metal-name">SILVER</div>
+                <div class="metal">
+                    <div class="metal-name">Gümüş</div>
                     <div class="metal-price" id="silverPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverValue">0,00 ₺</div>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
@@ -706,41 +644,43 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="neon-card stats-card">
-            <div class="stats-title">⚡ MAX VALUES</div>
+        <!-- Statistics -->
+        <div class="card stats">
+            <div class="stats-title">Maksimum Değerler</div>
             <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">MAX GOLD</div>
+                <div class="stat">
+                    <div class="stat-label">En Yüksek Altın</div>
                     <div class="stat-value" id="maxGold">0 ₺</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">MAX SILVER</div>
+                <div class="stat">
+                    <div class="stat-label">En Yüksek Gümüş</div>
                     <div class="stat-value" id="maxSilver">0 ₺</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">MAX PORTFOLIO</div>
+                <div class="stat">
+                    <div class="stat-label">En Yüksek Portföy</div>
                     <div class="stat-value" id="maxPortfolio">0 ₺</div>
                 </div>
             </div>
         </div>
         
-        <div class="neon-card data-card">
+        <!-- Data Table -->
+        <div class="card data">
             <div class="data-header">
-                <div class="data-title">⚡ PRICE DATA STREAM</div>
-                <div class="tab-buttons">
-                    <button class="tab-btn active" onclick="switchTab('daily')" id="dailyTab">DAILY</button>
-                    <button class="tab-btn" onclick="switchTab('weekly')" id="weeklyTab">MONTHLY</button>
+                <div class="data-title">Fiyat Verileri</div>
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('daily')" id="dailyTab">Günlük</button>
+                    <button class="tab" onclick="switchTab('weekly')" id="weeklyTab">Aylık</button>
                 </div>
             </div>
-            <div class="data-table">
+            <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th id="timeHeader">TIME</th>
-                            <th>GOLD</th>
-                            <th>SILVER</th>
-                            <th>PORTFOLIO</th>
-                            <th>CHANGE</th>
+                            <th id="timeHeader">Saat</th>
+                            <th>Altın</th>
+                            <th>Gümüş</th>
+                            <th>Portföy</th>
+                            <th>Değişim</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -759,10 +699,12 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         async function fetchData() {
             const refreshBtn = document.getElementById('refreshBtn');
+            const statusText = document.getElementById('statusText');
             
             try {
-                refreshBtn.textContent = 'SYNCING...';
-                refreshBtn.style.transform = 'scale(0.9)';
+                refreshBtn.textContent = 'Güncelleniyor...';
+                refreshBtn.disabled = true;
+                statusText.textContent = 'Güncelleniyor...';
                 
                 const [goldRes, silverRes, tableRes, configRes] = await Promise.all([
                     fetch('/api/gold-price'), fetch('/api/silver-price'),
@@ -799,14 +741,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 }
                 
                 updatePortfolio();
-                document.getElementById('updateTime').textContent = 'LAST SYNC: ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+                statusText.textContent = 'Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
                 
             } catch (error) {
-                console.error('Sync error:', error);
-                document.getElementById('updateTime').textContent = 'SYNC ERROR';
+                console.error('Güncelleme hatası:', error);
+                statusText.textContent = 'Hata';
             } finally {
-                refreshBtn.textContent = 'SYNC';
-                refreshBtn.style.transform = 'scale(1)';
+                refreshBtn.textContent = 'Güncelle';
+                refreshBtn.disabled = false;
             }
         }
 
@@ -821,11 +763,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
         function switchTab(period) {
             currentPeriod = period;
-            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'Tab').classList.add('active');
             
             const timeHeader = document.getElementById('timeHeader');
-            timeHeader.textContent = period === 'daily' ? 'TIME' : 'DATE';
+            timeHeader.textContent = period === 'daily' ? 'Saat' : 'Tarih';
             
             updateTable();
             updateStatistics();
@@ -846,7 +788,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const row = document.createElement('tr');
                 
                 const timeDisplay = item.optimized ? 
-                    `<span title="Peak değer (${item.peak_time || 'unknown'})">${item.time}</span>` : 
+                    `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
                     item.time;
                 
                 row.innerHTML = `
@@ -901,238 +843,177 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function logout() {
-            if (confirm('EXIT SYSTEM?')) {
+            if (confirm('Çıkış yapmak istediğinize emin misiniz?')) {
                 fetch('/logout', {method: 'POST'}).then(() => {
                     window.location.href = '/login';
                 });
             }
         }
 
+        // Otomatik güncelleme (5 dakikada bir)
         setInterval(fetchData, 300000);
         window.onload = function() { fetchData(); };
     </script>
 </body>
 </html>'''
 
+# SOFT LOGIN TEMPLATE
 LOGIN_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ SYSTEM ACCESS</title>
+    <title>Metal Tracker - Giriş</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Orbitron', monospace;
-            background: #0a0a0f;
-            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+            color: #e4e4e7;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 30% 30%, #ff00ff30 0%, transparent 50%),
-                radial-gradient(circle at 70% 70%, #00ffff30 0%, transparent 50%),
-                linear-gradient(45deg, #1a0033 0%, #000 50%, #003333 100%);
-            z-index: -1;
-            animation: backgroundShift 8s ease-in-out infinite alternate;
-        }
-        
-        @keyframes backgroundShift {
-            0% { transform: rotate(0deg) scale(1); }
-            100% { transform: rotate(5deg) scale(1.1); }
+            padding: 20px;
         }
         
         .login-container {
-            background: rgba(10, 10, 20, 0.9);
-            border: 2px solid #00ffff;
+            background: rgba(45, 45, 63, 0.9);
+            border: 1px solid rgba(156, 163, 175, 0.3);
             border-radius: 20px;
-            padding: 40px 30px;
+            padding: 40px 32px;
             width: 100%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.5),
-                inset 0 0 30px rgba(0, 255, 255, 0.1);
-            position: relative;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
         }
         
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
-            border-radius: 20px;
-            z-index: -1;
-            animation: borderRotate 4s linear infinite;
-            background-size: 400% 400%;
-        }
-        
-        @keyframes borderRotate {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        
-        .system-header {
-            margin-bottom: 30px;
+        .header {
+            margin-bottom: 32px;
         }
         
         .logo {
-            font-size: 28px;
-            font-weight: 900;
-            color: #ff00ff;
-            text-shadow: 0 0 20px #ff00ff;
-            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #f9fafb;
+            margin-bottom: 8px;
         }
         
-        .access-text {
-            font-size: 14px;
-            color: #00ffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px #00ffff;
+        .subtitle {
+            font-size: 16px;
+            color: #9ca3af;
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
             text-align: left;
         }
         
         .form-label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            color: #ffff00;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #d1d5db;
         }
         
         .form-input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #00ffff;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid rgba(156, 163, 175, 0.3);
+            border-radius: 8px;
             font-size: 16px;
-            background: rgba(0, 20, 20, 0.8);
-            color: #00ffff;
-            font-family: 'Orbitron', monospace;
-            transition: all 0.3s ease;
+            background: rgba(75, 85, 99, 0.3);
+            color: #f9fafb;
+            transition: all 0.2s ease;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: #ff00ff;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-            background: rgba(20, 0, 20, 0.8);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: rgba(75, 85, 99, 0.5);
         }
         
         .form-input::placeholder {
-            color: #666;
-            text-transform: uppercase;
+            color: #6b7280;
         }
         
-        .access-btn {
+        .login-btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            padding: 12px 24px;
+            background: #3b82f6;
             border: none;
-            border-radius: 10px;
-            color: #000;
+            border-radius: 8px;
+            color: white;
             font-size: 16px;
-            font-weight: 900;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Orbitron', monospace;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
         }
         
-        .access-btn:hover {
-            box-shadow: 0 0 25px rgba(255, 0, 255, 0.8);
-            transform: scale(1.02);
+        .login-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
         }
         
-        .access-btn:disabled {
+        .login-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
         
         .error-message {
-            background: rgba(255, 0, 0, 0.2);
-            border: 1px solid #ff0000;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 20px;
-            color: #ff6666;
-            font-size: 12px;
-            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #fca5a5;
+            font-size: 14px;
             display: none;
         }
         
         .error-message.show {
             display: block;
-            animation: errorPulse 0.5s ease-in-out;
         }
         
-        @keyframes errorPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .system-info {
-            font-size: 10px;
-            color: #666;
-            margin-top: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .info {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 16px;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="system-header">
-            <div class="logo">⚡ METAL TRACKER</div>
-            <div class="access-text">SYSTEM ACCESS</div>
+        <div class="header">
+            <div class="logo">📊 Metal Tracker</div>
+            <div class="subtitle">Güvenli giriş yapın</div>
         </div>
         
         <form onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label class="form-label">ACCESS CODE</label>
-                <input type="password" class="form-input" id="password" placeholder="ENTER CODE" required>
+                <label class="form-label">Şifre</label>
+                <input type="password" class="form-input" id="password" placeholder="Şifrenizi girin" required>
             </div>
             
             <div class="error-message" id="errorMessage">
-                ACCESS DENIED - INVALID CODE
+                Hatalı şifre! Lütfen tekrar deneyin.
             </div>
             
-            <button type="submit" class="access-btn" id="loginBtn">
-                CONNECT
+            <button type="submit" class="login-btn" id="loginBtn">
+                Giriş Yap
             </button>
         </form>
         
-        <div class="system-info">
-            SECURE CONNECTION ESTABLISHED<br>
-            METAL TRACKER v3.0 - CYBERPUNK EDITION
+        <div class="info">
+            Metal Tracker v3.1 - Göz Dostu Tasarım<br>
+            Giriş bilgileriniz güvenli şekilde saklanır.
         </div>
     </div>
 
@@ -1146,7 +1027,7 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
             
             errorMessage.classList.remove('show');
             loginBtn.disabled = true;
-            loginBtn.textContent = 'CONNECTING...';
+            loginBtn.textContent = 'Giriş yapılıyor...';
             
             try {
                 const response = await fetch('/api/login', {
@@ -1158,23 +1039,23 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
                 const result = await response.json();
                 
                 if (result.success) {
-                    loginBtn.textContent = 'ACCESS GRANTED';
+                    loginBtn.textContent = 'Başarılı!';
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1000);
+                    }, 500);
                 } else {
                     errorMessage.classList.add('show');
                     document.getElementById('password').value = '';
                     document.getElementById('password').focus();
                 }
             } catch (error) {
-                errorMessage.textContent = 'CONNECTION ERROR - RETRY';
+                errorMessage.textContent = 'Bağlantı hatası! Lütfen tekrar deneyin.';
                 errorMessage.classList.add('show');
             } finally {
                 setTimeout(() => {
                     loginBtn.disabled = false;
-                    loginBtn.textContent = 'CONNECT';
-                }, 1000);
+                    loginBtn.textContent = 'Giriş Yap';
+                }, 500);
             }
         }
         
