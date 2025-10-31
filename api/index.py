@@ -531,6 +531,23 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             background: rgba(15, 23, 42, 0.4);
             border: 1px solid rgba(59, 130, 246, 0.2);
             backdrop-filter: blur(15px);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .price-table::-webkit-scrollbar {
+            width: 6px;
+        }
+        .price-table::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 3px;
+        }
+        .price-table::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.4);
+            border-radius: 3px;
+        }
+        .price-table::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.6);
         }
         
         .price-table table { width: 100%; border-collapse: collapse; }
