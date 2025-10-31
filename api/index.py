@@ -433,7 +433,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 18px;
+            padding: 10px 16px;
         }
         
         .header-left { display: flex; align-items: center; gap: 10px; }
