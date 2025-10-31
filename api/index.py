@@ -483,6 +483,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-amount { font-size: 11px; color: #94a3b8; margin-top: 6px; }
         
         .statistics-section { padding: 16px; }
+        .statistics-section-inline { 
+            margin-top: 20px; 
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            padding-top: 16px;
+        }
         .statistics-title {
             font-size: 16px; font-weight: 800; color: #fbbf24;
             margin-bottom: 12px; text-align: center;
@@ -616,25 +621,26 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
                 </div>
             </div>
-        </div>
-        
-        <div class="glass-card statistics-section">
-            <div class="statistics-title">📊 Maksimum Değerler</div>
-            <div class="statistics-grid">
-                <div class="stat-item">
-                    <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
-                    <div class="stat-value" id="maxGoldPrice">0 ₺</div>
-                    <div class="stat-date" id="maxGoldDate"></div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
-                    <div class="stat-value" id="maxSilverPrice">0 ₺</div>
-                    <div class="stat-date" id="maxSilverDate"></div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
-                    <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
-                    <div class="stat-date" id="maxPortfolioDate"></div>
+            
+            <!-- Maksimum Değerler Kartları Portfolio'nun Altında -->
+            <div class="statistics-section-inline">
+                <div class="statistics-title">📊 Maksimum Değerler</div>
+                <div class="statistics-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
+                        <div class="stat-value" id="maxGoldPrice">0 ₺</div>
+                        <div class="stat-date" id="maxGoldDate"></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
+                        <div class="stat-value" id="maxSilverPrice">0 ₺</div>
+                        <div class="stat-date" id="maxSilverDate"></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
+                        <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
+                        <div class="stat-date" id="maxPortfolioDate"></div>
+                    </div>
                 </div>
             </div>
         </div>
