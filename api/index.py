@@ -741,9 +741,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('maxSilverDate').textContent = stats.max_silver_date || '';
                 document.getElementById('maxPortfolioDate').textContent = stats.max_portfolio_date || '';
                 
-                // Başlığı güncelle
-                const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
-                document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
+                // Başlık artık yok, bu kısım kaldırıldı
             }
         }
 
