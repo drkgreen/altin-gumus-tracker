@@ -163,9 +163,11 @@ def get_weekly_optimized_data():
         return []
 
 def calculate_statistics(data_type='all'):
-    """Maksimum değerleri hesapla"""
+    """Maksimum değerleri hesapla - tarih ve peak bilgileri ile"""
     try:
         config = load_portfolio_config()
+        history = load_price_history()
+        records = history.get("records", [])
         
         if data_type == 'daily':
             data = get_daily_data()
@@ -177,30 +179,124 @@ def calculate_statistics(data_type='all'):
             data = daily_data + weekly_data
         
         if not data:
-            return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
+            return {
+                "max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0,
+                "max_gold_date": "", "max_silver_date": "", "max_portfolio_date": "",
+                "peak_info": ""
+            }
         
+        # En yüksek değerleri bul
         max_gold = max(item["gold_price"] for item in data)
         max_silver = max(item["silver_price"] for item in data)
         
         gold_amount = config.get("gold_amount", 0)
         silver_amount = config.get("silver_amount", 0)
         
-        max_portfolio = 0
-        if gold_amount > 0 or silver_amount > 0:
-            portfolio_values = [
-                (gold_amount * item["gold_price"]) + (silver_amount * item["silver_price"])
-                for item in data
-            ]
-            max_portfolio = max(portfolio_values) if portfolio_values else 0
+        # Portföy değerleri hesapla
+        portfolio_data = []
+        for item in data:
+            portfolio_value = (gold_amount * item["gold_price"]) + (silver_amount * item["silver_price"])
+            portfolio_data.append({
+                "value": portfolio_value,
+                "time": item.get("time", ""),
+                "optimized": item.get("optimized", False),
+                "peak_time": item.get("peak_time", "")
+            })
+        
+        max_portfolio = max(portfolio_data, key=lambda x: x["value"])["value"] if portfolio_data else 0
+        
+        # Tarih bilgilerini bul (sadece günlük veri için)
+        max_gold_date = ""
+        max_silver_date = ""
+        max_portfolio_date = ""
+        peak_info = ""
+        
+        if data_type == 'daily':
+            # Bugünün peak değerini bul
+            now = datetime.now(timezone.utc)
+            today = now.strftime("%Y-%m-%d")
+            
+            # Bugünün peak kaydını bul
+            today_peak = next(
+                (r for r in records 
+                 if r.get("date") == today 
+                 and r.get("optimized") == True 
+                 and r.get("daily_peak") == True), 
+                None
+            )
+            
+            if today_peak:
+                # Türkiye saatine çevir
+                turkey_time = now + timedelta(hours=3)
+                day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][turkey_time.weekday()]
+                date_str = f"{turkey_time.strftime('%d.%m.%Y')} {day_name}"
+                
+                max_gold_date = date_str
+                max_silver_date = date_str  
+                max_portfolio_date = date_str
+                
+                peak_time = today_peak.get("peak_time", "bilinmiyor")
+                peak_info = f"Bugünün peak değeri: {peak_time}"
+            else:
+                # Peak değer yoksa genel tarih
+                turkey_time = now + timedelta(hours=3)
+                day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][turkey_time.weekday()]
+                date_str = f"{turkey_time.strftime('%d.%m.%Y')} {day_name}"
+                max_gold_date = date_str
+                max_silver_date = date_str
+                max_portfolio_date = date_str
+                peak_info = "Güncel veriler"
+        
+        elif data_type == 'weekly':
+            # Haftalık veriler için en yüksek değerlerin tarihlerini bul
+            now = datetime.now(timezone.utc)
+            
+            # Son 30 günün peak verilerinden en yüksekleri bul
+            for i in range(30):
+                check_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+                day_peak = next(
+                    (r for r in records 
+                     if r.get("date") == check_date 
+                     and r.get("optimized") == True 
+                     and r.get("daily_peak") == True), 
+                    None
+                )
+                
+                if day_peak:
+                    if day_peak["gold_price"] == max_gold and not max_gold_date:
+                        date_obj = now - timedelta(days=i) + timedelta(hours=3)
+                        day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][date_obj.weekday()]
+                        max_gold_date = f"{date_obj.strftime('%d.%m.%Y')} {day_name}"
+                    
+                    if day_peak["silver_price"] == max_silver and not max_silver_date:
+                        date_obj = now - timedelta(days=i) + timedelta(hours=3)
+                        day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][date_obj.weekday()]
+                        max_silver_date = f"{date_obj.strftime('%d.%m.%Y')} {day_name}"
+                    
+                    portfolio_val = (gold_amount * day_peak["gold_price"]) + (silver_amount * day_peak["silver_price"])
+                    if abs(portfolio_val - max_portfolio) < 0.01 and not max_portfolio_date:
+                        date_obj = now - timedelta(days=i) + timedelta(hours=3)
+                        day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][date_obj.weekday()]
+                        max_portfolio_date = f"{date_obj.strftime('%d.%m.%Y')} {day_name}"
+            
+            peak_info = "Son 30 günün peak değerleri"
         
         return {
             "max_gold_price": max_gold,
             "max_silver_price": max_silver,
-            "max_portfolio_value": max_portfolio
+            "max_portfolio_value": max_portfolio,
+            "max_gold_date": max_gold_date,
+            "max_silver_date": max_silver_date,
+            "max_portfolio_date": max_portfolio_date,
+            "peak_info": peak_info
         }
         
     except Exception:
-        return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
+        return {
+            "max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0,
+            "max_gold_date": "", "max_silver_date": "", "max_portfolio_date": "",
+            "peak_info": ""
+        }
 
 def get_table_data():
     """Tablo verilerini getir"""
@@ -394,12 +490,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .stat-item {
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 10px; padding: 12px 8px; text-align: center;
+            border-radius: 10px; padding: 10px 6px; text-align: center;
             backdrop-filter: blur(10px);
         }
         
-        .stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 6px; line-height: 1.2; }
-        .stat-value { font-size: 14px; font-weight: 800; color: #fbbf24; }
+        .stat-label { font-size: 9px; color: #94a3b8; margin-bottom: 4px; line-height: 1.1; }
+        .stat-value { font-size: 13px; font-weight: 800; color: #fbbf24; margin-bottom: 2px; }
+        .stat-date { font-size: 8px; color: #60a5fa; line-height: 1.1; }
+        
+        .peak-info {
+            background: rgba(29, 78, 216, 0.15);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 8px; padding: 8px; margin-top: 10px;
+            text-align: center; font-size: 10px; color: #60a5fa;
+        }
         
         .price-history { padding: 14px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -452,6 +556,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .portfolio-metals { flex-direction: column; gap: 10px; }
             .history-header { flex-direction: column; gap: 8px; }
             .statistics-grid { grid-template-columns: 1fr; gap: 6px; }
+            .stat-item { padding: 8px 6px; }
+            .stat-label { font-size: 8px; }
+            .stat-value { font-size: 12px; }
+            .stat-date { font-size: 7px; }
+            .peak-info { font-size: 9px; padding: 6px; }
             .price-table th, .price-table td { padding: 8px 4px; font-size: 11px; }
         }
     </style>
@@ -496,16 +605,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 <div class="stat-item">
                     <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
                     <div class="stat-value" id="maxGoldPrice">0 ₺</div>
+                    <div class="stat-date" id="maxGoldDate"></div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">En Yüksek<br>Gümüş Fiyatı</div>
                     <div class="stat-value" id="maxSilverPrice">0 ₺</div>
+                    <div class="stat-date" id="maxSilverDate"></div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">En Yüksek<br>Portföy Tutarı</div>
                     <div class="stat-value" id="maxPortfolioValue">0 ₺</div>
+                    <div class="stat-date" id="maxPortfolioDate"></div>
                 </div>
             </div>
+            <div class="peak-info" id="peakInfo"></div>
         </div>
         
         <div class="glass-card price-history">
@@ -595,10 +708,27 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function updateStatistics() {
             if (tableData.statistics && tableData.statistics[currentPeriod]) {
                 const stats = tableData.statistics[currentPeriod];
+                
+                // Fiyat değerlerini güncelle
                 document.getElementById('maxGoldPrice').textContent = formatPrice(stats.max_gold_price);
                 document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
                 document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
                 
+                // Tarih bilgilerini güncelle
+                document.getElementById('maxGoldDate').textContent = stats.max_gold_date || '';
+                document.getElementById('maxSilverDate').textContent = stats.max_silver_date || '';
+                document.getElementById('maxPortfolioDate').textContent = stats.max_portfolio_date || '';
+                
+                // Peak bilgisini güncelle
+                const peakInfo = document.getElementById('peakInfo');
+                if (stats.peak_info) {
+                    peakInfo.textContent = stats.peak_info;
+                    peakInfo.style.display = 'block';
+                } else {
+                    peakInfo.style.display = 'none';
+                }
+                
+                // Başlığı güncelle
                 const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
                 document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
             }
