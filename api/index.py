@@ -1,4 +1,15 @@
-#!/usr/bin/env python3
+.price-history {
+            border-radius: 24px; 
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }#!/usr/bin/env python3
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
@@ -340,161 +351,475 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <title>Metal Tracker v2.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh; padding: 20px; color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(ellipse at top, #0f1419 0%, #0a0e14 40%, #05080c 100%);
+            background-attachment: fixed;
+            min-height: 100vh; 
+            padding: 20px; 
+            color: #e2e8f0;
+            position: relative;
+            overflow-x: hidden;
         }
-        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 40% 60%, rgba(30, 64, 175, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 24px; 
+            padding: 0 2px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
         
         .header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-radius: 24px; 
+            padding: 18px 24px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
-        .logo { font-size: 18px; font-weight: 700; color: white; }
-        .version { font-size: 11px; color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 8px; }
-        .update-time { font-size: 14px; color: rgba(255, 255, 255, 0.8); }
-        .actions { display: flex; gap: 10px; }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.4) 50%, transparent 100%);
+        }
+        
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .logo { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #f1f5f9;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .version { 
+            font-size: 10px; 
+            color: rgba(148, 163, 184, 0.8); 
+            background: rgba(59, 130, 246, 0.2); 
+            padding: 3px 10px; 
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .update-time { 
+            font-size: 14px; 
+            color: rgba(203, 213, 225, 0.9);
+            font-weight: 500;
+        }
+        .actions { display: flex; gap: 12px; }
         .action-btn {
-            width: 44px; height: 44px; border-radius: 12px;
-            background: rgba(255, 255, 255, 0.2); border: none;
-            color: white; font-size: 18px; cursor: pointer;
-            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+            width: 48px; 
+            height: 48px; 
+            border-radius: 16px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #e2e8f0; 
+            font-size: 20px; 
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
-        .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+        
+        .action-btn:hover::before {
+            left: 100%;
+        }
         
         .portfolio-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px; padding: 24px 20px; color: white;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.3) 0%, 
+                rgba(139, 92, 246, 0.2) 50%, 
+                rgba(30, 64, 175, 0.3) 100%);
+            border-radius: 28px; 
+            padding: 32px 24px; 
+            color: white;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
-        .portfolio-info { font-size: 12px; opacity: 0.8; margin-top: 8px; }
+        
+        .portfolio-summary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .portfolio-amount { 
+            font-size: 48px; 
+            font-weight: 900; 
+            margin-bottom: 24px;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+        
         .portfolio-metals {
-            display: flex; justify-content: center; gap: 6px;
-            margin: 20px 10px 0 10px;
+            display: flex; 
+            justify-content: center; 
+            gap: 12px;
+            margin: 24px 8px 0 8px;
+            position: relative;
+            z-index: 1;
         }
+        
         .metal-item {
             flex: 1; 
-            background: rgba(255, 255, 255, 0.15); 
-            border-radius: 16px; 
-            padding: 16px;
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-height: 140px;
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 20px; 
+            padding: 20px 16px;
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            min-height: 160px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .metal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .metal-name { font-size: 16px; font-weight: 600; }
-        .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
-        .metal-value { font-size: 22px; font-weight: 700; }
-        .metal-amount { font-size: 12px; opacity: 0.7; margin-top: 8px; }
+        
+        .metal-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.6) 50%, transparent 100%);
+        }
+        
+        .metal-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .metal-name { 
+            font-size: 17px; 
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .metal-price { 
+            font-size: 15px; 
+            opacity: 0.85; 
+            margin-bottom: 10px;
+            color: #cbd5e1;
+        }
+        .metal-value { 
+            font-size: 24px; 
+            font-weight: 800;
+            color: #fbbf24;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+        .metal-amount { 
+            font-size: 12px; 
+            opacity: 0.75; 
+            margin-top: 10px;
+            color: #94a3b8;
+        }
         
         .statistics-section {
-            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+        
         .statistics-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffd700;
-            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #fbbf24;
+            margin-bottom: 20px;
             text-align: center;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
         }
+        
         .statistics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
+        
         .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 10px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 16px;
+            padding: 18px 12px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(251, 191, 36, 0.6) 50%, transparent 100%);
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+        
         .stat-label {
             font-size: 11px;
-            opacity: 0.8;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            opacity: 0.85;
+            margin-bottom: 10px;
+            line-height: 1.3;
+            color: #cbd5e1;
         }
+        
         .stat-value {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 800;
-            color: #ffd700;
+            color: #fbbf24;
             word-wrap: break-word;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
         }
         
         .price-history {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; 
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
+        
         .history-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px;
         }
-        .history-title { font-size: 18px; font-weight: 700; color: #ffffff; }
+        
+        .history-title { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #f1f5f9;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
         .period-tabs {
-            display: flex; gap: 8px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 4px;
+            display: flex; 
+            gap: 4px;
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 14px; 
+            padding: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(10px);
         }
+        
         .period-tab {
-            padding: 8px 16px; border: none; border-radius: 6px;
-            background: transparent; color: rgba(255, 255, 255, 0.7);
-            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            padding: 10px 18px; 
+            border: none; 
+            border-radius: 10px;
+            background: transparent; 
+            color: rgba(203, 213, 225, 0.8);
+            font-size: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .period-tab.active { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+        
+        .period-tab.active { 
+            background: rgba(59, 130, 246, 0.3);
+            color: #f1f5f9;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        
+        .period-tab:hover:not(.active) {
+            background: rgba(59, 130, 246, 0.1);
+            color: #e2e8f0;
+        }
         
         .price-table {
-            overflow-x: auto; border-radius: 12px; background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto; 
+            border-radius: 16px; 
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(15px);
         }
+        
         .price-table table {
-            width: 100%; border-collapse: collapse;
+            width: 100%; 
+            border-collapse: collapse;
         }
+        
         .price-table th {
-            background: rgba(255, 255, 255, 0.1); padding: 12px 8px; text-align: left;
-            font-weight: 600; color: rgba(255, 255, 255, 0.9); font-size: 13px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1); white-space: nowrap;
+            background: rgba(30, 41, 59, 0.6); 
+            padding: 16px 12px; 
+            text-align: left;
+            font-weight: 700; 
+            color: #f1f5f9; 
+            font-size: 13px;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3); 
+            white-space: nowrap;
+            position: relative;
         }
+        
+        .price-table th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.6) 50%, transparent 100%);
+        }
+        
         .price-table td {
-            padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 13px; color: #e2e8f0; white-space: nowrap;
+            padding: 14px 12px; 
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 13px; 
+            color: #e2e8f0; 
+            white-space: nowrap;
+            transition: all 0.2s ease;
         }
+        
         .price-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(59, 130, 246, 0.08);
         }
-        .price-table .time { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
-        .price-table .price { font-weight: 600; }
-        .price-table .portfolio { font-weight: 700; color: #ffd700; }
+        
+        .price-table .time { 
+            font-weight: 600; 
+            color: #f1f5f9;
+        }
+        
+        .price-table .price { 
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        
+        .price-table .portfolio { 
+            font-weight: 700; 
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+        
         .price-table .change {
-            font-weight: 600; font-size: 13px;
+            font-weight: 600; 
+            font-size: 13px;
         }
-        .change.positive { color: #4ade80; }
-        .change.negative { color: #f87171; }
-        .change.neutral { color: rgba(255, 255, 255, 0.7); }
+        
+        .change.positive { 
+            color: #10b981;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+        
+        .change.negative { 
+            color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        
+        .change.neutral { 
+            color: rgba(148, 163, 184, 0.8);
+        }
         
         @media (max-width: 400px) {
-            .container { max-width: 100%; padding: 0 1px; }
-            .history-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
-            .metal-name { font-size: 17px; }
+            .container { max-width: 100%; padding: 0 1px; gap: 20px; }
+            .history-header { flex-direction: column; gap: 16px; }
+            .portfolio-metals { flex-direction: column; gap: 16px; }
+            .metal-name { font-size: 18px; }
             .metal-price { font-size: 16px; }
-            .metal-value { font-size: 24px; }
-            .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 10px 6px; font-size: 12px; }
-            .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
+            .metal-value { font-size: 26px; }
+            .metal-item { padding: 24px 20px; min-height: 140px; }
+            .price-table th, .price-table td { padding: 12px 8px; font-size: 12px; }
+            .price-history { padding: 16px 8px; margin: 0 -4px; width: calc(100% + 8px); }
             .price-table { margin: 0 4px; }
-            .history-header { padding: 0 8px; }
-            .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
+            .history-header { padding: 0 12px; }
+            .statistics-grid { grid-template-columns: 1fr; gap: 12px; }
+            .header { padding: 16px 20px; }
+            .portfolio-summary { padding: 28px 20px; }
         }
     </style>
 </head>
