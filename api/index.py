@@ -420,7 +420,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             pointer-events: none; z-index: -1;
         }
         
-        .container { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+        .container { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding: 0 10px; }
         
         .glass-card {
             background: rgba(15, 23, 42, 0.4);
