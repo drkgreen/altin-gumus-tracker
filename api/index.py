@@ -147,7 +147,7 @@ def get_weekly_optimized_data():
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
             weekly_data.append({
-                "time": f"{day_data['time']} 📊",
+                "time": day_data['time'],
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
                 "change_percent": change_percent,
@@ -484,9 +484,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .statistics-section { padding: 16px; }
         .statistics-section-inline { 
-            margin-top: 20px; 
-            border-top: 1px solid rgba(59, 130, 246, 0.2);
-            padding-top: 16px;
+            margin-top: 12px; 
+            padding-top: 0;
         }
         .statistics-title {
             font-size: 16px; font-weight: 800; color: #fbbf24;
@@ -624,7 +623,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             <!-- Maksimum Değerler Kartları Portfolio'nun Altında -->
             <div class="statistics-section-inline">
-                <div class="statistics-title">📊 Maksimum Değerler</div>
                 <div class="statistics-grid">
                     <div class="stat-item">
                         <div class="stat-label">En Yüksek<br>Altın Fiyatı</div>
