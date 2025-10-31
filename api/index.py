@@ -171,6 +171,10 @@ def calculate_statistics(data_type='all'):
         
         if data_type == 'daily':
             data = get_daily_data()
+            # Eğer günlük veri yoksa haftalık verilerden son 3 günü al
+            if not data:
+                weekly_data = get_weekly_optimized_data()
+                data = weekly_data[:3] if weekly_data else []
         elif data_type == 'weekly':
             data = get_weekly_optimized_data()
         else:
@@ -182,7 +186,7 @@ def calculate_statistics(data_type='all'):
             return {
                 "max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0,
                 "max_gold_date": "", "max_silver_date": "", "max_portfolio_date": "",
-                "peak_info": ""
+                "peak_info": "Veri bulunamadı"
             }
         
         # En yüksek değerleri bul
@@ -205,53 +209,51 @@ def calculate_statistics(data_type='all'):
         
         max_portfolio = max(portfolio_data, key=lambda x: x["value"])["value"] if portfolio_data else 0
         
-        # Tarih bilgilerini bul (sadece günlük veri için)
+        # Tarih bilgilerini bul
         max_gold_date = ""
         max_silver_date = ""
         max_portfolio_date = ""
         peak_info = ""
         
+        now = datetime.now(timezone.utc)
+        turkey_time = now + timedelta(hours=3)
+        day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][turkey_time.weekday()]
+        current_date_str = f"{turkey_time.strftime('%d.%m.%Y')} {day_name}"
+        
         if data_type == 'daily':
-            # Bugünün peak değerini bul
-            now = datetime.now(timezone.utc)
-            today = now.strftime("%Y-%m-%d")
-            
-            # Bugünün peak kaydını bul
-            today_peak = next(
-                (r for r in records 
-                 if r.get("date") == today 
-                 and r.get("optimized") == True 
-                 and r.get("daily_peak") == True), 
-                None
-            )
-            
-            if today_peak:
-                # Türkiye saatine çevir
-                turkey_time = now + timedelta(hours=3)
-                day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][turkey_time.weekday()]
-                date_str = f"{turkey_time.strftime('%d.%m.%Y')} {day_name}"
+            # Günlük veri varsa bugünün peak değerini kontrol et
+            daily_data = get_daily_data()
+            if daily_data:
+                # Günlük veri mevcut
+                today = now.strftime("%Y-%m-%d")
+                today_peak = next(
+                    (r for r in records 
+                     if r.get("date") == today 
+                     and r.get("optimized") == True 
+                     and r.get("daily_peak") == True), 
+                    None
+                )
                 
-                max_gold_date = date_str
-                max_silver_date = date_str  
-                max_portfolio_date = date_str
-                
-                peak_time = today_peak.get("peak_time", "bilinmiyor")
-                peak_info = f"Bugünün peak değeri: {peak_time}"
+                if today_peak:
+                    max_gold_date = current_date_str
+                    max_silver_date = current_date_str  
+                    max_portfolio_date = current_date_str
+                    peak_time = today_peak.get("peak_time", "bilinmiyor")
+                    peak_info = f"Bugünün peak değeri: {peak_time}"
+                else:
+                    max_gold_date = current_date_str
+                    max_silver_date = current_date_str
+                    max_portfolio_date = current_date_str
+                    peak_info = "Güncel veriler"
             else:
-                # Peak değer yoksa genel tarih
-                turkey_time = now + timedelta(hours=3)
-                day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][turkey_time.weekday()]
-                date_str = f"{turkey_time.strftime('%d.%m.%Y')} {day_name}"
-                max_gold_date = date_str
-                max_silver_date = date_str
-                max_portfolio_date = date_str
-                peak_info = "Güncel veriler"
+                # Günlük veri yok, haftalık verilerden son günleri kullan
+                max_gold_date = "Son günler"
+                max_silver_date = "Son günler"
+                max_portfolio_date = "Son günler"
+                peak_info = "Günlük veri silinmiş, haftalık peak değerler gösteriliyor"
         
         elif data_type == 'weekly':
             # Haftalık veriler için en yüksek değerlerin tarihlerini bul
-            now = datetime.now(timezone.utc)
-            
-            # Son 30 günün peak verilerinden en yüksekleri bul
             for i in range(30):
                 check_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
                 day_peak = next(
@@ -291,11 +293,11 @@ def calculate_statistics(data_type='all'):
             "peak_info": peak_info
         }
         
-    except Exception:
+    except Exception as e:
         return {
             "max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0,
             "max_gold_date": "", "max_silver_date": "", "max_portfolio_date": "",
-            "peak_info": ""
+            "peak_info": f"Hata: {str(e)}"
         }
 
 def get_table_data():
