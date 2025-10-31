@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Metal Price Tracker Web App v2.0
-Dark Blue Glassmorphism Theme
-Bölüm 1: Backend Fonksiyonları ve Veri İşleme
+Dark Blue Glassmorphism Theme - Düzeltilmiş Tam Sürüm
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -17,7 +16,7 @@ import secrets
 app = Flask(__name__)
 CORS(app)
 
-# Secret key sabit olsun (her restart'ta değişmesin)
+# Secret key sabit olsun
 SECRET_KEY = os.environ.get('SECRET_KEY', 'metal_tracker_secret_key_2024_permanent')
 app.secret_key = SECRET_KEY
 
@@ -50,7 +49,7 @@ def load_price_history():
         return {"records": []}
 
 def get_daily_data():
-    """Son 2 günün tüm verilerini getir (30dk aralıklarla)"""
+    """Son 2 günün tüm verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -102,7 +101,7 @@ def get_daily_data():
         return []
 
 def get_weekly_optimized_data():
-    """Son 30 günün optimize edilmiş verilerini getir (günlük peak değerler)"""
+    """Son 30 günün optimize edilmiş verilerini getir"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -164,7 +163,7 @@ def get_weekly_optimized_data():
         return []
 
 def calculate_statistics(data_type='all'):
-    """Belirtilen veri tipinden maksimum değerleri hesapla"""
+    """Maksimum değerleri hesapla"""
     try:
         config = load_portfolio_config()
         
@@ -204,7 +203,7 @@ def calculate_statistics(data_type='all'):
         return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
 
 def get_table_data():
-    """Günlük ve haftalık veriler için farklı kaynak kullan"""
+    """Tablo verilerini getir"""
     try:
         daily_data = get_daily_data()
         weekly_data = get_weekly_optimized_data()
@@ -298,8 +297,8 @@ def set_auth_cookie(response):
         samesite='Lax'
     )
     return response
-# BÖLÜM 2: HTML TEMPLATE - DARK BLUE GLASSMORPHISM THEME
 
+# HTML TEMPLATE
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -701,7 +700,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 </body>
 </html>'''
 
-# LOGIN TEMPLATE - DARK BLUE GLASSMORPHISM
+# LOGIN TEMPLATE
 LOGIN_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -747,9 +746,92 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
             color: #e2e8f0; transition: all 0.3s ease; backdrop-filter: blur(10px);
         }
         .form-input:focus {
-            outline: none; border-color: #60a5fa; background
-# BÖLÜM 3: FLASK ROUTES VE ANA ÇALIŞTIRMA
+            outline: none; border-color: #60a5fa; background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        .form-input::placeholder { color: #64748b; }
+        
+        .login-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+            border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease; margin-bottom: 14px;
+        }
+        .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 8px; padding: 10px; margin-bottom: 14px; color: #fca5a5;
+            font-size: 13px; display: none;
+        }
+        .error-message.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <span class="logo-icon">📊</span>
+            <span>Metal Tracker</span>
+        </div>
+        <div class="subtitle">Güvenli giriş yapın</div>
+        
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label">Şifre</label>
+                <input type="password" class="form-input" id="password" placeholder="Şifrenizi girin" required>
+            </div>
+            
+            <div class="error-message" id="errorMessage">Hatalı şifre! Lütfen tekrar deneyin.</div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">Giriş Yap</button>
+        </form>
+    </div>
 
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            errorMessage.classList.remove('show');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Giriş yapılıyor...';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.location.href = '/';
+                } else {
+                    errorMessage.classList.add('show');
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Bağlantı hatası! Lütfen tekrar deneyin.';
+                errorMessage.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Giriş Yap';
+            }
+        }
+        
+        window.onload = function() {
+            document.getElementById('password').focus();
+        };
+    </script>
+</body>
+</html>'''
+
+# FLASK ROUTES
 @app.route('/')
 def index():
     if not is_authenticated():
