@@ -1,8 +1,19 @@
-#!/usr/bin/env python3
+.price-history {
+            border-radius: 24px; 
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }#!/usr/bin/env python3
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
-Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi + Dark Blue Glassmorphism
+Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi (GÜÇLÜ ÇÖZÜM)
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -343,10 +354,28 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background: radial-gradient(ellipse at top, #0f1419 0%, #0a0e14 40%, #05080c 100%);
+            background-attachment: fixed;
             min-height: 100vh; 
             padding: 20px; 
             color: #e2e8f0;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 40% 60%, rgba(30, 64, 175, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
         }
         
         .container { 
@@ -354,220 +383,351 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             margin: 0 auto; 
             display: flex; 
             flex-direction: column; 
-            gap: 20px; 
+            gap: 24px; 
             padding: 0 2px;
+            position: relative;
+            z-index: 1;
         }
         
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .header {
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            padding: 16px 20px;
+            border-radius: 24px; 
+            padding: 18px 24px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
-        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.4) 50%, transparent 100%);
+        }
+        
+        .header-left { display: flex; align-items: center; gap: 16px; }
         .logo { 
-            font-size: 18px; 
-            font-weight: 700; 
+            font-size: 20px; 
+            font-weight: 800; 
             color: #f1f5f9;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
         }
         .version { 
             font-size: 10px; 
-            color: #64748b; 
+            color: rgba(148, 163, 184, 0.8); 
             background: rgba(59, 130, 246, 0.2); 
-            padding: 2px 8px; 
-            border-radius: 8px;
+            padding: 3px 10px; 
+            border-radius: 12px;
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
         .update-time { 
             font-size: 14px; 
-            color: #cbd5e1;
+            color: rgba(203, 213, 225, 0.9);
+            font-weight: 500;
         }
-        .actions { display: flex; gap: 10px; }
+        .actions { display: flex; gap: 12px; }
         .action-btn {
-            width: 44px; 
-            height: 44px; 
-            border-radius: 12px;
+            width: 48px; 
+            height: 48px; 
+            border-radius: 16px;
             background: rgba(59, 130, 246, 0.2);
             border: 1px solid rgba(59, 130, 246, 0.3);
             color: #e2e8f0; 
-            font-size: 18px; 
+            font-size: 20px; 
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; 
             align-items: center; 
             justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
         }
         
         .action-btn:hover {
             background: rgba(59, 130, 246, 0.3);
-            transform: translateY(-1px);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+        
+        .action-btn:hover::before {
+            left: 100%;
         }
         
         .portfolio-summary {
             background: linear-gradient(135deg, 
                 rgba(59, 130, 246, 0.3) 0%, 
-                rgba(139, 92, 246, 0.2) 100%);
-            border-radius: 24px; 
-            padding: 24px 20px; 
+                rgba(139, 92, 246, 0.2) 50%, 
+                rgba(30, 64, 175, 0.3) 100%);
+            border-radius: 28px; 
+            padding: 32px 24px; 
             color: white;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
             text-align: center;
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(16px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .portfolio-summary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         .portfolio-amount { 
-            font-size: 42px; 
+            font-size: 48px; 
             font-weight: 900; 
-            margin-bottom: 20px;
-            color: #f1f5f9;
+            margin-bottom: 24px;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            position: relative;
+            z-index: 1;
         }
         
         .portfolio-metals {
             display: flex; 
             justify-content: center; 
             gap: 12px;
-            margin: 20px 0 0 0;
+            margin: 24px 8px 0 8px;
+            position: relative;
+            z-index: 1;
         }
         
         .metal-item {
             flex: 1; 
-            background: rgba(15, 23, 42, 0.5); 
-            border-radius: 16px; 
-            padding: 16px;
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            min-height: 140px;
-            transition: transform 0.2s ease;
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 20px; 
+            padding: 20px 16px;
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            min-height: 160px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metal-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.6) 50%, transparent 100%);
         }
         
         .metal-item:hover {
-            transform: translateY(-2px);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
         }
         
-        .metal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .metal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
         .metal-name { 
-            font-size: 16px; 
-            font-weight: 600;
+            font-size: 17px; 
+            font-weight: 700;
             color: #f1f5f9;
         }
         .metal-price { 
-            font-size: 14px; 
-            color: #cbd5e1; 
-            margin-bottom: 8px;
+            font-size: 15px; 
+            opacity: 0.85; 
+            margin-bottom: 10px;
+            color: #cbd5e1;
         }
         .metal-value { 
-            font-size: 22px; 
-            font-weight: 700;
+            font-size: 24px; 
+            font-weight: 800;
             color: #fbbf24;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
         }
         .metal-amount { 
             font-size: 12px; 
-            color: #94a3b8; 
-            margin-top: 8px;
+            opacity: 0.75; 
+            margin-top: 10px;
+            color: #94a3b8;
         }
         
         .statistics-section {
-            padding: 20px;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .statistics-title {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: #fbbf24;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             text-align: center;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
         }
         
         .statistics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
         
         .stat-item {
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 12px;
-            padding: 14px 10px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 16px;
+            padding: 18px 12px;
             text-align: center;
-            border: 1px solid rgba(71, 85, 105, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(251, 191, 36, 0.6) 50%, transparent 100%);
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: rgba(251, 191, 36, 0.4);
         }
         
         .stat-label {
             font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            opacity: 0.85;
+            margin-bottom: 10px;
+            line-height: 1.3;
+            color: #cbd5e1;
         }
         
         .stat-value {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 800;
             color: #fbbf24;
             word-wrap: break-word;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
         }
         
         .price-history {
-            padding: 16px;
+            border-radius: 24px; 
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
         
         .history-header {
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         
         .history-title { 
-            font-size: 18px; 
-            font-weight: 700; 
+            font-size: 20px; 
+            font-weight: 800; 
             color: #f1f5f9;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
         }
         
         .period-tabs {
             display: flex; 
             gap: 4px;
-            background: rgba(15, 23, 42, 0.5); 
-            border-radius: 10px; 
-            padding: 4px;
-            border: 1px solid rgba(71, 85, 105, 0.3);
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 14px; 
+            padding: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(10px);
         }
         
         .period-tab {
-            padding: 8px 16px; 
+            padding: 10px 18px; 
             border: none; 
-            border-radius: 6px;
+            border-radius: 10px;
             background: transparent; 
-            color: #94a3b8;
+            color: rgba(203, 213, 225, 0.8);
             font-size: 12px; 
             font-weight: 600; 
             cursor: pointer; 
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         
         .period-tab.active { 
             background: rgba(59, 130, 246, 0.3);
             color: #f1f5f9;
             border: 1px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
         }
         
         .period-tab:hover:not(.active) {
-            color: #cbd5e1;
+            background: rgba(59, 130, 246, 0.1);
+            color: #e2e8f0;
         }
         
         .price-table {
             overflow-x: auto; 
-            border-radius: 12px; 
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px; 
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(15px);
         }
         
         .price-table table {
@@ -576,26 +736,38 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         
         .price-table th {
-            background: rgba(15, 23, 42, 0.7); 
-            padding: 12px 8px; 
+            background: rgba(30, 41, 59, 0.6); 
+            padding: 16px 12px; 
             text-align: left;
-            font-weight: 600; 
+            font-weight: 700; 
             color: #f1f5f9; 
             font-size: 13px;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.3); 
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3); 
             white-space: nowrap;
+            position: relative;
+        }
+        
+        .price-table th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.6) 50%, transparent 100%);
         }
         
         .price-table td {
-            padding: 12px 8px; 
-            border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+            padding: 14px 12px; 
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
             font-size: 13px; 
             color: #e2e8f0; 
             white-space: nowrap;
+            transition: all 0.2s ease;
         }
         
         .price-table tr:hover {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.08);
         }
         
         .price-table .time { 
@@ -611,6 +783,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .price-table .portfolio { 
             font-weight: 700; 
             color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
         }
         
         .price-table .change {
@@ -620,32 +793,39 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         
         .change.positive { 
             color: #10b981;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
         }
         
         .change.negative { 
             color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
         }
         
         .change.neutral { 
-            color: #94a3b8;
+            color: rgba(148, 163, 184, 0.8);
         }
         
         @media (max-width: 400px) {
-            .container { max-width: 100%; padding: 0 1px; }
-            .history-header { flex-direction: column; gap: 12px; }
-            .portfolio-metals { flex-direction: column; gap: 12px; }
-            .metal-name { font-size: 17px; }
-            .metal-price { font-size: 15px; }
-            .metal-value { font-size: 24px; }
-            .metal-item { padding: 20px; min-height: 130px; }
-            .price-table th, .price-table td { padding: 10px 6px; font-size: 12px; }
-            .statistics-grid { grid-template-columns: 1fr; gap: 8px; }
+            .container { max-width: 100%; padding: 0 1px; gap: 20px; }
+            .history-header { flex-direction: column; gap: 16px; }
+            .portfolio-metals { flex-direction: column; gap: 16px; }
+            .metal-name { font-size: 18px; }
+            .metal-price { font-size: 16px; }
+            .metal-value { font-size: 26px; }
+            .metal-item { padding: 24px 20px; min-height: 140px; }
+            .price-table th, .price-table td { padding: 12px 8px; font-size: 12px; }
+            .price-history { padding: 16px 8px; margin: 0 -4px; width: calc(100% + 8px); }
+            .price-table { margin: 0 4px; }
+            .history-header { padding: 0 12px; }
+            .statistics-grid { grid-template-columns: 1fr; gap: 12px; }
+            .header { padding: 16px 20px; }
+            .portfolio-summary { padding: 28px 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="glass-card header">
+        <div class="header">
             <div class="header-left">
                 <div>
                     <div class="logo">Metal Tracker</div>
@@ -681,7 +861,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="glass-card statistics-section">
+        <div class="statistics-section">
             <div class="statistics-title">📊 Maksimum Değerler</div>
             <div class="statistics-grid">
                 <div class="stat-item">
@@ -699,7 +879,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="glass-card price-history" id="priceHistory">
+        <div class="price-history" id="priceHistory">
             <div class="history-header">
                 <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
@@ -751,6 +931,24 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 const tableDataRes = await tableRes.json();
                 const configData = await configRes.json();
                 
+                if (goldData.success) {
+                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
+                    currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('goldCurrentPrice').textContent = goldData.price;
+                }
+                
+                if (silverData.success) {
+                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
+                    currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
+                    document.getElementById('silverCurrentPrice').textContent = silverData.price;
+                }
+                
+                if (configData.success) {
+                    portfolioConfig = configData.config;
+                    document.getElementById('goldAmount').textContent = portfolioConfig.gold_amount + ' gr';
+                    document.getElementById('silverAmount').textContent = portfolioConfig.silver_amount + ' gr';
+                }
+                
                 if (tableDataRes.success) {
                     tableData = tableDataRes.data;
                     updateTable();
@@ -793,7 +991,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
             
             updateTable();
-            updateStatistics();
+            updateStatistics(); // İstatistikleri de güncelle
         }
 
         function updateTable() {
@@ -896,13 +1094,13 @@ def login():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1e3c72">
     <title>Metal Tracker - Giriş</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #e2e8f0;
             min-height: 100vh;
             display: flex;
@@ -912,9 +1110,9 @@ def login():
         }
         
         .login-container {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(71, 85, 105, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             padding: 40px 30px;
             width: 100%;
@@ -926,7 +1124,7 @@ def login():
         .logo {
             font-size: 24px;
             font-weight: 900;
-            color: #f1f5f9;
+            color: #ffffff;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -937,7 +1135,7 @@ def login():
         
         .subtitle {
             font-size: 14px;
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 32px;
         }
         
@@ -957,28 +1155,28 @@ def login():
         .form-input {
             width: 100%;
             padding: 16px;
-            border: 1px solid rgba(71, 85, 105, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             font-size: 16px;
-            background: rgba(15, 23, 42, 0.5);
-            color: #f1f5f9;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
             transition: all 0.3s ease;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: #3b82f6;
-            background: rgba(15, 23, 42, 0.7);
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .form-input::placeholder {
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .login-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 12px;
             color: white;
@@ -991,7 +1189,7 @@ def login():
         
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .login-btn:active {
@@ -1166,22 +1364,4 @@ if __name__ == '__main__':
     app.permanent_session_lifetime = timedelta(days=365)
     
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)goldData.success) {
-                    let cleanPrice = goldData.price.replace(/[^\\d,]/g, '');
-                    currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    document.getElementById('goldCurrentPrice').textContent = goldData.price;
-                }
-                
-                if (silverData.success) {
-                    let cleanPrice = silverData.price.replace(/[^\\d,]/g, '');
-                    currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
-                    document.getElementById('silverCurrentPrice').textContent = silverData.price;
-                }
-                
-                if (configData.success) {
-                    portfolioConfig = configData.config;
-                    document.getElementById('goldAmount').textContent = portfolioConfig.gold_amount + ' gr';
-                    document.getElementById('silverAmount').textContent = portfolioConfig.silver_amount + ' gr';
-                }
-                
-                if (
+    app.run(host='0.0.0.0', port=port, debug=False)
