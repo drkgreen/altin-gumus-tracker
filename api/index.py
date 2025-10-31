@@ -2,7 +2,7 @@
 """
 Metal Price Tracker Web App v2.0
 Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
-Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi
+Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi (DÜZELTİLDİ)
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for
 from flask_cors import CORS
@@ -17,6 +17,17 @@ import secrets
 app = Flask(__name__)
 CORS(app)
 app.secret_key = secrets.token_hex(16)
+
+# Session kalıcılığı için önemli ayarlar
+app.config.update(
+    SECRET_KEY=secrets.token_hex(16),
+    PERMANENT_SESSION_LIFETIME=timedelta(days=365),  # 1 yıl
+    SESSION_COOKIE_SECURE=False,  # HTTP için False, HTTPS için True
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_MAX_AGE=365*24*60*60,  # 1 yıl (saniye cinsinden)
+    SESSION_PERMANENT=True  # Varsayılan olarak permanent
+)
 
 def load_portfolio_config():
     """GitHub'dan portföy ayarlarını ve hash'lenmiş şifreyi yükler"""
@@ -612,7 +623,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
                 // İstatistik başlığını güncelle
                 const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
-                document.querySelector('.statistics-title').textContent = `${periodText} Maksimum Değerler`;
+                document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
             }
         }
 
@@ -946,10 +957,8 @@ def api_login():
         password = data.get('password', '')
         
         if verify_password(password):
-            session.permanent = True  # Bu satır önemli!
+            session.permanent = True  # Kritik: Session'ı kalıcı yap
             session['authenticated'] = True
-            # Session'un kalıcı olduğundan emin ol
-            app.permanent_session_lifetime = timedelta(days=30)
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'error': 'Invalid password'})
@@ -996,17 +1005,5 @@ def api_portfolio_config():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
-    # Kalıcı session ayarları (30 gün)
-    app.permanent_session_lifetime = timedelta(days=30)
-    
-    # Session cookie ayarları - kalıcı olması için
-    app.config.update(
-        SESSION_COOKIE_SECURE=False,  # HTTPS için True yapın
-        SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='Lax',
-        SESSION_PERMANENT=False,  # Bu False olmalı, session.permanent ile kontrol edilecek
-        PERMANENT_SESSION_LIFETIME=timedelta(days=30)
-    )
-    
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
