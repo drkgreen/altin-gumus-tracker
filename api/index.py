@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Metal Price Tracker Web App v2.0
-Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
-Güncellemeler: Gelişmiş istatistikler + Kalıcı session sistemi + Dark Blue Glassmorphism Tema
+Dark Blue Glassmorphism Theme
+Bölüm 1: Backend Fonksiyonları ve Veri İşleme
 """
 from flask import Flask, jsonify, render_template_string, request, session, redirect, url_for, make_response
 from flask_cors import CORS
@@ -61,30 +61,26 @@ def get_daily_data():
         now = datetime.now(timezone.utc)
         daily_data = []
         
-        # Son 2 günün verilerini al
         for day_offset in range(2):
             target_date = (now - timedelta(days=day_offset)).strftime("%Y-%m-%d")
             day_records = [r for r in records 
                           if r.get("date") == target_date 
                           and r.get("gold_price") 
                           and r.get("silver_price")
-                          and not r.get("optimized", False)]  # Optimize edilmemiş kayıtlar
+                          and not r.get("optimized", False)]
             
             if day_records:
                 sorted_day_records = sorted(day_records, key=lambda x: x.get("timestamp", 0), reverse=True)
                 
                 for i, record in enumerate(sorted_day_records):
                     timestamp = record.get("timestamp", 0)
-                    # UTC'den Türkiye saatine çevir (+3 saat)
                     local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
                     
-                    # Eğer bugün değilse tarih de göster
                     if day_offset == 0:
                         time_label = local_time.strftime("%H:%M")
                     else:
                         time_label = local_time.strftime("%d.%m %H:%M")
                     
-                    # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
                     change_percent = 0
                     if i < len(sorted_day_records) - 1:
                         prev_record = sorted_day_records[i + 1]
@@ -114,22 +110,18 @@ def get_weekly_optimized_data():
         if not records:
             return []
         
-        # Optimize edilmiş kayıtları bul (günlük peak değerler)
         optimized_records = [
             r for r in records 
             if r.get("optimized") == True and r.get("daily_peak") == True
         ]
         
-        # Son 30 günün optimize edilmiş verilerini al
         weekly_data = []
         weekly_temp = []
         now = datetime.now(timezone.utc)
         
-        # Önce tüm günleri topla (eskiden yeniye)
-        for i in range(29, -1, -1):  # 29'dan 0'a doğru (eskiden yeniye)
+        for i in range(29, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             
-            # O günün optimize edilmiş kaydını bul
             day_record = next(
                 (r for r in optimized_records if r.get("date") == target_date), 
                 None
@@ -146,11 +138,9 @@ def get_weekly_optimized_data():
                     "portfolio_value": day_record.get("portfolio_value", 0)
                 })
         
-        # Şimdi değişim hesaplama
         for i, day_data in enumerate(weekly_temp):
             change_percent = 0
             
-            # Bir önceki gün ile karşılaştır (eskiden yeniye sıralı listede)
             if i > 0:
                 prev_day = weekly_temp[i-1]
                 if prev_day["gold_price"] > 0:
@@ -158,7 +148,7 @@ def get_weekly_optimized_data():
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
             weekly_data.append({
-                "time": f"{day_data['time']} 📊",  # Peak değer işareti
+                "time": f"{day_data['time']} 📊",
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
                 "change_percent": change_percent,
@@ -167,9 +157,7 @@ def get_weekly_optimized_data():
                 "portfolio_value": day_data["portfolio_value"]
             })
         
-        # En son kayıt en başta olsun diye ters çevir (yeniden eskiye)
         weekly_data.reverse()
-        
         return weekly_data
         
     except Exception:
@@ -185,27 +173,19 @@ def calculate_statistics(data_type='all'):
         elif data_type == 'weekly':
             data = get_weekly_optimized_data()
         else:
-            # Tüm veriler için
             daily_data = get_daily_data()
             weekly_data = get_weekly_optimized_data()
             data = daily_data + weekly_data
         
         if not data:
-            return {
-                "max_gold_price": 0,
-                "max_silver_price": 0,
-                "max_portfolio_value": 0
-            }
+            return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
         
-        # Maksimum değerleri bul
         max_gold = max(item["gold_price"] for item in data)
         max_silver = max(item["silver_price"] for item in data)
         
-        # Portföy hesaplaması için config'den miktarları al
         gold_amount = config.get("gold_amount", 0)
         silver_amount = config.get("silver_amount", 0)
         
-        # En yüksek portföy değerini hesapla
         max_portfolio = 0
         if gold_amount > 0 or silver_amount > 0:
             portfolio_values = [
@@ -221,11 +201,7 @@ def calculate_statistics(data_type='all'):
         }
         
     except Exception:
-        return {
-            "max_gold_price": 0,
-            "max_silver_price": 0,
-            "max_portfolio_value": 0
-        }
+        return {"max_gold_price": 0, "max_silver_price": 0, "max_portfolio_value": 0}
 
 def get_table_data():
     """Günlük ve haftalık veriler için farklı kaynak kullan"""
@@ -233,17 +209,13 @@ def get_table_data():
         daily_data = get_daily_data()
         weekly_data = get_weekly_optimized_data()
         
-        # Her sekme için ayrı istatistik hesapla
         daily_stats = calculate_statistics('daily')
         weekly_stats = calculate_statistics('weekly')
         
         return {
             "daily": daily_data,
             "weekly": weekly_data,
-            "statistics": {
-                "daily": daily_stats,
-                "weekly": weekly_stats
-            }
+            "statistics": {"daily": daily_stats, "weekly": weekly_stats}
         }
         
     except Exception:
@@ -300,17 +272,13 @@ def get_silver_price():
 
 def is_authenticated():
     """Kullanıcının doğrulanıp doğrulanmadığını kontrol et"""
-    # Session kontrolü
     if session.get('authenticated'):
         return True
     
-    # Cookie kontrolü (alternatif yöntem)
     auth_token = request.cookies.get('auth_token')
     if auth_token:
-        # Basit token doğrulama (gerçek projede daha güvenli olmalı)
         expected_token = hashlib.sha256(f"{SECRET_KEY}_authenticated".encode()).hexdigest()
         if auth_token == expected_token:
-            # Session'ı yeniden oluştur
             session.permanent = True
             session['authenticated'] = True
             return True
@@ -320,604 +288,180 @@ def is_authenticated():
 def set_auth_cookie(response):
     """Doğrulama cookie'si ekle"""
     auth_token = hashlib.sha256(f"{SECRET_KEY}_authenticated".encode()).hexdigest()
-    # Cookie'yi 1 yıl süreyle ayarla
     expires = datetime.now() + timedelta(days=365)
     response.set_cookie(
         'auth_token', 
         auth_token,
         expires=expires,
         httponly=True,
-        secure=False,  # HTTPS için True yapın
+        secure=False,
         samesite='Lax'
     )
     return response
+# BÖLÜM 2: HTML TEMPLATE - DARK BLUE GLASSMORPHISM THEME
 
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Tracker v2.0 - Dark Blue</title>
+    <title>Metal Tracker v2.0</title>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #1e3a5f 75%, #0f172a 100%);
-            background-attachment: fixed;
-            min-height: 100vh; 
-            padding: 20px; 
-            color: #e2e8f0;
-            position: relative;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1d3a 25%, #0f172a 50%, #1e293b 75%, #0f0f23 100%);
+            min-height: 100vh; padding: 15px; color: #e2e8f0; overflow-x: hidden;
         }
         
         body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(30, 58, 138, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(29, 78, 216, 0.1) 0%, transparent 50%);
+            pointer-events: none; z-index: -1;
         }
         
-        .container { 
-            max-width: 480px; 
-            margin: 0 auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 24px; 
-            padding: 0 4px; 
-            position: relative;
-            z-index: 1;
-        }
+        .container { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
         
-        /* Glassmorphism Card Base */
         .glass-card {
             background: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            padding: 20px 24px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(148, 163, 184, 0.15);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px;
         }
         
-        .header-left { 
-            display: flex; 
-            align-items: center; 
-            gap: 16px; 
-        }
-        
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .logo { 
-            font-size: 20px; 
-            font-weight: 800; 
-            color: #f8fafc;
-            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-        }
-        
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .logo { font-size: 17px; font-weight: 800; color: #60a5fa; }
         .version { 
-            font-size: 11px; 
-            color: rgba(148, 163, 184, 0.8); 
-            background: rgba(59, 130, 246, 0.2); 
-            padding: 4px 10px; 
-            border-radius: 12px;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            backdrop-filter: blur(10px);
+            font-size: 10px; color: rgba(96, 165, 250, 0.7); 
+            background: rgba(59, 130, 246, 0.15); 
+            padding: 2px 6px; border-radius: 6px; 
         }
+        .update-time { font-size: 13px; color: #cbd5e1; }
         
-        .update-time { 
-            font-size: 15px; 
-            color: rgba(203, 213, 225, 0.9);
-            font-weight: 500;
-        }
-        
-        .actions { 
-            display: flex; 
-            gap: 12px; 
-        }
-        
+        .actions { display: flex; gap: 8px; }
         .action-btn {
-            width: 48px; 
-            height: 48px; 
-            border-radius: 16px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            color: #e2e8f0; 
-            font-size: 20px; 
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            backdrop-filter: blur(12px);
-            position: relative;
-            overflow: hidden;
+            width: 38px; height: 38px; border-radius: 10px;
+            background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa; font-size: 16px; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
         }
-        
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .action-btn:hover::before {
-            opacity: 1;
-        }
-        
         .action-btn:hover { 
-            background: rgba(30, 41, 59, 0.9);
-            border-color: rgba(59, 130, 246, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.3); 
+            border-color: rgba(96, 165, 250, 0.5);
+            transform: translateY(-1px);
         }
         
         .portfolio-summary {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
-            backdrop-filter: blur(24px);
-            border-radius: 28px; 
-            padding: 32px 24px; 
-            color: white;
-            box-shadow: 
-                0 12px 40px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 18px; padding: 20px; color: white; text-align: center;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 8px 32px rgba(29, 78, 216, 0.3);
         }
         
-        .portfolio-summary::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-            animation: shimmer 3s infinite;
-        }
+        .portfolio-amount { font-size: 36px; font-weight: 900; margin-bottom: 16px; color: #60a5fa; }
         
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%); }
-            100% { transform: translateX(100%) translateY(100%); }
-        }
-        
-        .portfolio-amount { 
-            font-size: 48px; 
-            font-weight: 900; 
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .portfolio-metals {
-            display: flex; 
-            justify-content: center; 
-            gap: 12px;
-            margin: 24px 0 0 0;
-        }
-        
+        .portfolio-metals { display: flex; gap: 8px; margin-top: 16px; }
         .metal-item {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(16px);
-            border-radius: 20px; 
-            padding: 20px 16px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            min-height: 160px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            flex: 1; 
+            background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 14px; padding: 14px; min-height: 120px;
+            backdrop-filter: blur(15px);
         }
         
-        .metal-item:hover {
-            background: rgba(15, 23, 42, 0.6);
-            border-color: rgba(59, 130, 246, 0.3);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
-        }
+        .metal-name { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #60a5fa; }
+        .metal-price { font-size: 13px; color: #cbd5e1; margin-bottom: 6px; }
+        .metal-value { font-size: 20px; font-weight: 800; color: #e2e8f0; }
+        .metal-amount { font-size: 11px; color: #94a3b8; margin-top: 6px; }
         
-        .metal-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.6), rgba(147, 51, 234, 0.6));
-        }
-        
-        .metal-header { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            margin-bottom: 16px; 
-        }
-        
-        .metal-name { 
-            font-size: 18px; 
-            font-weight: 700;
-            color: #f8fafc;
-        }
-        
-        .metal-price { 
-            font-size: 16px; 
-            color: rgba(203, 213, 225, 0.8); 
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-        
-        .metal-value { 
-            font-size: 26px; 
-            font-weight: 800;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .metal-amount { 
-            font-size: 13px; 
-            color: rgba(148, 163, 184, 0.8); 
-            margin-top: 12px;
-            font-weight: 500;
-        }
-        
-        .statistics-section {
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
+        .statistics-section { padding: 16px; }
         .statistics-title {
-            font-size: 20px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            text-align: center;
+            font-size: 16px; font-weight: 800; color: #fbbf24;
+            margin-bottom: 12px; text-align: center;
         }
         
-        .statistics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-        }
-        
+        .statistics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .stat-item {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(12px);
-            border-radius: 16px;
-            padding: 20px 12px;
-            text-align: center;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-item:hover {
-            background: rgba(30, 41, 59, 0.8);
-            border-color: rgba(59, 130, 246, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: rgba(148, 163, 184, 0.9);
-            margin-bottom: 12px;
-            line-height: 1.3;
-            font-weight: 500;
-        }
-        
-        .stat-value {
-            font-size: 18px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            word-wrap: break-word;
-        }
-        
-        .price-history {
             background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(20px);
-            border-radius: 24px; 
-            padding: 20px; 
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px; padding: 12px 8px; text-align: center;
+            backdrop-filter: blur(10px);
         }
         
-        .history-header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px;
-        }
+        .stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 6px; line-height: 1.2; }
+        .stat-value { font-size: 14px; font-weight: 800; color: #fbbf24; }
         
-        .history-title { 
-            font-size: 20px; 
-            font-weight: 800; 
-            color: #f8fafc;
-        }
+        .price-history { padding: 14px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .history-title { font-size: 16px; font-weight: 800; color: #e2e8f0; }
         
         .period-tabs {
-            display: flex; 
-            gap: 4px;
-            background: rgba(30, 41, 59, 0.6); 
-            border-radius: 16px; 
-            padding: 6px;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            backdrop-filter: blur(12px);
+            display: flex; gap: 4px;
+            background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 3px;
         }
-        
         .period-tab {
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 12px;
-            background: transparent; 
-            color: rgba(203, 213, 225, 0.7);
-            font-size: 13px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            padding: 6px 12px; border: none; border-radius: 5px;
+            background: transparent; color: #94a3b8;
+            font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-        
         .period-tab.active { 
-            background: rgba(59, 130, 246, 0.6);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
-        .period-tab:hover:not(.active) {
-            background: rgba(59, 130, 246, 0.2);
-            color: #e2e8f0;
+            background: rgba(59, 130, 246, 0.3); 
+            color: #60a5fa; 
+            border: 1px solid rgba(96, 165, 250, 0.4);
         }
         
         .price-table {
-            overflow-x: auto; 
-            border-radius: 16px; 
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            backdrop-filter: blur(12px);
+            overflow-x: auto; border-radius: 10px; 
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(15px);
         }
         
-        .price-table table {
-            width: 100%; 
-            border-collapse: collapse;
-        }
-        
+        .price-table table { width: 100%; border-collapse: collapse; }
         .price-table th {
-            background: rgba(15, 23, 42, 0.8); 
-            padding: 16px 12px; 
-            text-align: left;
-            font-weight: 700; 
-            color: #f8fafc; 
-            font-size: 14px;
-            border-bottom: 2px solid rgba(59, 130, 246, 0.2); 
-            white-space: nowrap;
-            backdrop-filter: blur(8px);
+            background: rgba(29, 78, 216, 0.2); padding: 10px 6px; text-align: left;
+            font-weight: 700; color: #60a5fa; font-size: 12px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
         }
-        
         .price-table td {
-            padding: 16px 12px; 
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-            font-size: 14px; 
-            color: #e2e8f0; 
-            white-space: nowrap;
-            font-weight: 500;
+            padding: 10px 6px; border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            font-size: 12px; color: #cbd5e1;
         }
+        .price-table tr:hover { background: rgba(59, 130, 246, 0.05); }
         
-       .price-table .time { 
-            font-weight: 700; 
-            color: #f8fafc;
-        }
+        .price-table .time { font-weight: 700; color: #60a5fa; }
+        .price-table .price { font-weight: 600; color: #e2e8f0; }
+        .price-table .portfolio { font-weight: 800; color: #fbbf24; }
+        .price-table .change { font-weight: 600; }
+        .change.positive { color: #34d399; }
+        .change.negative { color: #f87171; }
+        .change.neutral { color: #94a3b8; }
         
-        .price-table .price { 
-            font-weight: 600;
-            color: #cbd5e1;
-        }
-        
-        .price-table .portfolio { 
-            font-weight: 800;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .price-table .change {
-            font-weight: 700; 
-            font-size: 14px;
-        }
-        
-        .change.positive { 
-            color: #10b981;
-            text-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
-        }
-        
-        .change.negative { 
-            color: #ef4444;
-            text-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
-        }
-        
-        .change.neutral { 
-            color: rgba(148, 163, 184, 0.8); 
-        }
-        
-        /* Responsive Design */
         @media (max-width: 400px) {
-            .container { 
-                max-width: 100%; 
-                padding: 0 2px; 
-                gap: 20px;
-            }
-            
-            .header {
-                padding: 16px 20px;
-            }
-            
-            .logo {
-                font-size: 18px;
-            }
-            
-            .portfolio-amount {
-                font-size: 40px;
-            }
-            
-            .history-header { 
-                flex-direction: column; 
-                gap: 16px; 
-            }
-            
-            .portfolio-metals { 
-                flex-direction: column; 
-                gap: 16px; 
-            }
-            
-            .metal-name { 
-                font-size: 17px; 
-            }
-            
-            .metal-price { 
-                font-size: 15px; 
-            }
-            
-            .metal-value { 
-                font-size: 24px; 
-            }
-            
-            .metal-item { 
-                padding: 24px 20px; 
-                min-height: 140px; 
-            }
-            
-            .price-table th, .price-table td { 
-                padding: 12px 8px; 
-                font-size: 13px; 
-            }
-            
-            .statistics-grid { 
-                grid-template-columns: 1fr; 
-                gap: 12px; 
-            }
-            
-            .stat-item {
-                padding: 16px 12px;
-            }
-            
-            .period-tab {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-        }
-        
-        /* Scroll Animation */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .glass-card {
-            animation: fadeInUp 0.6s ease-out;
-        }
-        
-        .container > *:nth-child(1) { animation-delay: 0.1s; }
-        .container > *:nth-child(2) { animation-delay: 0.2s; }
-        .container > *:nth-child(3) { animation-delay: 0.3s; }
-        .container > *:nth-child(4) { animation-delay: 0.4s; }
-        
-        /* Loading States */
-        .loading {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { left: -100%; }
-            100% { left: 100%; }
+            .container { padding: 0 5px; }
+            .portfolio-metals { flex-direction: column; gap: 10px; }
+            .history-header { flex-direction: column; gap: 8px; }
+            .statistics-grid { grid-template-columns: 1fr; gap: 6px; }
+            .price-table th, .price-table td { padding: 8px 4px; font-size: 11px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header glass-card">
+        <div class="glass-card header">
             <div class="header-left">
-                <div class="logo-section">
+                <div>
                     <div class="logo">Metal Tracker</div>
                     <div class="version">v2.0</div>
                 </div>
@@ -929,21 +473,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="portfolio-summary glass-card" id="portfolioSummary">
+        <div class="glass-card portfolio-summary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">Altın</div>
-                    </div>
+                    <div class="metal-name">Altın</div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
                     <div class="metal-amount" id="goldAmount">0 gr</div>
                 </div>
                 <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">Gümüş</div>
-                    </div>
+                    <div class="metal-name">Gümüş</div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
@@ -951,7 +491,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="statistics-section glass-card">
+        <div class="glass-card statistics-section">
             <div class="statistics-title">📊 Maksimum Değerler</div>
             <div class="statistics-grid">
                 <div class="stat-item">
@@ -969,7 +509,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         
-        <div class="price-history glass-card" id="priceHistory">
+        <div class="glass-card price-history">
             <div class="history-header">
                 <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
@@ -1008,13 +548,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             
             try {
                 refreshBtn.style.transform = 'rotate(360deg)';
-                refreshBtn.style.background = 'rgba(59, 130, 246, 0.3)';
                 
                 const [goldRes, silverRes, tableRes, configRes] = await Promise.all([
-                    fetch('/api/gold-price'),
-                    fetch('/api/silver-price'),
-                    fetch('/api/table-data'),
-                    fetch('/api/portfolio-config')
+                    fetch('/api/gold-price'), fetch('/api/silver-price'),
+                    fetch('/api/table-data'), fetch('/api/portfolio-config')
                 ]);
                 
                 const goldData = await goldRes.json();
@@ -1051,12 +588,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 
             } catch (error) {
                 console.error('Fetch error:', error);
-                refreshBtn.style.background = 'rgba(239, 68, 68, 0.3)';
             } finally {
-                setTimeout(() => {
-                    refreshBtn.style.transform = 'rotate(0deg)';
-                    refreshBtn.style.background = 'rgba(30, 41, 59, 0.8)';
-                }, 500);
+                setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
             }
         }
 
@@ -1067,7 +600,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
                 document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
                 
-                // İstatistik başlığını güncelle
                 const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
                 document.querySelector('.statistics-title').textContent = `📊 ${periodText} Maksimum Değerler`;
             }
@@ -1079,11 +611,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             document.getElementById(period + 'Tab').classList.add('active');
             
             const timeHeader = document.getElementById('timeHeader');
-            if (period === 'daily') {
-                timeHeader.textContent = 'Saat';
-            } else if (period === 'weekly') {
-                timeHeader.textContent = 'Tarih';
-            }
+            timeHeader.textContent = period === 'daily' ? 'Saat' : 'Tarih';
             
             updateTable();
             updateStatistics();
@@ -1098,11 +626,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             const tbody = document.getElementById('priceTableBody');
             tbody.innerHTML = '';
             
-            tableData[currentPeriod].forEach((item, index) => {
+            tableData[currentPeriod].forEach((item) => {
                 let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 
                 const row = document.createElement('tr');
-                row.style.animationDelay = `${index * 0.05}s`;
                 
                 const timeDisplay = item.optimized ? 
                     `<span title="Günün peak değeri (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
@@ -1167,25 +694,134 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        // Loading animation on page load
         window.onload = function() {
-            // Add staggered fade-in animation
-            const cards = document.querySelectorAll('.glass-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 150);
-            });
-            
-            setTimeout(() => {
-                fetchPrice();
-            }, 800);
+            fetchPrice();
         };
     </script>
 </body>
-</html>
+</html>'''
+
+# LOGIN TEMPLATE - DARK BLUE GLASSMORPHISM
+LOGIN_TEMPLATE = '''<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metal Tracker - Giriş</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1d3a 25%, #0f172a 50%, #1e293b 75%, #0f0f23 100%);
+            color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(30, 58, 138, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+            pointer-events: none; z-index: -1;
+        }
+        
+        .login-container {
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(25px);
+            border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 20px;
+            padding: 35px 25px; width: 100%; max-width: 380px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            font-size: 22px; font-weight: 900; color: #60a5fa; margin-bottom: 6px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .logo-icon { font-size: 26px; }
+        
+        .subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 28px; }
+        
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
+        
+        .form-input {
+            width: 100%; padding: 14px; border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 10px; font-size: 15px; background: rgba(15, 23, 42, 0.6);
+            color: #e2e8f0; transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .form-input:focus {
+            outline: none; border-color: #60a5fa; background
+# BÖLÜM 3: FLASK ROUTES VE ANA ÇALIŞTIRMA
+
+@app.route('/')
+def index():
+    if not is_authenticated():
+        return redirect(url_for('login'))
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/login')
+def login():
+    if is_authenticated():
+        return redirect(url_for('index'))
+    return LOGIN_TEMPLATE
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    try:
+        data = request.get_json()
+        password = data.get('password', '')
+        
+        if verify_password(password):
+            session.permanent = True
+            session['authenticated'] = True
+            
+            response = make_response(jsonify({'success': True}))
+            response = set_auth_cookie(response)
+            
+            return response
+        else:
+            return jsonify({'success': False, 'error': 'Invalid password'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    response = make_response(jsonify({'success': True}))
+    response.set_cookie('auth_token', '', expires=0)
+    return response
+
+@app.route('/api/gold-price')
+def api_gold_price():
+    try:
+        price = get_gold_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/silver-price')
+def api_silver_price():
+    try:
+        price = get_silver_price()
+        return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/table-data')
+def api_table_data():
+    try:
+        data = get_table_data()
+        return jsonify({'success': bool(data), 'data': data or {}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/portfolio-config')
+def api_portfolio_config():
+    try:
+        config = load_portfolio_config()
+        config.pop('password_hash', None)
+        return jsonify({'success': True, 'config': config})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    app.permanent_session_lifetime = timedelta(days=365)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
