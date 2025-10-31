@@ -797,6 +797,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             if (tableData.statistics && tableData.statistics[currentPeriod]) {
                 const stats = tableData.statistics[currentPeriod];
                 
+                // Debug için console log
+                console.log('Statistics data:', stats);
+                
                 document.getElementById('maxGoldPrice').textContent = formatPrice(stats.max_gold_price);
                 document.getElementById('maxSilverPrice').textContent = formatPrice(stats.max_silver_price);
                 document.getElementById('maxPortfolioValue').textContent = formatCurrency(stats.max_portfolio_value);
@@ -804,6 +807,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('maxGoldDate').textContent = stats.max_gold_date || '';
                 document.getElementById('maxSilverDate').textContent = stats.max_silver_date || '';
                 document.getElementById('maxPortfolioDate').textContent = stats.max_portfolio_date || '';
+            } else {
+                console.log('No statistics data available for period:', currentPeriod);
             }
         }
 
@@ -881,7 +886,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
 
         function formatPrice(price) {
-            if (!price) return '0,00₺';
+            if (!price || price === 0) return '0,00₺';
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
