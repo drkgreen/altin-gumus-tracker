@@ -620,7 +620,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                     <div class="stat-date" id="maxPortfolioDate"></div>
                 </div>
             </div>
-            <div class="peak-info" id="peakInfo"></div>
         </div>
         
         <div class="glass-card price-history">
@@ -720,15 +719,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 document.getElementById('maxGoldDate').textContent = stats.max_gold_date || '';
                 document.getElementById('maxSilverDate').textContent = stats.max_silver_date || '';
                 document.getElementById('maxPortfolioDate').textContent = stats.max_portfolio_date || '';
-                
-                // Peak bilgisini güncelle
-                const peakInfo = document.getElementById('peakInfo');
-                if (stats.peak_info) {
-                    peakInfo.textContent = stats.peak_info;
-                    peakInfo.style.display = 'block';
-                } else {
-                    peakInfo.style.display = 'none';
-                }
                 
                 // Başlığı güncelle
                 const periodText = currentPeriod === 'daily' ? 'Günlük' : 'Aylık';
