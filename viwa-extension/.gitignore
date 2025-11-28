@@ -1,0 +1,34 @@
+# Viwa .gitignore
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Node modules (if you add build tools later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build files
+dist/
+build/
+
+# Package files
+*.zip
+*.crx
+*.pem
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viwa Settings</title>
+  <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Viwa</h1>
+      <p class="subtitle">WhatsApp Web Assistant</p>
+    </header>
+
+    <main>
+      <section class="feature-section">
+        <h2>Özellikler</h2>
+
+        <div class="feature-item">
+          <div class="feature-header">
+            <span class="feature-name">İstatistikler</span>
+            <label class="toggle">
+              <input type="checkbox" id="stats-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p class="feature-description">Mesaj istatistiklerini görüntüle</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-header">
+            <span class="feature-name">Resim Önizleme</span>
+            <label class="toggle">
+              <input type="checkbox" id="image-preview-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p class="feature-description">Resim seçicilerini otomatik algıla</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-header">
+            <span class="feature-name">Otomatik Kaydet</span>
+            <label class="toggle">
+              <input type="checkbox" id="auto-save-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p class="feature-description">Resimleri otomatik kaydet</p>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>İstatistikler</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value" id="total-messages">-</span>
+            <span class="stat-label">Toplam Mesaj</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="total-images">-</span>
+            <span class="stat-label">Toplam Resim</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button id="reset-btn" class="btn-secondary">Sıfırla</button>
+      <button id="save-btn" class="btn-primary">Kaydet</button>
+    </footer>
+  </div>
+
+  <script src="scripts/popup.js"></script>
+</body>
+</html>
