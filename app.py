@@ -151,19 +151,97 @@ def get_weekly_optimized_data():
     except Exception:
         return []
 
+def get_monthly_data():
+    """Aylık peak verilerini getir (günlük peak'lerden aylık peak'ler)"""
+    try:
+        history = load_price_history()
+        records = history.get("records", [])
+
+        if not records:
+            return []
+
+        # Optimize edilmiş kayıtları bul (günlük peak değerler)
+        optimized_records = [
+            r for r in records
+            if r.get("optimized") == True and r.get("daily_peak") == True
+        ]
+
+        if not optimized_records:
+            return []
+
+        # Ayları ve her ayın en yüksek değerini bul
+        from collections import defaultdict
+        monthly_groups = defaultdict(list)
+
+        for record in optimized_records:
+            # Tarihten ay bilgisini çıkar (YYYY-MM formatında)
+            date_str = record.get("date", "")
+            if date_str:
+                year_month = date_str[:7]  # "2025-11" gibi
+                monthly_groups[year_month].append(record)
+
+        # Her ayın en yüksek portfolio değerine sahip gününü bul
+        monthly_data = []
+
+        # Ayları tarihe göre sırala (eskiden yeniye)
+        sorted_months = sorted(monthly_groups.keys())
+
+        for i, month_key in enumerate(sorted_months):
+            month_records = monthly_groups[month_key]
+
+            # O ayın en yüksek portfolio değerine sahip kaydını bul
+            peak_record = max(month_records, key=lambda x: x.get("portfolio_value", 0))
+
+            # Ay adını oluştur
+            year, month = month_key.split("-")
+            month_name = f"{month}/{year}"
+
+            # Değişim hesaplama (bir önceki ay ile karşılaştır)
+            change_percent = 0
+            if i > 0:
+                prev_month_key = sorted_months[i-1]
+                prev_month_records = monthly_groups[prev_month_key]
+                prev_peak_record = max(prev_month_records, key=lambda x: x.get("portfolio_value", 0))
+
+                if prev_peak_record.get("gold_price", 0) > 0:
+                    price_diff = peak_record["gold_price"] - prev_peak_record["gold_price"]
+                    change_percent = (price_diff / prev_peak_record["gold_price"]) * 100
+
+            monthly_data.append({
+                "time": f"{month_name} 📈",
+                "gold_price": peak_record["gold_price"],
+                "silver_price": peak_record["silver_price"],
+                "change_percent": change_percent,
+                "optimized": True,
+                "peak_date": peak_record.get("date", ""),
+                "peak_time": peak_record.get("peak_time", "unknown"),
+                "portfolio_value": peak_record.get("portfolio_value", 0)
+            })
+
+        # Son 12 ay veya mevcut ay sayısı kadar al (en yeni en başta)
+        monthly_data = monthly_data[-12:]
+        monthly_data.reverse()
+
+        return monthly_data
+
+    except Exception:
+        return []
+
 def get_table_data():
     """Günlük ve haftalık veriler için farklı kaynak kullan"""
     try:
         daily_data = get_daily_data()
         weekly_data = get_weekly_optimized_data()
-        
+        monthly_data = get_monthly_data()
+
         return {
-            "daily": daily_data,
-            "weekly": weekly_data
+            "hourly": daily_data,
+            "daily": weekly_data,
+            "monthly": monthly_data
         }
-        
+
     except Exception:
-        return {"daily": [], "weekly": []}
+        return {"hourly": [], "daily": [], "monthly": []}
 
 def get_gold_price():
     """Yapı Kredi altın fiyatını çeker"""
@@ -412,8 +490,9 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             <div class="history-header">
                 <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
-                    <button class="period-tab active" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
-                    <button class="period-tab" onclick="switchPeriod('weekly')" id="weeklyTab">Haftalık</button>
+                    <button class="period-tab active" onclick="switchPeriod('hourly')" id="hourlyTab">Saatlik</button>
+                    <button class="period-tab" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
+                    <button class="period-tab" onclick="switchPeriod('monthly')" id="monthlyTab">Aylık</button>
                 </div>
             </div>
             <div class="price-table">
@@ -465,7 +544,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         let currentGoldPrice = 0;
         let currentSilverPrice = 0;
         let tableData = {};
-        let currentPeriod = 'daily';
+        let currentPeriod = 'hourly';
 
         async function fetchPrice() {
             const refreshBtn = document.getElementById('refreshBtn');
@@ -512,15 +591,17 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             currentPeriod = period;
             document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(period + 'Tab').classList.add('active');
-            
+
             // Tablo başlığını güncelle
             const timeHeader = document.getElementById('timeHeader');
-            if (period === 'daily') {
+            if (period === 'hourly') {
                 timeHeader.textContent = 'Saat';
-            } else if (period === 'weekly') {
+            } else if (period === 'daily') {
                 timeHeader.textContent = 'Tarih';
+            } else if (period === 'monthly') {
+                timeHeader.textContent = 'Ay';
             }
-            
+
             updateTable();
         }
 
