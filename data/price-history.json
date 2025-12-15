@@ -1318,10 +1318,24 @@
         "gold": true,
         "silver": true
       }
+    },
+    {
+      "timestamp": 1765804285.508733,
+      "date": "2025-12-15",
+      "time": "13:11:25",
+      "gold_price": 5887.1,
+      "silver_price": 87.12,
+      "portfolio_value": 5974.22,
+      "optimized": false,
+      "daily_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
     }
   ],
-  "last_update": "2025-12-15T12:20:42.302350+00:00",
-  "total_records": 89,
+  "last_update": "2025-12-15T13:11:25.508768+00:00",
+  "total_records": 90,
   "bot_version": "2.0.0",
   "last_optimization": "2025-12-14T19:08:43.922313+00:00",
   "optimization_stats": {
