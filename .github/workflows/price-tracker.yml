@@ -1,4 +1,4 @@
-name: Metal Price Tracker v2.0
+name: Metal Price Tracker v3.0
 
 on:
   schedule:
@@ -6,9 +6,9 @@ on:
     # 04:00-18:00 UTC = 07:00-21:00 Türkiye saati (UTC+3)
     - cron: '0,30 4-18 * * *'
     
-    # Akşam optimizasyon işi - her gün 22:00 Türkiye saati
-    # 19:00 UTC = 22:00 Türkiye saati (UTC+3)
-    - cron: '0 19 * * *'
+    # Gece temizlik işi - her gece 02:00 Türkiye saati
+    # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
+    - cron: '0 23 * * *'
     
   workflow_dispatch: # Manuel tetikleme için
 
@@ -38,16 +38,15 @@ jobs:
         # Türkiye saati hesapla (UTC+3)
         TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
         TURKEY_MINUTE=$(date -u -d '+3 hours' +%M)
-        CURRENT_UTC_HOUR=$(date -u +%H)
         
         echo "🕐 UTC Saati: $(date -u +%H:%M)"
         echo "🇹🇷 Türkiye Saati: $TURKEY_HOUR:$TURKEY_MINUTE"
         echo "📅 Tarih: $(date -u -d '+3 hours' +%Y-%m-%d)"
         
-        # Akşam optimizasyon kontrolü (22:00 Türkiye saati)
-        if [ $TURKEY_HOUR -eq 22 ]; then
-          echo "🌙 Akşam optimizasyonu zamanı - başlatılıyor..."
-          python scripts/price_tracker.py --optimize
+        # Gece temizlik kontrolü (02:00 Türkiye saati)
+        if [ $TURKEY_HOUR -eq 2 ]; then
+          echo "🌙 Gece temizliği zamanı - başlatılıyor..."
+          python scripts/price_tracker.py --cleanup
           
         # Veri toplama saatleri kontrolü (07:00-21:00 Türkiye saati)
         elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -lt 21 ]; then
@@ -57,7 +56,7 @@ jobs:
         else
           echo "⏰ Belirlenen saatler dışında ($TURKEY_HOUR:$TURKEY_MINUTE)"
           echo "   📊 Veri toplama: 07:00-21:00 TR"
-          echo "   🌙 Optimizasyon: 22:00 TR"
+          echo "   🌙 Temizlik: 02:00 TR"
           echo "   ❌ İşlem yapılmıyor"
           exit 0
         fi
@@ -65,7 +64,7 @@ jobs:
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "Metal Tracker Bot v2.0"
+        git config --local user.name "Metal Tracker Bot v3.0"
         
         # Değişiklik varsa commit et
         if [ -f data/price-history.json ]; then
@@ -74,10 +73,10 @@ jobs:
           # Commit mesajını operasyona göre belirle
           TURKEY_HOUR=$(date -u -d '+3 hours' +%H)
           
-          if [ $TURKEY_HOUR -eq 22 ]; then
-            COMMIT_MSG="🌙 Daily optimization: $(date -u -d '+3 hours' +%Y-%m-%d) peak data saved"
+          if [ $TURKEY_HOUR -eq 2 ]; then
+            COMMIT_MSG="🌙 Cleanup: $(date -u -d '+3 hours' +%Y-%m-%d) old raw data removed"
           else
-            COMMIT_MSG="📊 Price update: $(date -u -d '+3 hours' +%Y-%m-%d\ %H:%M) TR"
+            COMMIT_MSG="📊 Update: $(date -u -d '+3 hours' +%Y-%m-%d\ %H:%M) TR + realtime optimization"
           fi
           
           # Sadece değişiklik varsa commit yap
@@ -97,25 +96,33 @@ jobs:
         echo "📋 İşlem Özeti:"
         echo "==============="
         
-        if [ $TURKEY_HOUR -eq 22 ]; then
-          echo "🌙 Akşam optimizasyonu tamamlandı"
-          echo "   • Bugünün peak değeri saklandı"
-          echo "   • Optimize edilmemiş tüm veriler temizlendi"
+        if [ $TURKEY_HOUR -eq 2 ]; then
+          echo "🌙 Gece temizliği tamamlandı"
+          echo "   • Dünün ham verileri silindi"
+          echo "   • Peak veriler korundu"
         else
           echo "📊 Veri toplama tamamlandı"
           echo "   • Altın fiyatı çekildi"
           echo "   • Gümüş fiyatı çekildi"
           echo "   • Portföy değeri hesaplandı"
+          echo "   • Anlık optimizasyon yapıldı"
+          echo "     ✓ Günlük peak güncellendi"
+          echo "     ✓ Aylık peak güncellendi"
         fi
         
         echo ""
         echo "⏰ Bir sonraki çalışma:"
-        if [ $TURKEY_HOUR -eq 22 ]; then
+        if [ $TURKEY_HOUR -eq 2 ]; then
           echo "   📊 07:00 TR (Veri toplama başlangıcı)"
         elif [ $TURKEY_HOUR -ge 20 ]; then
-          echo "   🌙 22:00 TR (Akşam optimizasyonu)"
+          echo "   🌙 02:00 TR (Gece temizliği)"
         else
-          echo "   📊 $(($TURKEY_HOUR + 1)):00 TR (Veri toplama devam)"
+          NEXT_HOUR=$((TURKEY_HOUR + 1))
+          if [ $TURKEY_MINUTE -lt 30 ]; then
+            echo "   📊 $TURKEY_HOUR:30 TR (Veri toplama devam)"
+          else
+            echo "   📊 $NEXT_HOUR:00 TR (Veri toplama devam)"
+          fi
         fi
         
         echo ""
