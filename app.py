@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v2.0
-Flask web uygulaması - optimize edilmiş verilerle haftalık görünüm
+Metal Price Tracker Web App v3.0
+Flask web uygulaması - 3 sekme: Saatlik / Günlük / Aylık
 """
 from flask import Flask, jsonify, render_template_string
 from flask_cors import CORS
@@ -25,8 +25,8 @@ def load_price_history():
     except Exception:
         return {"records": []}
 
-def get_daily_data():
-    """Son 2 günün tüm verilerini getir (30dk aralıklarla)"""
+def get_hourly_data():
+    """Sadece bugünün tüm verilerini getir (07:00-21:00, 30dk aralıklarla)"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -35,53 +35,47 @@ def get_daily_data():
             return []
         
         now = datetime.now(timezone.utc)
-        daily_data = []
+        today = now.strftime("%Y-%m-%d")
+        hourly_data = []
         
-        # Son 2 günün verilerini al
-        for day_offset in range(2):
-            target_date = (now - timedelta(days=day_offset)).strftime("%Y-%m-%d")
-            day_records = [r for r in records 
-                          if r.get("date") == target_date 
-                          and r.get("gold_price") 
-                          and r.get("silver_price")
-                          and not r.get("optimized", False)]  # Optimize edilmemiş kayıtlar
+        # Sadece bugünün verilerini al (optimize edilmemiş)
+        today_records = [r for r in records 
+                        if r.get("date") == today 
+                        and r.get("gold_price") 
+                        and r.get("silver_price")
+                        and not r.get("optimized", False)]
+        
+        if today_records:
+            sorted_records = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)
             
-            if day_records:
-                sorted_day_records = sorted(day_records, key=lambda x: x.get("timestamp", 0), reverse=True)
+            for i, record in enumerate(sorted_records):
+                timestamp = record.get("timestamp", 0)
+                local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
                 
-                for i, record in enumerate(sorted_day_records):
-                    timestamp = record.get("timestamp", 0)
-                    # UTC'den Türkiye saatine çevir (+3 saat)
-                    local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
-                    
-                    # Eğer bugün değilse tarih de göster
-                    if day_offset == 0:
-                        time_label = local_time.strftime("%H:%M")
-                    else:
-                        time_label = local_time.strftime("%d.%m %H:%M")
-                    
-                    # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
-                    change_percent = 0
-                    if i < len(sorted_day_records) - 1:
-                        prev_record = sorted_day_records[i + 1]
-                        if prev_record and prev_record.get("gold_price"):
-                            price_diff = record["gold_price"] - prev_record["gold_price"]
-                            change_percent = (price_diff / prev_record["gold_price"]) * 100
-                    
-                    daily_data.append({
-                        "time": time_label,
-                        "gold_price": record["gold_price"],
-                        "silver_price": record["silver_price"],
-                        "change_percent": change_percent,
-                        "optimized": False
-                    })
+                time_label = local_time.strftime("%H:%M")
+                
+                # Değişim hesaplama (bir önceki kayıt ile karşılaştır)
+                change_percent = 0
+                if i < len(sorted_records) - 1:
+                    prev_record = sorted_records[i + 1]
+                    if prev_record and prev_record.get("gold_price"):
+                        price_diff = record["gold_price"] - prev_record["gold_price"]
+                        change_percent = (price_diff / prev_record["gold_price"]) * 100
+                
+                hourly_data.append({
+                    "time": time_label,
+                    "gold_price": record["gold_price"],
+                    "silver_price": record["silver_price"],
+                    "change_percent": change_percent,
+                    "optimized": False
+                })
         
-        return daily_data
+        return hourly_data
         
     except Exception:
         return []
 
-def get_weekly_optimized_data():
+def get_daily_optimized_data():
     """Son 7 günün optimize edilmiş verilerini getir (günlük peak değerler)"""
     try:
         history = load_price_history()
@@ -90,51 +84,48 @@ def get_weekly_optimized_data():
         if not records:
             return []
         
-        # Optimize edilmiş kayıtları bul (günlük peak değerler)
-        optimized_records = [
+        # daily_peak: true olan kayıtları bul
+        daily_peaks = [
             r for r in records 
-            if r.get("optimized") == True and r.get("daily_peak") == True
+            if r.get("daily_peak") == True
         ]
         
-        # Son 7 günün optimize edilmiş verilerini al
-        weekly_data = []
-        weekly_temp = []
+        daily_data = []
+        daily_temp = []
         now = datetime.now(timezone.utc)
         
-        # Önce tüm günleri topla (eskiden yeniye)
-        for i in range(6, -1, -1):  # 6'dan 0'a doğru (eskiden yeniye)
+        # Son 7 günü topla (eskiden yeniye)
+        for i in range(6, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             
-            # O günün optimize edilmiş kaydını bul
+            # O günün peak kaydını bul
             day_record = next(
-                (r for r in optimized_records if r.get("date") == target_date), 
+                (r for r in daily_peaks if r.get("date") == target_date), 
                 None
             )
             
             if day_record:
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
-                weekly_temp.append({
+                daily_temp.append({
                     "time": day_name,
                     "gold_price": day_record["gold_price"],
                     "silver_price": day_record["silver_price"],
-                    "date_offset": i,
                     "peak_time": day_record.get("peak_time", "unknown"),
                     "portfolio_value": day_record.get("portfolio_value", 0)
                 })
         
-        # Şimdi değişim hesaplama
-        for i, day_data in enumerate(weekly_temp):
+        # Değişim hesaplama
+        for i, day_data in enumerate(daily_temp):
             change_percent = 0
             
-            # Bir önceki gün ile karşılaştır (eskiden yeniye sıralı listede)
             if i > 0:
-                prev_day = weekly_temp[i-1]
+                prev_day = daily_temp[i-1]
                 if prev_day["gold_price"] > 0:
                     price_diff = day_data["gold_price"] - prev_day["gold_price"]
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
             
-            weekly_data.append({
-                "time": f"{day_data['time']} 📊",  # Peak değer işareti
+            daily_data.append({
+                "time": f"{day_data['time']} 📊",
                 "gold_price": day_data["gold_price"],
                 "silver_price": day_data["silver_price"],
                 "change_percent": change_percent,
@@ -143,103 +134,105 @@ def get_weekly_optimized_data():
                 "portfolio_value": day_data["portfolio_value"]
             })
         
-        # En son kayıt en başta olsun diye ters çevir (yeniden eskiye)
-        weekly_data.reverse()
+        # En son kayıt en başta olsun (yeniden eskiye)
+        daily_data.reverse()
         
-        return weekly_data
+        return daily_data
         
     except Exception:
         return []
 
-def get_monthly_data():
-    """Aylık peak verilerini getir (günlük peak'lerden aylık peak'ler)"""
+def get_monthly_optimized_data():
+    """Son 12 ayın optimize edilmiş verilerini getir (aylık peak değerler)"""
     try:
         history = load_price_history()
         records = history.get("records", [])
-
+        
         if not records:
             return []
-
-        # Optimize edilmiş kayıtları bul (günlük peak değerler)
-        optimized_records = [
-            r for r in records
-            if r.get("optimized") == True and r.get("daily_peak") == True
+        
+        # monthly_peak: true olan kayıtları bul
+        monthly_peaks = [
+            r for r in records 
+            if r.get("monthly_peak") == True
         ]
-
-        if not optimized_records:
-            return []
-
-        # Ayları ve her ayın en yüksek değerini bul
-        from collections import defaultdict
-        monthly_groups = defaultdict(list)
-
-        for record in optimized_records:
-            # Tarihten ay bilgisini çıkar (YYYY-MM formatında)
-            date_str = record.get("date", "")
-            if date_str:
-                year_month = date_str[:7]  # "2025-11" gibi
-                monthly_groups[year_month].append(record)
-
-        # Her ayın en yüksek portfolio değerine sahip gününü bul
+        
         monthly_data = []
-
-        # Ayları tarihe göre sırala (eskiden yeniye)
-        sorted_months = sorted(monthly_groups.keys())
-
-        for i, month_key in enumerate(sorted_months):
-            month_records = monthly_groups[month_key]
-
-            # O ayın en yüksek portfolio değerine sahip kaydını bul
-            peak_record = max(month_records, key=lambda x: x.get("portfolio_value", 0))
-
-            # Ay adını oluştur
-            year, month = month_key.split("-")
-            month_name = f"{month}/{year}"
-
-            # Değişim hesaplama (bir önceki ay ile karşılaştır)
+        monthly_temp = []
+        now = datetime.now(timezone.utc)
+        
+        # Son 12 ayı topla (eskiden yeniye)
+        for i in range(11, -1, -1):
+            target_month = (now - timedelta(days=i*30)).strftime("%Y-%m")
+            
+            # O ayın peak kaydını bul
+            month_record = next(
+                (r for r in monthly_peaks 
+                 if r.get("date", "").startswith(target_month)), 
+                None
+            )
+            
+            if month_record:
+                # Ay ismi: "Ocak", "Şubat" vs.
+                month_date = datetime.strptime(month_record["date"], "%Y-%m-%d")
+                month_names = {
+                    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
+                    5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos",
+                    9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+                }
+                month_label = f"{month_names[month_date.month]} {month_date.year}"
+                
+                monthly_temp.append({
+                    "time": month_label,
+                    "gold_price": month_record["gold_price"],
+                    "silver_price": month_record["silver_price"],
+                    "peak_time": month_record.get("peak_time", "unknown"),
+                    "peak_date": month_record.get("date", "unknown"),
+                    "portfolio_value": month_record.get("portfolio_value", 0)
+                })
+        
+        # Değişim hesaplama
+        for i, month_data in enumerate(monthly_temp):
             change_percent = 0
+            
             if i > 0:
-                prev_month_key = sorted_months[i-1]
-                prev_month_records = monthly_groups[prev_month_key]
-                prev_peak_record = max(prev_month_records, key=lambda x: x.get("portfolio_value", 0))
-
-                if prev_peak_record.get("gold_price", 0) > 0:
-                    price_diff = peak_record["gold_price"] - prev_peak_record["gold_price"]
-                    change_percent = (price_diff / prev_peak_record["gold_price"]) * 100
-
+                prev_month = monthly_temp[i-1]
+                if prev_month["gold_price"] > 0:
+                    price_diff = month_data["gold_price"] - prev_month["gold_price"]
+                    change_percent = (price_diff / prev_month["gold_price"]) * 100
+            
             monthly_data.append({
-                "time": f"{month_name} 📈",
-                "gold_price": peak_record["gold_price"],
-                "silver_price": peak_record["silver_price"],
+                "time": f"{month_data['time']} 🏆",
+                "gold_price": month_data["gold_price"],
+                "silver_price": month_data["silver_price"],
                 "change_percent": change_percent,
                 "optimized": True,
-                "peak_date": peak_record.get("date", ""),
-                "peak_time": peak_record.get("peak_time", "unknown"),
-                "portfolio_value": peak_record.get("portfolio_value", 0)
+                "peak_time": month_data["peak_time"],
+                "peak_date": month_data["peak_date"],
+                "portfolio_value": month_data["portfolio_value"]
             })
-
-        # Son 12 ay veya mevcut ay sayısı kadar al (en yeni en başta)
-        monthly_data = monthly_data[-12:]
+        
+        # En son kayıt en başta olsun (yeniden eskiye)
         monthly_data.reverse()
-
+        
         return monthly_data
-
+        
     except Exception:
         return []
 
 def get_table_data():
-    """Günlük ve haftalık veriler için farklı kaynak kullan"""
+    """Saatlik, günlük ve aylık veriler için farklı kaynak kullan"""
     try:
-        daily_data = get_daily_data()
-        weekly_data = get_weekly_optimized_data()
-        monthly_data = get_monthly_data()
-
+        hourly_data = get_hourly_data()
+        daily_data = get_daily_optimized_data()
+        monthly_data = get_monthly_optimized_data()
+        
         return {
-            "hourly": daily_data,
-            "daily": weekly_data,
+            "hourly": hourly_data,
+            "daily": daily_data,
             "monthly": monthly_data
         }
-
+        
     except Exception:
         return {"hourly": [], "daily": [], "monthly": []}
 
@@ -285,12 +278,13 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
+# HTML TEMPLATE - Bölüm 2'de devam edecek
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metal Tracker v2.0</title>
+    <title>Metal Tracker v3.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -354,11 +348,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         .history-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
         .period-tabs {
-            display: flex; gap: 8px;
+            display: flex; gap: 6px;
             background: #f8f9fa; border-radius: 10px; padding: 4px;
         }
         .period-tab {
-            padding: 8px 16px; border: none; border-radius: 6px;
+            padding: 8px 12px; border: none; border-radius: 6px;
             background: transparent; color: #6c757d;
             font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
@@ -447,352 +441,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             .price-history { padding: 12px 2px; margin: 0 -5px; width: calc(100% + 10px); }
             .price-table { margin: 0 4px; }
             .history-header { padding: 0 8px; }
+            .period-tabs { flex-wrap: wrap; }
+            .period-tab { font-size: 11px; padding: 6px 10px; }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <div>
-                    <div class="logo">Metal Tracker</div>
-                    <div class="version">v2.0</div>
-                </div>
-                <div class="update-time" id="headerTime">--:--</div>
-            </div>
-            <div class="actions">
-                <button class="action-btn" onclick="fetchPrice()" id="refreshBtn">⟳</button>
-                <button class="action-btn" onclick="togglePortfolio()">⚙</button>
-            </div>
-        </div>
-        
-        <div class="portfolio-summary" id="portfolioSummary">
-            <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
-            <div class="portfolio-metals">
-                <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">Altın</div>
-                    </div>
-                    <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
-                    <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
-                </div>
-                <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">Gümüş</div>
-                    </div>
-                    <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
-                    <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="price-history" id="priceHistory">
-            <div class="history-header">
-                <div class="history-title">Fiyat Geçmişi</div>
-                <div class="period-tabs">
-                    <button class="period-tab active" onclick="switchPeriod('hourly')" id="hourlyTab">Saatlik</button>
-                    <button class="period-tab" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
-                    <button class="period-tab" onclick="switchPeriod('monthly')" id="monthlyTab">Aylık</button>
-                </div>
-            </div>
-            <div class="price-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th id="timeHeader">Saat</th>
-                            <th>Altın</th>
-                            <th>Gümüş</th>
-                            <th>Portföy</th>
-                            <th>Değişim</th>
-                        </tr>
-                    </thead>
-                    <tbody id="priceTableBody">
-                        <!-- Dynamic content -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal-overlay" id="portfolioModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Portföy Ayarları</div>
-                <button class="close-btn" onclick="closeModal()">×</button>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Altın (gram)</label>
-                <input type="number" class="input-field" id="goldAmount" placeholder="0.0" 
-                       step="0.1" min="0" oninput="updatePortfolio()">
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Gümüş (gram)</label>
-                <input type="number" class="input-field" id="silverAmount" placeholder="0.0" 
-                       step="0.1" min="0" oninput="updatePortfolio()">
-            </div>
-            
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="clearPortfolio()">Sıfırla</button>
-                <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
-            </div>
-        </div>
-    </div>
+'''
 
-    <script>
-        let currentGoldPrice = 0;
-        let currentSilverPrice = 0;
-        let tableData = {};
-        let currentPeriod = 'hourly';
-
-        async function fetchPrice() {
-            const refreshBtn = document.getElementById('refreshBtn');
-            
-            try {
-                refreshBtn.style.transform = 'rotate(360deg)';
-                
-                const [goldRes, silverRes, tableRes] = await Promise.all([
-                    fetch('/api/gold-price'),
-                    fetch('/api/silver-price'),
-                    fetch('/api/table-data')
-                ]);
-                
-                const goldData = await goldRes.json();
-                const silverData = await silverRes.json();
-                const tableDataRes = await tableRes.json();
-                
-                if (goldData.success) {
-                    let cleanPrice = goldData.price.replace(/[^\d,]/g, '');
-                    currentGoldPrice = parseFloat(cleanPrice.replace(',', '.'));
-                }
-                
-                if (silverData.success) {
-                    let cleanPrice = silverData.price.replace(/[^\d,]/g, '');
-                    currentSilverPrice = parseFloat(cleanPrice.replace(',', '.'));
-                }
-                
-                if (tableDataRes.success) {
-                    tableData = tableDataRes.data;
-                    updateTable();
-                }
-                
-                document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
-                updatePortfolio();
-                
-            } catch (error) {
-                console.error('Fetch error:', error);
-            } finally {
-                setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
-            }
-        }
-
-        function switchPeriod(period) {
-            currentPeriod = period;
-            document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(period + 'Tab').classList.add('active');
-
-            // Tablo başlığını güncelle
-            const timeHeader = document.getElementById('timeHeader');
-            if (period === 'hourly') {
-                timeHeader.textContent = 'Saat';
-            } else if (period === 'daily') {
-                timeHeader.textContent = 'Tarih';
-            } else if (period === 'monthly') {
-                timeHeader.textContent = 'Ay';
-            }
-
-            updateTable();
-        }
-
-        function updateTable() {
-            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
-            
-            if (!tableData[currentPeriod]) return;
-            
-            const tbody = document.getElementById('priceTableBody');
-            tbody.innerHTML = '';
-            
-            // Önce tüm portföy değerlerini hesapla ve peak'i bul
-            let maxPortfolioValue = 0;
-            let peakIndices = [];
-            
-            if (goldAmount > 0 || silverAmount > 0) {
-                tableData[currentPeriod].forEach((item, index) => {
-                    const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                    
-                    if (portfolioValue > maxPortfolioValue) {
-                        maxPortfolioValue = portfolioValue;
-                        peakIndices = [index]; // Yeni max, önceki peak'leri sıfırla
-                    } else if (portfolioValue === maxPortfolioValue && portfolioValue > 0) {
-                        peakIndices.push(index); // Aynı değerde birden fazla peak
-                    }
-                });
-            }
-            
-            // Satırları oluştur
-            tableData[currentPeriod].forEach((item, index) => {
-                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                
-                const row = document.createElement('tr');
-                
-                // Peak satır mı kontrol et
-                const isPeakRow = peakIndices.includes(index) && maxPortfolioValue > 0;
-                if (isPeakRow) {
-                    row.classList.add('peak-row');
-                }
-                
-                // Haftalık görünümde optimize edilmiş veriyi göster
-                const timeDisplay = item.optimized ? 
-                    `<span title="Günün peak değeri (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
-                    item.time;
-                
-                row.innerHTML = `
-                    <td class="time">${timeDisplay}</td>
-                    <td class="price">${formatPrice(item.gold_price)}</td>
-                    <td class="price">${formatPrice(item.silver_price)}</td>
-                    <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
-                    <td class="change ${getChangeClass(item.change_percent)}">${formatChange(item.change_percent)}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function getChangeClass(changePercent) {
-            if (changePercent > 0) return 'positive';
-            if (changePercent < 0) return 'negative';
-            return 'neutral';
-        }
-
-        function formatChange(changePercent) {
-            if (changePercent === 0) return '0.00%';
-            const sign = changePercent > 0 ? '+' : '';
-            return `${sign}${changePercent.toFixed(2)}%`;
-        }
-
-        function togglePortfolio() {
-            document.getElementById('portfolioModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('portfolioModal').style.display = 'none';
-        }
-
-        function updatePortfolio() {
-            const goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
-            const silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
-            
-            const goldValue = goldAmount * currentGoldPrice;
-            const silverValue = silverAmount * currentSilverPrice;
-            const totalValue = goldValue + silverValue;
-            
-            const portfolioSummary = document.getElementById('portfolioSummary');
-            const priceHistory = document.getElementById('priceHistory');
-            
-            if (totalValue > 0) {
-                portfolioSummary.style.display = 'block';
-                priceHistory.style.display = 'block';
-                
-                document.getElementById('totalAmount').textContent = formatCurrency(totalValue);
-                document.getElementById('goldCurrentPrice').textContent = formatPrice(currentGoldPrice) + '/gr';
-                document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
-                document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
-                document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
-                
-                updateTable();
-            } else {
-                portfolioSummary.style.display = 'none';
-                priceHistory.style.display = 'none';
-            }
-            
-            savePortfolio();
-        }
-
-        function savePortfolio() {
-            const goldAmount = document.getElementById('goldAmount').value;
-            const silverAmount = document.getElementById('silverAmount').value;
-            
-            // Cookie ile kalıcı kayıt (1 yıl geçerli)
-            const expiryDate = new Date();
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-            
-            document.cookie = `goldAmount=${goldAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-            document.cookie = `silverAmount=${silverAmount}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-            
-            // Yedek olarak in-memory de tut
-            window.portfolioData = {
-                gold: goldAmount,
-                silver: silverAmount
-            };
-        }
-
-        function loadPortfolio() {
-            // Cookie'den yükle
-            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-                const [key, value] = cookie.trim().split('=');
-                acc[key] = value;
-                return acc;
-            }, {});
-            
-            if (cookies.goldAmount && cookies.goldAmount !== 'undefined') {
-                document.getElementById('goldAmount').value = cookies.goldAmount;
-            }
-            if (cookies.silverAmount && cookies.silverAmount !== 'undefined') {
-                document.getElementById('silverAmount').value = cookies.silverAmount;
-            }
-            
-            // Yedek: in-memory'den yükle
-            if (!cookies.goldAmount && window.portfolioData) {
-                document.getElementById('goldAmount').value = window.portfolioData.gold || '';
-                document.getElementById('silverAmount').value = window.portfolioData.silver || '';
-            }
-        }
-
-        function clearPortfolio() {
-            if (confirm('Portföy sıfırlanacak. Emin misiniz?')) {
-                document.getElementById('goldAmount').value = '';
-                document.getElementById('silverAmount').value = '';
-                
-                // Cookie'leri sil
-                document.cookie = 'goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                document.cookie = 'silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                
-                // In-memory'yi temizle
-                window.portfolioData = null;
-                
-                updatePortfolio();
-            }
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + '₺';
-        }
-
-        function formatPrice(price) {
-            if (!price) return '0,00₺';
-            return new Intl.NumberFormat('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(price) + '₺';
-        }
-
-        document.getElementById('portfolioModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
-        window.onload = function() {
-            loadPortfolio();
-            fetchPrice();
-            updatePortfolio();
-        };
-    </script>
-</body>
-</html>'''
-
+# API Routes
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE)
