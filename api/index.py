@@ -1,18 +1,39 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.0
-Flask web uygulaması - 3 sekme: Saatlik / Günlük / Aylık
+Metal Price Tracker Web App v3.0 - Secure Version
+Flask web uygulaması - Şifre korumalı, 3 sekme: Saatlik / Günlük / Aylık
 """
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import os
 import json
+import hashlib
 from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
 CORS(app)
+
+def load_portfolio_config():
+    """portfolio-config.json dosyasını yükler"""
+    try:
+        with open('portfolio-config.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"gold_amount": 0, "silver_amount": 0, "password_hash": ""}
+    except Exception as e:
+        print(f"Config yüklenirken hata: {e}")
+        return {"gold_amount": 0, "silver_amount": 0, "password_hash": ""}
+
+def verify_password(password):
+    """Girilen şifreyi hash'leyip kontrol eder"""
+    try:
+        config = load_portfolio_config()
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        return password_hash == config.get("password_hash", "")
+    except Exception:
+        return False
 
 def load_price_history():
     """GitHub'dan fiyat geçmişini yükler"""
@@ -253,6 +274,14 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 2px; }
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1e3c72 0%, #667eea 100%); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-box { background: white; border-radius: 24px; padding: 40px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-title { font-size: 28px; font-weight: 800; color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        .login-input { width: 100%; padding: 16px; border: 2px solid #e9ecef; border-radius: 14px; font-size: 17px; margin-bottom: 20px; font-weight: 600; }
+        .login-input:focus { outline: none; border-color: #667eea; }
+        .login-btn { width: 100%; padding: 16px; background: #667eea; color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .login-btn:hover { background: #5568d3; transform: translateY(-2px); }
+        .login-error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; font-weight: 600; display: none; }
         .header { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 20px; border: 1px solid rgba(255, 255, 255, 0.2); }
         .header-left { display: flex; align-items: center; gap: 12px; }
         .logo { font-size: 18px; font-weight: 700; color: white; }
@@ -261,7 +290,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .actions { display: flex; gap: 10px; }
         .action-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); border: none; color: white; font-size: 18px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
         .action-btn:hover { background: rgba(255, 255, 255, 0.3); }
-        .portfolio-summary { background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 24px; padding: 24px 20px; color: white; box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4); display: none; text-align: center; }
+        .portfolio-summary { background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 24px; padding: 24px 20px; color: white; box-shadow: 0 15px 35px rgba(238, 90, 36, 0.4); text-align: center; }
         .portfolio-amount { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
         .portfolio-metals { display: flex; justify-content: center; gap: 6px; margin: 20px 10px 0 10px; }
         .metal-item { flex: 1; background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); min-height: 140px; }
@@ -269,7 +298,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .metal-name { font-size: 16px; font-weight: 600; }
         .metal-price { font-size: 15px; opacity: 0.8; margin-bottom: 8px; }
         .metal-value { font-size: 22px; font-weight: 700; }
-        .price-history { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 4px; border: 1px solid rgba(255, 255, 255, 0.3); display: none; margin: 0 -10px; width: calc(100% + 20px); }
+        .price-history { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 4px; border: 1px solid rgba(255, 255, 255, 0.3); margin: 0 -10px; width: calc(100% + 20px); }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 16px; }
         .history-title { font-size: 18px; font-weight: 700; color: #2c3e50; }
         .period-tabs { display: flex; gap: 6px; background: #f8f9fa; border-radius: 10px; padding: 4px; }
@@ -289,19 +318,6 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .change.neutral { color: #95a5a6; }
         .peak-row { background-color: #fff8e7 !important; border-left: 2px solid #f39c12; animation: peakPulse 3s ease-in-out infinite; }
         @keyframes peakPulse { 0%, 100% { background-color: #fff8e7; } 50% { background-color: #ffeaa7; } }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: white; border-radius: 24px; padding: 28px; width: 100%; max-width: 350px; position: relative; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .modal-title { font-size: 22px; font-weight: 800; color: #2c3e50; }
-        .close-btn { width: 36px; height: 36px; border-radius: 10px; background: #f8f9fa; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .input-group { margin-bottom: 22px; }
-        .input-label { display: block; margin-bottom: 10px; font-weight: 700; color: #2c3e50; font-size: 15px; }
-        .input-field { width: 100%; padding: 16px; border: 2px solid #e9ecef; border-radius: 14px; font-size: 17px; background: #f8f9fa; font-weight: 600; }
-        .input-field:focus { outline: none; border-color: #667eea; background: white; }
-        .modal-actions { display: flex; gap: 14px; justify-content: flex-end; }
-        .btn { padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 15px; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-secondary { background: #e9ecef; color: #6c757d; }
         @media (max-width: 400px) {
             .container { max-width: 100%; padding: 0 1px; }
             .history-header { flex-direction: column; gap: 12px; }
@@ -320,7 +336,15 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="login-title">🔐 Metal Tracker</div>
+            <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
+            <button class="login-btn" onclick="login()">Giriş</button>
+            <div class="login-error" id="loginError">Hatalı şifre!</div>
+        </div>
+    </div>
+    <div class="container" id="mainApp" style="display:none;">
         <div class="header">
             <div class="header-left">
                 <div><div class="logo">Metal Tracker</div><div class="version">v3.0</div></div>
@@ -328,10 +352,10 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
             <div class="actions">
                 <button class="action-btn" onclick="fetchPrice()" id="refreshBtn">⟳</button>
-                <button class="action-btn" onclick="togglePortfolio()">⚙</button>
+                <button class="action-btn" onclick="logout()" title="Çıkış">🚪</button>
             </div>
         </div>
-        <div class="portfolio-summary" id="portfolioSummary">
+        <div class="portfolio-summary">
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
@@ -346,7 +370,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 </div>
             </div>
         </div>
-        <div class="price-history" id="priceHistory">
+        <div class="price-history">
             <div class="history-header">
                 <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
@@ -363,43 +387,32 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
     </div>
-    <div class="modal-overlay" id="portfolioModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Portföy Ayarları</div>
-                <button class="close-btn" onclick="closeModal()">×</button>
-            </div>
-            <div class="input-group">
-                <label class="input-label">Altın (gram)</label>
-                <input type="number" class="input-field" id="goldAmount" placeholder="0.0" step="0.1" min="0" oninput="updatePortfolio()">
-            </div>
-            <div class="input-group">
-                <label class="input-label">Gümüş (gram)</label>
-                <input type="number" class="input-field" id="silverAmount" placeholder="0.0" step="0.1" min="0" oninput="updatePortfolio()">
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="clearPortfolio()">Sıfırla</button>
-                <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
-            </div>
-        </div>
-    </div>
     <script>
-        let currentGoldPrice=0,currentSilverPrice=0,tableData={},currentPeriod='hourly';
+        let currentGoldPrice=0,currentSilverPrice=0,tableData={},currentPeriod='hourly',goldAmount=0,silverAmount=0;
+        
+        async function login(){const p=document.getElementById('passwordInput').value;if(!p)return;try{const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})});const d=await r.json();if(d.success){const exp=new Date();exp.setDate(exp.getDate()+30);document.cookie=`auth_token=${d.token}; expires=${exp.toUTCString()}; path=/; SameSite=Lax`;document.getElementById('loginScreen').style.display='none';document.getElementById('mainApp').style.display='flex';await loadPortfolioConfig();await fetchPrice();}else{document.getElementById('loginError').style.display='block';document.getElementById('passwordInput').value='';}}catch(e){document.getElementById('loginError').style.display='block';}}
+        
+        async function checkAuth(){const c=document.cookie.split(';').find(ck=>ck.trim().startsWith('auth_token='));if(!c){document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';return false;}try{const t=c.split('=')[1];const r=await fetch('/api/verify-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t})});const d=await r.json();if(d.valid){document.getElementById('loginScreen').style.display='none';document.getElementById('mainApp').style.display='flex';await loadPortfolioConfig();await fetchPrice();return true;}else{logout();return false;}}catch(e){logout();return false;}}
+        
+        function logout(){document.cookie='auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';document.getElementById('passwordInput').value='';document.getElementById('loginError').style.display='none';}
+        
+        async function loadPortfolioConfig(){try{const r=await fetch('/api/portfolio-config');const d=await r.json();if(d.success){goldAmount=d.gold_amount;silverAmount=d.silver_amount;}}catch(e){}}
+        
         async function fetchPrice(){const r=document.getElementById('refreshBtn');try{r.style.transform='rotate(360deg)';const[g,s,t]=await Promise.all([fetch('/api/gold-price'),fetch('/api/silver-price'),fetch('/api/table-data')]);const gd=await g.json(),sd=await s.json(),td=await t.json();if(gd.success){let c=gd.price.replace(/[^\d,]/g,'');currentGoldPrice=parseFloat(c.replace(',','.'));}if(sd.success){let c=sd.price.replace(/[^\d,]/g,'');currentSilverPrice=parseFloat(c.replace(',','.'));}if(td.success){tableData=td.data;updateTable();}document.getElementById('headerTime').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});updatePortfolio();}catch(e){}finally{setTimeout(()=>r.style.transform='rotate(0deg)',500);}}
+        
         function switchPeriod(p){currentPeriod=p;document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));document.getElementById(p+'Tab').classList.add('active');const h=document.getElementById('timeHeader');if(p==='hourly')h.textContent='Saat';else if(p==='daily')h.textContent='Tarih';else if(p==='monthly')h.textContent='Ay';updateTable();}
-        function updateTable(){const ga=parseFloat(document.getElementById('goldAmount').value)||0,sa=parseFloat(document.getElementById('silverAmount').value)||0;if(!tableData[currentPeriod])return;const tb=document.getElementById('priceTableBody');tb.innerHTML='';let mv=0,pi=[];if(ga>0||sa>0){tableData[currentPeriod].forEach((it,i)=>{const pv=(ga*it.gold_price)+(sa*it.silver_price);if(pv>mv){mv=pv;pi=[i];}else if(pv===mv&&pv>0)pi.push(i);});}tableData[currentPeriod].forEach((it,i)=>{let pv=(ga*it.gold_price)+(sa*it.silver_price);const r=document.createElement('tr');if(pi.includes(i)&&mv>0)r.classList.add('peak-row');const td=it.optimized?`<span title="Peak değer (${it.peak_time||'bilinmiyor'})">${it.time}</span>`:it.time;r.innerHTML=`<td class="time">${td}</td><td class="price">${formatPrice(it.gold_price)}</td><td class="price">${formatPrice(it.silver_price)}</td><td class="portfolio">${pv>0?formatCurrency(pv):'-'}</td><td class="change ${getChangeClass(it.change_percent)}">${formatChange(it.change_percent)}</td>`;tb.appendChild(r);});}
+        
+        function updateTable(){if(!tableData[currentPeriod])return;const tb=document.getElementById('priceTableBody');tb.innerHTML='';let mv=0,pi=[];if(goldAmount>0||silverAmount>0){tableData[currentPeriod].forEach((it,i)=>{const pv=(goldAmount*it.gold_price)+(silverAmount*it.silver_price);if(pv>mv){mv=pv;pi=[i];}else if(pv===mv&&pv>0)pi.push(i);});}tableData[currentPeriod].forEach((it,i)=>{let pv=(goldAmount*it.gold_price)+(silverAmount*it.silver_price);const r=document.createElement('tr');if(pi.includes(i)&&mv>0)r.classList.add('peak-row');const td=it.optimized?`<span title="Peak değer (${it.peak_time||'bilinmiyor'})">${it.time}</span>`:it.time;r.innerHTML=`<td class="time">${td}</td><td class="price">${formatPrice(it.gold_price)}</td><td class="price">${formatPrice(it.silver_price)}</td><td class="portfolio">${pv>0?formatCurrency(pv):'-'}</td><td class="change ${getChangeClass(it.change_percent)}">${formatChange(it.change_percent)}</td>`;tb.appendChild(r);});}
+        
         function getChangeClass(c){if(c>0)return 'positive';if(c<0)return 'negative';return 'neutral';}
         function formatChange(c){if(c===0)return '0.00%';const s=c>0?'+':'';return `${s}${c.toFixed(2)}%`;}
-        function togglePortfolio(){document.getElementById('portfolioModal').style.display='flex';}
-        function closeModal(){document.getElementById('portfolioModal').style.display='none';}
-        function updatePortfolio(){const ga=parseFloat(document.getElementById('goldAmount').value)||0,sa=parseFloat(document.getElementById('silverAmount').value)||0;const gv=ga*currentGoldPrice,sv=sa*currentSilverPrice,tv=gv+sv;const ps=document.getElementById('portfolioSummary'),ph=document.getElementById('priceHistory');if(tv>0){ps.style.display='block';ph.style.display='block';document.getElementById('totalAmount').textContent=formatCurrency(tv);document.getElementById('goldCurrentPrice').textContent=formatPrice(currentGoldPrice)+'/gr';document.getElementById('silverCurrentPrice').textContent=formatPrice(currentSilverPrice)+'/gr';document.getElementById('goldPortfolioValue').textContent=formatCurrency(gv);document.getElementById('silverPortfolioValue').textContent=formatCurrency(sv);updateTable();}else{ps.style.display='none';ph.style.display='none';}savePortfolio();}
-        function savePortfolio(){const ga=document.getElementById('goldAmount').value,sa=document.getElementById('silverAmount').value;const ed=new Date();ed.setFullYear(ed.getFullYear()+1);document.cookie=`goldAmount=${ga}; expires=${ed.toUTCString()}; path=/; SameSite=Lax`;document.cookie=`silverAmount=${sa}; expires=${ed.toUTCString()}; path=/; SameSite=Lax`;window.portfolioData={gold:ga,silver:sa};}
-        function loadPortfolio(){const c=document.cookie.split(';').reduce((a,ck)=>{const[k,v]=ck.trim().split('=');a[k]=v;return a;},{});if(c.goldAmount&&c.goldAmount!=='undefined')document.getElementById('goldAmount').value=c.goldAmount;if(c.silverAmount&&c.silverAmount!=='undefined')document.getElementById('silverAmount').value=c.silverAmount;if(!c.goldAmount&&window.portfolioData){document.getElementById('goldAmount').value=window.portfolioData.gold||'';document.getElementById('silverAmount').value=window.portfolioData.silver||'';}}
-        function clearPortfolio(){if(confirm('Portföy sıfırlanacak. Emin misiniz?')){document.getElementById('goldAmount').value='';document.getElementById('silverAmount').value='';document.cookie='goldAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';document.cookie='silverAmount=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';window.portfolioData=null;updatePortfolio();}}
+        
+        function updatePortfolio(){const gv=goldAmount*currentGoldPrice,sv=silverAmount*currentSilverPrice,tv=gv+sv;document.getElementById('totalAmount').textContent=formatCurrency(tv);document.getElementById('goldCurrentPrice').textContent=formatPrice(currentGoldPrice)+'/gr';document.getElementById('silverCurrentPrice').textContent=formatPrice(currentSilverPrice)+'/gr';document.getElementById('goldPortfolioValue').textContent=formatCurrency(gv);document.getElementById('silverPortfolioValue').textContent=formatCurrency(sv);updateTable();}
+        
         function formatCurrency(a){return new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(a)+'₺';}
         function formatPrice(p){if(!p)return '0,00₺';return new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(p)+'₺';}
-        document.getElementById('portfolioModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-        window.onload=function(){loadPortfolio();fetchPrice();updatePortfolio();};
+        
+        window.onload=function(){checkAuth();};
     </script>
 </body>
 </html>'''
@@ -407,6 +420,45 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE)
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    try:
+        data = request.get_json()
+        password = data.get('password', '')
+        
+        if verify_password(password):
+            password_hash = hashlib.sha256(password.encode()).hexdigest()
+            return jsonify({'success': True, 'token': password_hash})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid password'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/verify-session', methods=['POST'])
+def api_verify_session():
+    try:
+        data = request.get_json()
+        token = data.get('token', '')
+        
+        config = load_portfolio_config()
+        is_valid = token == config.get("password_hash", "")
+        
+        return jsonify({'valid': is_valid})
+    except Exception as e:
+        return jsonify({'valid': False, 'error': str(e)})
+
+@app.route('/api/portfolio-config')
+def api_portfolio_config():
+    try:
+        config = load_portfolio_config()
+        return jsonify({
+            'success': True,
+            'gold_amount': config.get('gold_amount', 0),
+            'silver_amount': config.get('silver_amount', 0)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/gold-price')
 def api_gold_price():
