@@ -179,35 +179,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #0d1b2a 50%, #1a1a1a 75%, #0a0a0a 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
             background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px;
-            color: #e0e0e0;
+            padding: 15px;
+            color: #e2e8f0;
             overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
         .container {
-            max-width: 480px;
+            max-width: 420px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 18px;
             padding: 0 4px;
             position: relative;
             z-index: 1;
@@ -219,87 +204,79 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #0d1b2a 50%, #1a1a1a 75%, #0a0a0a 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            backdrop-filter: blur(20px);
         }
 
         .login-box {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 24px;
-            padding: 40px;
+            background: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.5);
+            border-radius: 16px;
+            padding: 32px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 
-                0 25px 80px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 360px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .login-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: #10b981;
+            font-size: 24px;
+            font-weight: 700;
+            color: #63b3ed;
             text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+            margin-bottom: 24px;
         }
 
         .login-input {
             width: 100%;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 16px;
-            font-size: 17px;
-            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: rgba(45, 55, 72, 0.6);
+            border: 1px solid rgba(74, 85, 104, 0.6);
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 18px;
             font-weight: 500;
-            color: #e0e0e0;
+            color: #e2e8f0;
             transition: all 0.3s ease;
         }
 
         .login-input:focus {
             outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-            background: rgba(255, 255, 255, 0.12);
+            border-color: #63b3ed;
+            background: rgba(45, 55, 72, 0.8);
         }
 
         .login-input::placeholder {
-            color: rgba(224, 224, 224, 0.6);
+            color: rgba(226, 232, 240, 0.5);
         }
 
         .login-btn {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 14px;
+            background: #4299e1;
             color: white;
             border: none;
-            border-radius: 16px;
-            font-size: 17px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         .login-btn:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+            background: #3182ce;
+            transform: translateY(-1px);
         }
 
         .login-error {
-            color: #ef4444;
+            color: #f56565;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             display: none;
         }
 
@@ -307,58 +284,53 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 20px;
-            padding: 20px 24px;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.4);
+            border-radius: 14px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .logo {
-            font-size: 20px;
-            font-weight: 800;
-            color: #10b981;
-            text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+            font-size: 18px;
+            font-weight: 700;
+            color: #63b3ed;
         }
 
         .version {
-            font-size: 11px;
-            color: rgba(16, 185, 129, 0.8);
-            background: rgba(16, 185, 129, 0.15);
-            padding: 4px 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            font-size: 10px;
+            color: rgba(99, 179, 237, 0.7);
+            background: rgba(99, 179, 237, 0.15);
+            padding: 3px 8px;
+            border-radius: 8px;
         }
 
         .update-time {
-            font-size: 14px;
-            color: rgba(224, 224, 224, 0.8);
+            font-size: 13px;
+            color: rgba(226, 232, 240, 0.8);
             font-weight: 500;
         }
 
         .actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .action-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: #10b981;
-            font-size: 18px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(74, 85, 104, 0.4);
+            color: #63b3ed;
+            font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -367,175 +339,140 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .action-btn:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: #10b981;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            background: rgba(99, 179, 237, 0.2);
+            border-color: #63b3ed;
         }
 
         .portfolio-summary {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 24px;
-            padding: 28px 24px;
-            color: #e0e0e0;
-            box-shadow: 
-                0 15px 50px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.4);
+            border-radius: 16px;
+            padding: 20px 18px;
+            color: #e2e8f0;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .portfolio-summary::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-            animation: pulse 4s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
         }
 
         .portfolio-amount {
-            font-size: 44px;
-            font-weight: 900;
-            margin-bottom: 24px;
-            color: #10b981;
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-            position: relative;
-            z-index: 2;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #63b3ed;
         }
 
         .portfolio-metals {
             display: flex;
             justify-content: center;
-            gap: 16px;
-            margin: 24px 0 0 0;
-            position: relative;
-            z-index: 2;
+            gap: 12px;
+            margin: 20px 0 0 0;
         }
 
         .metal-item {
             flex: 1;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 18px;
-            padding: 20px 16px;
-            min-height: 160px;
+            background: rgba(45, 55, 72, 0.6);
+            border: 1px solid rgba(74, 85, 104, 0.3);
+            border-radius: 12px;
+            padding: 16px 12px;
+            min-height: 130px;
             transition: all 0.3s ease;
         }
 
         .metal-item:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(16, 185, 129, 0.4);
-            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.8);
+            border-color: rgba(99, 179, 237, 0.4);
         }
 
         .metal-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 16px;
+            gap: 6px;
+            margin-bottom: 12px;
         }
 
         .metal-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: #10b981;
+            font-size: 16px;
+            font-weight: 600;
+            color: #63b3ed;
         }
 
         .metal-amount {
-            font-size: 14px;
-            color: rgba(224, 224, 224, 0.8);
-            margin-bottom: 8px;
+            font-size: 12px;
+            color: rgba(226, 232, 240, 0.7);
+            margin-bottom: 6px;
             font-weight: 500;
         }
 
         .metal-price {
-            font-size: 15px;
-            color: rgba(224, 224, 224, 0.7);
-            margin-bottom: 12px;
+            font-size: 13px;
+            color: rgba(226, 232, 240, 0.6);
+            margin-bottom: 8px;
         }
 
         .metal-value {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
-            color: #e0e0e0;
+            color: #e2e8f0;
         }
 
         .price-history {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 20px;
-            padding: 20px 8px;
-            box-shadow: 
-                0 15px 50px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            margin: 0 -8px;
-            width: calc(100% + 16px);
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.4);
+            border-radius: 16px;
+            padding: 16px 6px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+            margin: 0 -6px;
+            width: calc(100% + 12px);
         }
 
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 0 16px;
+            margin-bottom: 16px;
+            padding: 0 12px;
         }
 
         .history-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #10b981;
+            font-size: 16px;
+            font-weight: 600;
+            color: #63b3ed;
         }
 
         .period-tabs {
             display: flex;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 12px;
-            padding: 6px;
+            gap: 4px;
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(74, 85, 104, 0.3);
+            border-radius: 10px;
+            padding: 4px;
         }
 
         .period-tab {
-            padding: 10px 16px;
+            padding: 8px 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             background: transparent;
-            color: rgba(224, 224, 224, 0.7);
-            font-size: 13px;
-            font-weight: 600;
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .period-tab.active {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
         }
 
         .price-table {
             overflow-x: auto;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            margin: 0 12px;
+            border-radius: 10px;
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid rgba(74, 85, 104, 0.2);
+            margin: 0 8px;
         }
 
         .price-table table {
@@ -544,99 +481,115 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .price-table th {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            padding: 14px 10px;
+            background: rgba(45, 55, 72, 0.8);
+            padding: 12px 8px;
             text-align: left;
             font-weight: 600;
-            color: #10b981;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+            color: #63b3ed;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(74, 85, 104, 0.3);
             white-space: nowrap;
         }
 
         .price-table td {
-            padding: 14px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 13px;
-            color: rgba(224, 224, 224, 0.9);
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(74, 85, 104, 0.1);
+            font-size: 12px;
+            color: rgba(226, 232, 240, 0.8);
             white-space: nowrap;
-            transition: all 0.3s ease;
         }
 
         .price-table tr:hover {
-            background: rgba(16, 185, 129, 0.05);
+            background: rgba(99, 179, 237, 0.05);
         }
 
         .price-table .time {
             font-weight: 600;
-            color: #e0e0e0;
+            color: #e2e8f0;
         }
 
         .price-table .price {
             font-weight: 600;
-            color: #10b981;
+            color: #63b3ed;
         }
 
         .price-table .portfolio {
             font-weight: 700;
-            color: #06d6a0;
+            color: #4299e1;
         }
 
         .price-table .change {
             font-weight: 600;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .change.positive {
-            color: #10b981;
-            text-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+            color: #68d391;
         }
 
         .change.negative {
-            color: #ef4444;
-            text-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+            color: #f56565;
         }
 
         .change.neutral {
-            color: rgba(224, 224, 224, 0.6);
+            color: rgba(226, 232, 240, 0.5);
         }
 
         .peak-row {
-            background: rgba(16, 185, 129, 0.1) !important;
-            border-left: 3px solid #10b981;
-            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2);
-            animation: peakPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes peakPulse {
-            0%, 100% { background: rgba(16, 185, 129, 0.1) !important; }
-            50% { background: rgba(16, 185, 129, 0.2) !important; }
+            background: rgba(99, 179, 237, 0.1) !important;
+            border-left: 2px solid #63b3ed;
         }
 
         @media (max-width: 400px) {
             .container {
                 max-width: 100%;
                 padding: 0 2px;
-                gap: 20px;
+                gap: 16px;
             }
 
             .history-header {
                 flex-direction: column;
-                gap: 14px;
+                gap: 12px;
             }
 
             .portfolio-metals {
                 flex-direction: column;
-                gap: 14px;
+                gap: 12px;
             }
 
-            .metal-name {
-                font-size: 17px;
+            .metal-item {
+                padding: 14px;
+                min-height: 110px;
             }
 
-            .metal-amount {
-                font-size: 13px;
+            .price-table th,
+            .price-table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .price-history {
+                padding: 12px 4px;
+                margin: 0 -4px;
+                width: calc(100% + 8px);
+            }
+
+            .price-table {
+                margin: 0 6px;
+            }
+
+            .portfolio-amount {
+                font-size: 28px;
+            }
+
+            .portfolio-summary {
+                padding: 16px 14px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+        } 13px;
             }
 
             .metal-price {
