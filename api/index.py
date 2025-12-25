@@ -326,54 +326,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             backdrop-filter: blur(10px);
             border: 1px solid rgba(74, 85, 104, 0.4);
             border-radius: 14px;
-            padding: 16px 20px;
+            padding: 12px 16px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            min-height: 60px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .logo {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #63b3ed;
+            white-space: nowrap;
         }
 
         .version {
-            font-size: 10px;
+            font-size: 9px;
             color: rgba(99, 179, 237, 0.7);
             background: rgba(99, 179, 237, 0.15);
-            padding: 3px 8px;
-            border-radius: 8px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
         }
 
         .update-time {
-            font-size: 13px;
+            font-size: 12px;
             color: rgba(226, 232, 240, 0.8);
             font-weight: 500;
+            margin-left: auto;
+            white-space: nowrap;
         }
 
         .actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             background: rgba(45, 55, 72, 0.8);
             border: 1px solid rgba(74, 85, 104, 0.4);
             color: #63b3ed;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .action-btn:hover {
@@ -469,35 +485,39 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
-            padding: 0 12px;
+            margin-bottom: 14px;
+            padding: 0 10px;
+            gap: 8px;
         }
 
         .history-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #63b3ed;
+            flex-shrink: 0;
         }
 
         .period-tabs {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             background: rgba(45, 55, 72, 0.8);
             border: 1px solid rgba(74, 85, 104, 0.3);
-            border-radius: 10px;
-            padding: 4px;
+            border-radius: 8px;
+            padding: 2px;
+            flex-shrink: 0;
         }
 
         .period-tab {
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: none;
             border-radius: 6px;
             background: transparent;
             color: rgba(226, 232, 240, 0.6);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .period-tab.active {
@@ -578,32 +598,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-left: 2px solid #63b3ed;
         }
 
-        @media (max-width: 400px) {
+        @media (max-width: 480px) {
             .container {
                 max-width: 100%;
-                padding: 0 2px;
-                gap: 16px;
+                padding: 0 8px;
+                gap: 14px;
             }
 
-            .history-header {
-                flex-direction: column;
-                gap: 12px;
+            .header {
+                padding: 10px 12px;
+                min-height: 50px;
+            }
+
+            .header-left {
+                gap: 6px;
+            }
+
+            .logo {
+                font-size: 14px;
+            }
+
+            .version {
+                font-size: 8px;
+                padding: 1px 4px;
+            }
+
+            .update-time {
+                font-size: 11px;
+            }
+
+            .actions {
+                gap: 6px;
+            }
+
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .portfolio-summary {
+                padding: 16px 12px;
+            }
+
+            .portfolio-amount {
+                font-size: 26px;
+                margin-bottom: 14px;
             }
 
             .portfolio-metals {
-                flex-direction: column;
-                gap: 12px;
+                gap: 8px;
+                margin-top: 14px;
             }
 
             .metal-item {
-                padding: 14px;
-                min-height: 110px;
+                padding: 10px 6px;
+                min-height: 100px;
+                max-width: none;
             }
 
-            .price-table th,
-            .price-table td {
-                padding: 8px 6px;
-                font-size: 11px;
+            .metal-name {
+                font-size: 13px;
+            }
+
+            .metal-amount {
+                font-size: 10px;
+                margin-bottom: 3px;
+            }
+
+            .metal-price {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .metal-value {
+                font-size: 14px;
             }
 
             .price-history {
@@ -612,20 +681,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 width: calc(100% + 8px);
             }
 
+            .history-header {
+                padding: 0 6px;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .history-title {
+                font-size: 13px;
+            }
+
+            .period-tab {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+
             .price-table {
-                margin: 0 6px;
+                margin: 0 4px;
             }
 
-            .portfolio-amount {
-                font-size: 28px;
+            .price-table th,
+            .price-table td {
+                padding: 8px 4px;
+                font-size: 10px;
             }
 
-            .portfolio-summary {
-                padding: 16px 14px;
+            .price-table th {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                padding: 0 4px;
+                gap: 12px;
             }
 
-            .header {
-                padding: 12px 16px;
+            .portfolio-metals {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .metal-item {
+                max-width: 100%;
+                padding: 12px 8px;
+                min-height: 80px;
+            }
+
+            .history-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .period-tabs {
+                justify-content: center;
+            }
+
+            .period-tab {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                max-width: 450px;
+                gap: 16px;
+            }
+
+            .portfolio-metals {
+                gap: 12px;
+            }
+
+            .metal-item {
+                max-width: 200px;
             }
         } 13px;
             }
@@ -722,17 +852,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">🥇 Altın</div>
-                    </div>
+                    <div class="metal-name">🥇 Altın</div>
                     <div class="metal-amount" id="goldAmount">0 gr</div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
                 </div>
                 <div class="metal-item">
-                    <div class="metal-header">
-                        <div class="metal-name">🥈 Gümüş</div>
-                    </div>
+                    <div class="metal-name">🥈 Gümüş</div>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
