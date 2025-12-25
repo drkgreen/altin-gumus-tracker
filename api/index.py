@@ -889,7 +889,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 
                 const goldData = await goldResponse.json();
                 const silverData = await silverResponse.json();
-                const tableData = await tableResponse.json();
+                const tableDataResult = await tableResponse.json();
                 
                 if (goldData.success) {
                     let cleaned = goldData.price.replace(/[^\d,]/g, '');
@@ -901,8 +901,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     currentSilverPrice = parseFloat(cleaned.replace(',', '.'));
                 }
                 
-                if (tableData.success) {
-                    window.tableData = tableData.data;
+                if (tableDataResult.success) {
+                    tableData = tableDataResult.data;
                     updateTable();
                 }
                 
@@ -934,7 +934,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function updateTable() {
-            if (!window.tableData || !window.tableData[currentPeriod]) return;
+            if (!tableData || !tableData[currentPeriod]) return;
             
             const tbody = document.getElementById('priceTableBody');
             tbody.innerHTML = '';
@@ -943,7 +943,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             let peakIndices = [];
             
             if (goldAmount > 0 || silverAmount > 0) {
-                window.tableData[currentPeriod].forEach((item, index) => {
+                tableData[currentPeriod].forEach((item, index) => {
                     const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                     if (portfolioValue > maxValue) {
                         maxValue = portfolioValue;
@@ -954,7 +954,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 });
             }
             
-            window.tableData[currentPeriod].forEach((item, index) => {
+            tableData[currentPeriod].forEach((item, index) => {
                 let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 const row = document.createElement('tr');
                 
