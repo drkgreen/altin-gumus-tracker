@@ -211,6 +211,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             z-index: 2000;
         }
 
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .loading-box {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 179, 237, 0.3);
+            border-top: 3px solid #63b3ed;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #63b3ed;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
         .login-box {
             background: rgba(45, 55, 72, 0.8);
             backdrop-filter: blur(10px);
@@ -649,12 +687,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <div class="login-screen" id="loginScreen">
+    <div class="login-screen" id="loginScreen" style="display:none;">
         <div class="login-box">
             <div class="login-title">🔐 Metal Tracker</div>
             <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
             <button class="login-btn" onclick="login()">Giriş</button>
             <div class="login-error" id="loginError">Hatalı şifre!</div>
+        </div>
+    </div>
+
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Metal Tracker yükleniyor...</div>
         </div>
     </div>
 
@@ -749,9 +794,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     localStorage.setItem('auth_token', data.token);
                     localStorage.setItem('auth_expiry', expiry.getTime());
                     
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'flex';
-                    
+                    showMainApp();
                     await loadPortfolioConfig();
                     await fetchPrice();
                 } else {
@@ -763,55 +806,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
         }
 
-        async function checkAuth() {
-            let token = localStorage.getItem('auth_token');
-            const expiry = localStorage.getItem('auth_expiry');
-            
-            if (!token || !expiry || new Date().getTime() > parseInt(expiry)) {
-                const cookie = document.cookie.split(';').find(c => c.trim().startsWith('auth_token='));
-                if (cookie) {
-                    token = cookie.split('=')[1];
-                } else {
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('mainApp').style.display = 'none';
-                    return false;
-                }
-            }
-
-            try {
-                const response = await fetch('/api/verify-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: token })
-                });
-                
-                const data = await response.json();
-                
-                if (data.valid) {
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'flex';
-                    await loadPortfolioConfig();
-                    await fetchPrice();
-                    return true;
-                } else {
-                    logout();
-                    return false;
-                }
-            } catch (error) {
-                logout();
-                return false;
-            }
-        }
-
         function logout() {
             document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_expiry');
             
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
             document.getElementById('passwordInput').value = '';
             document.getElementById('loginError').style.display = 'none';
+            showLoginScreen();
         }
 
         async function loadPortfolioConfig() {
@@ -974,9 +976,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }).format(price) + ' ₺';
         }
 
-        window.onload = function() {
-            checkAuth();
-        };
+        // Sayfa yüklendiğinde hemen auth kontrolü
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            // Hızlı localStorage kontrolü
+            const token = localStorage.getItem('auth_token');
+            const expiry = localStorage.getItem('auth_expiry');
+            
+            if (token && expiry && new Date().getTime() < parseInt(expiry)) {
+                // Token var ve geçerli, hızlı geçiş
+                try {
+                    const response = await fetch('/api/verify-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: token })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.valid) {
+                        // Başarılı, ana uygulamayı göster
+                        showMainApp();
+                        await loadPortfolioConfig();
+                        await fetchPrice();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Auth verification error:', error);
+                }
+            }
+            
+            // Token yok veya geçersiz, login ekranını göster
+            showLoginScreen();
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+        }
     </script>
 </body>
 </html>"""
