@@ -600,11 +600,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: rgba(241, 245, 249, 0.5);
         }
 
-        .peak-row {
-            background: rgba(99, 179, 237, 0.1) !important;
-            border-left: 2px solid #63b3ed;
-        }
-
         @media (max-width: 480px) {
             .container {
                 max-width: 100%;
@@ -750,42 +745,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 gap: 12px;
             }
 
+            .portfolio-amount {
+                font-size: 28px;
+            }
+
             .portfolio-metals {
                 flex-direction: column;
                 gap: 8px;
             }
 
             .metal-item {
-                padding: 16px 10px;
-                min-height: 100px;
+                padding: 14px 10px;
+                min-height: 90px;
             }
 
             .metal-name {
-                font-size: 15px;
-                margin-bottom: 8px;
-            }
-
-            .metal-amount {
-                font-size: 11px;
+                font-size: 13px;
                 margin-bottom: 4px;
             }
 
+            .metal-amount {
+                font-size: 10px;
+                margin-bottom: 3px;
+            }
+
             .metal-price {
-                font-size: 11px;
-                margin-bottom: 6px;
+                font-size: 9px;
+                margin-bottom: 4px;
             }
 
             .metal-value {
-                font-size: 16px;
+                font-size: 14px;
             }
 
             .statistics-items {
                 flex-direction: column;
-                gap: 8px;
+                gap: 6px;
             }
 
             .statistic-item {
-                padding: 10px 8px;
+                padding: 8px 6px;
             }
 
             .statistic-label {
@@ -793,7 +792,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistic-value {
-                font-size: 12px;
+                font-size: 11px;
             }
 
             .statistic-time {
@@ -813,6 +812,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             .period-tab {
                 flex: 1;
                 text-align: center;
+                padding: 4px 8px;
+                font-size: 9px;
             }
         }
 
@@ -1159,44 +1160,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         function updateStatistics() {
             if (!tableData || !tableData[currentPeriod] || tableData[currentPeriod].length === 0) {
-                document.getElementById('maxGoldValue').textContent = '0,00 ₺';
-                document.getElementById('maxGoldTime').textContent = '--:--';
-                document.getElementById('maxSilverValue').textContent = '0,00 ₺';
-                document.getElementById('maxSilverTime').textContent = '--:--';
-                document.getElementById('maxTotalValue').textContent = '0,00 ₺';
-                document.getElementById('maxTotalTime').textContent = '--:--';
+                // Güvenli reset - hata vermemesi için
+                try {
+                    document.getElementById('maxGoldValue').textContent = '0,00 ₺';
+                    document.getElementById('maxGoldTime').textContent = '--:--';
+                    document.getElementById('maxSilverValue').textContent = '0,00 ₺';
+                    document.getElementById('maxSilverTime').textContent = '--:--';
+                    document.getElementById('maxTotalValue').textContent = '0,00 ₺';
+                    document.getElementById('maxTotalTime').textContent = '--:--';
+                } catch (error) {
+                    console.error('Statistics reset error:', error);
+                }
                 return;
             }
 
-            let maxGold = { price: 0, time: '--:--' };
-            let maxSilver = { price: 0, time: '--:--' };
-            let maxTotal = { value: 0, time: '--:--' };
+            try {
+                let maxGold = { price: 0, time: '--:--' };
+                let maxSilver = { price: 0, time: '--:--' };
+                let maxTotal = { value: 0, time: '--:--' };
 
-            tableData[currentPeriod].forEach(item => {
-                // En yüksek altın
-                if (item.gold_price > maxGold.price) {
-                    maxGold = { price: item.gold_price, time: item.time };
-                }
+                tableData[currentPeriod].forEach(item => {
+                    // Güvenli veri kontrolü
+                    const goldPrice = parseFloat(item.gold_price) || 0;
+                    const silverPrice = parseFloat(item.silver_price) || 0;
+                    const itemTime = item.time || '--:--';
 
-                // En yüksek gümüş
-                if (item.silver_price > maxSilver.price) {
-                    maxSilver = { price: item.silver_price, time: item.time };
-                }
+                    // En yüksek altın
+                    if (goldPrice > maxGold.price) {
+                        maxGold = { price: goldPrice, time: itemTime };
+                    }
 
-                // En yüksek toplam portföy
-                const totalValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                if (totalValue > maxTotal.value) {
-                    maxTotal = { value: totalValue, time: item.time };
-                }
-            });
+                    // En yüksek gümüş
+                    if (silverPrice > maxSilver.price) {
+                        maxSilver = { price: silverPrice, time: itemTime };
+                    }
 
-            // Değerleri güncelle
-            document.getElementById('maxGoldValue').textContent = formatPrice(maxGold.price);
-            document.getElementById('maxGoldTime').textContent = maxGold.time;
-            document.getElementById('maxSilverValue').textContent = formatPrice(maxSilver.price);
-            document.getElementById('maxSilverTime').textContent = maxSilver.time;
-            document.getElementById('maxTotalValue').textContent = maxTotal.value > 0 ? formatCurrency(maxTotal.value) : '0,00 ₺';
-            document.getElementById('maxTotalTime').textContent = maxTotal.value > 0 ? maxTotal.time : '--:--';
+                    // En yüksek toplam portföy
+                    const totalValue = (goldAmount * goldPrice) + (silverAmount * silverPrice);
+                    if (totalValue > maxTotal.value) {
+                        maxTotal = { value: totalValue, time: itemTime };
+                    }
+                });
+
+                // DOM güncellemeleri - güvenli
+                const elements = {
+                    'maxGoldValue': formatPrice(maxGold.price),
+                    'maxGoldTime': maxGold.time,
+                    'maxSilverValue': formatPrice(maxSilver.price),
+                    'maxSilverTime': maxSilver.time,
+                    'maxTotalValue': maxTotal.value > 0 ? formatCurrency(maxTotal.value) : '0,00 ₺',
+                    'maxTotalTime': maxTotal.value > 0 ? maxTotal.time : '--:--'
+                };
+
+                Object.entries(elements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                });
+
+            } catch (error) {
+                console.error('Statistics update error:', error);
+                // Fallback reset
+                updateStatistics();
+            }
         }
 
         function getChangeClass(changePercent) {
