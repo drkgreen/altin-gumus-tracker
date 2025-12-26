@@ -776,7 +776,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .metal-value {
-                font-size: 18px;
+                font-size: 16px;
             }
 
             .statistics-items {
@@ -789,15 +789,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistic-label {
-                font-size: 10px;
+                font-size: 9px;
             }
 
             .statistic-value {
-                font-size: 13px;
+                font-size: 12px;
             }
 
             .statistic-time {
-                font-size: 9px;
+                font-size: 8px;
             }
 
             .history-header {
@@ -828,6 +828,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             .metal-item {
                 max-width: 200px;
+            }
+
+            .portfolio-amount {
+                font-size: 36px;
+            }
+
+            .statistics-title {
+                font-size: 14px;
+            }
+
+            .statistic-value {
+                font-size: 14px;
             }
         } 13px;
             }
@@ -910,7 +922,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="header-left">
                 <div>
                     <div class="logo">Metal Tracker</div>
-                    <div class="version">v3.0</div>
+                    <div class="version">v2.0</div>
                 </div>
                 <div class="update-time" id="headerTime">--:--</div>
             </div>
