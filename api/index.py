@@ -1,11 +1,4 @@
-<div class="metal-item">
-                    <div class="metal-name">Altın</div>
-                    <div class="metal-amount" id="goldAmount">0 gr</div>
-                    <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
-                    <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
-                </div>
-                <div class="metal-item">
-                    <div class="metal-name">#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Metal Price Tracker Web App v3.0 - Secure Version
 Flask web uygulaması - Şifre korumalı
@@ -186,11 +179,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: radial-gradient(circle at center top, #1e3a8a 0%, #1e40af 30%, #1d4ed8 60%, #2563eb 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
             background-attachment: fixed;
             min-height: 100vh;
             padding: 15px;
-            color: #f1f5f9;
+            color: #e2e8f0;
             overflow-x: hidden;
         }
 
@@ -211,7 +204,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center top, #1e3a8a 0%, #1e40af 30%, #1d4ed8 60%, #2563eb 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -224,7 +217,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center top, #1e3a8a 0%, #1e40af 30%, #1d4ed8 60%, #2563eb 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -257,20 +250,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .login-box {
-            background: rgba(30, 58, 138, 0.3);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 20px;
+            background: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.5);
+            border-radius: 16px;
             padding: 32px;
             width: 90%;
             max-width: 360px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .login-title {
             font-size: 24px;
             font-weight: 700;
-            color: #60a5fa;
+            color: #63b3ed;
             text-align: center;
             margin-bottom: 24px;
         }
@@ -278,30 +271,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .login-input {
             width: 100%;
             padding: 14px 18px;
-            background: rgba(30, 58, 138, 0.2);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            background: rgba(45, 55, 72, 0.6);
+            border: 1px solid rgba(74, 85, 104, 0.6);
             border-radius: 12px;
             font-size: 16px;
             margin-bottom: 18px;
             font-weight: 500;
-            color: #f1f5f9;
+            color: #e2e8f0;
             transition: all 0.3s ease;
         }
 
         .login-input:focus {
             outline: none;
-            border-color: #60a5fa;
-            background: rgba(30, 58, 138, 0.4);
+            border-color: #63b3ed;
+            background: rgba(45, 55, 72, 0.8);
         }
 
         .login-input::placeholder {
-            color: rgba(241, 245, 249, 0.5);
+            color: rgba(226, 232, 240, 0.5);
         }
 
         .login-btn {
             width: 100%;
             padding: 14px;
-            background: #3b82f6;
+            background: #4299e1;
             color: white;
             border: none;
             border-radius: 12px;
@@ -312,7 +305,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .login-btn:hover {
-            background: #2563eb;
+            background: #3182ce;
             transform: translateY(-1px);
         }
 
@@ -478,12 +471,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .price-history {
-            background: rgba(30, 58, 138, 0.25);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 20px;
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 85, 104, 0.4);
+            border-radius: 16px;
             padding: 16px 6px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
             margin: 0 -6px;
             width: calc(100% + 12px);
         }
@@ -500,26 +493,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .history-title {
             font-size: 14px;
             font-weight: 600;
-            color: #60a5fa;
+            color: #63b3ed;
             flex-shrink: 0;
         }
 
         .period-tabs {
             display: flex;
             gap: 2px;
-            background: rgba(30, 58, 138, 0.3);
-            border: 1px solid rgba(59, 130, 246, 0.25);
-            border-radius: 10px;
-            padding: 3px;
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(74, 85, 104, 0.3);
+            border-radius: 8px;
+            padding: 2px;
             flex-shrink: 0;
         }
 
         .period-tab {
-            padding: 6px 12px;
+            padding: 6px 10px;
             border: none;
-            border-radius: 7px;
+            border-radius: 6px;
             background: transparent;
-            color: rgba(241, 245, 249, 0.6);
+            color: rgba(226, 232, 240, 0.6);
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
@@ -528,15 +521,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .period-tab.active {
-            background: rgba(59, 130, 246, 0.4);
-            color: #93c5fd;
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
         }
 
         .price-table {
             overflow-x: auto;
-            border-radius: 12px;
-            background: rgba(30, 58, 138, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid rgba(74, 85, 104, 0.2);
             margin: 0 8px;
         }
 
@@ -546,41 +539,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .price-table th {
-            background: rgba(30, 58, 138, 0.3);
+            background: rgba(45, 55, 72, 0.8);
             padding: 12px 8px;
             text-align: left;
             font-weight: 600;
-            color: #60a5fa;
+            color: #63b3ed;
             font-size: 12px;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            border-bottom: 1px solid rgba(74, 85, 104, 0.3);
             white-space: nowrap;
         }
 
         .price-table td {
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            border-bottom: 1px solid rgba(74, 85, 104, 0.1);
             font-size: 12px;
-            color: rgba(241, 245, 249, 0.8);
+            color: rgba(226, 232, 240, 0.8);
             white-space: nowrap;
         }
 
         .price-table tr:hover {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(99, 179, 237, 0.05);
         }
 
         .price-table .time {
             font-weight: 600;
-            color: #93c5fd;
+            color: #e2e8f0;
         }
 
         .price-table .price {
             font-weight: 600;
-            color: #f1f5f9;
+            color: #63b3ed;
         }
 
         .price-table .portfolio {
             font-weight: 700;
-            color: #fbbf24;
+            color: #4299e1;
         }
 
         .price-table .change {
@@ -589,15 +582,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .change.positive {
-            color: #34d399;
+            color: #68d391;
         }
 
         .change.negative {
-            color: #f87171;
+            color: #f56565;
         }
 
         .change.neutral {
-            color: rgba(241, 245, 249, 0.5);
+            color: rgba(226, 232, 240, 0.5);
+        }
+
+        .peak-row {
+            background: rgba(99, 179, 237, 0.1) !important;
+            border-left: 2px solid #63b3ed;
         }
 
         @media (max-width: 480px) {
@@ -745,58 +743,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 gap: 12px;
             }
 
-            .portfolio-amount {
-                font-size: 28px;
-            }
-
             .portfolio-metals {
                 flex-direction: column;
                 gap: 8px;
             }
 
             .metal-item {
-                padding: 14px 10px;
-                min-height: 90px;
+                padding: 16px 10px;
+                min-height: 100px;
             }
 
             .metal-name {
-                font-size: 13px;
-                margin-bottom: 4px;
+                font-size: 15px;
+                margin-bottom: 8px;
             }
 
             .metal-amount {
-                font-size: 10px;
-                margin-bottom: 3px;
-            }
-
-            .metal-price {
-                font-size: 9px;
+                font-size: 11px;
                 margin-bottom: 4px;
             }
 
+            .metal-price {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
             .metal-value {
-                font-size: 14px;
+                font-size: 18px;
             }
 
             .statistics-items {
                 flex-direction: column;
-                gap: 6px;
+                gap: 8px;
             }
 
             .statistic-item {
-                padding: 8px 6px;
+                padding: 10px 8px;
             }
 
             .statistic-label {
-                font-size: 9px;
+                font-size: 10px;
             }
 
             .statistic-value {
-                font-size: 11px;
+                font-size: 13px;
             }
 
             .statistic-time {
-                font-size: 8px;
+                font-size: 9px;
             }
 
             .history-header {
@@ -812,8 +806,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             .period-tab {
                 flex: 1;
                 text-align: center;
-                padding: 4px 8px;
-                font-size: 9px;
             }
         }
 
@@ -829,18 +821,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             .metal-item {
                 max-width: 200px;
-            }
-
-            .portfolio-amount {
-                font-size: 36px;
-            }
-
-            .statistics-title {
-                font-size: 14px;
-            }
-
-            .statistic-value {
-                font-size: 14px;
             }
         } 13px;
             }
@@ -923,7 +903,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="header-left">
                 <div>
                     <div class="logo">Metal Tracker</div>
-                    <div class="version">v2.0</div>
+                    <div class="version">v3.0</div>
                 </div>
                 <div class="update-time" id="headerTime">--:--</div>
             </div>
@@ -937,13 +917,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
-                    <div class="metal-name">Altın</div>
+                    <div class="metal-name">🥇 Altın</div>
                     <div class="metal-amount" id="goldAmount">0 gr</div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
                 </div>
                 <div class="metal-item">
-                    <div class="metal-name">Gümüş</div>
+                    <div class="metal-name">🥈 Gümüş</div>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
@@ -1160,70 +1140,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         function updateStatistics() {
             if (!tableData || !tableData[currentPeriod] || tableData[currentPeriod].length === 0) {
-                // Güvenli reset - hata vermemesi için
-                try {
-                    document.getElementById('maxGoldValue').textContent = '0,00 ₺';
-                    document.getElementById('maxGoldTime').textContent = '--:--';
-                    document.getElementById('maxSilverValue').textContent = '0,00 ₺';
-                    document.getElementById('maxSilverTime').textContent = '--:--';
-                    document.getElementById('maxTotalValue').textContent = '0,00 ₺';
-                    document.getElementById('maxTotalTime').textContent = '--:--';
-                } catch (error) {
-                    console.error('Statistics reset error:', error);
-                }
+                document.getElementById('maxGoldValue').textContent = '0,00 ₺';
+                document.getElementById('maxGoldTime').textContent = '--:--';
+                document.getElementById('maxSilverValue').textContent = '0,00 ₺';
+                document.getElementById('maxSilverTime').textContent = '--:--';
+                document.getElementById('maxTotalValue').textContent = '0,00 ₺';
+                document.getElementById('maxTotalTime').textContent = '--:--';
                 return;
             }
 
-            try {
-                let maxGold = { price: 0, time: '--:--' };
-                let maxSilver = { price: 0, time: '--:--' };
-                let maxTotal = { value: 0, time: '--:--' };
+            let maxGold = { price: 0, time: '--:--' };
+            let maxSilver = { price: 0, time: '--:--' };
+            let maxTotal = { value: 0, time: '--:--' };
 
-                tableData[currentPeriod].forEach(item => {
-                    // Güvenli veri kontrolü
-                    const goldPrice = parseFloat(item.gold_price) || 0;
-                    const silverPrice = parseFloat(item.silver_price) || 0;
-                    const itemTime = item.time || '--:--';
+            tableData[currentPeriod].forEach(item => {
+                // En yüksek altın
+                if (item.gold_price > maxGold.price) {
+                    maxGold = { price: item.gold_price, time: item.time };
+                }
 
-                    // En yüksek altın
-                    if (goldPrice > maxGold.price) {
-                        maxGold = { price: goldPrice, time: itemTime };
-                    }
+                // En yüksek gümüş
+                if (item.silver_price > maxSilver.price) {
+                    maxSilver = { price: item.silver_price, time: item.time };
+                }
 
-                    // En yüksek gümüş
-                    if (silverPrice > maxSilver.price) {
-                        maxSilver = { price: silverPrice, time: itemTime };
-                    }
+                // En yüksek toplam portföy
+                const totalValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                if (totalValue > maxTotal.value) {
+                    maxTotal = { value: totalValue, time: item.time };
+                }
+            });
 
-                    // En yüksek toplam portföy
-                    const totalValue = (goldAmount * goldPrice) + (silverAmount * silverPrice);
-                    if (totalValue > maxTotal.value) {
-                        maxTotal = { value: totalValue, time: itemTime };
-                    }
-                });
-
-                // DOM güncellemeleri - güvenli
-                const elements = {
-                    'maxGoldValue': formatPrice(maxGold.price),
-                    'maxGoldTime': maxGold.time,
-                    'maxSilverValue': formatPrice(maxSilver.price),
-                    'maxSilverTime': maxSilver.time,
-                    'maxTotalValue': maxTotal.value > 0 ? formatCurrency(maxTotal.value) : '0,00 ₺',
-                    'maxTotalTime': maxTotal.value > 0 ? maxTotal.time : '--:--'
-                };
-
-                Object.entries(elements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.textContent = value;
-                    }
-                });
-
-            } catch (error) {
-                console.error('Statistics update error:', error);
-                // Fallback reset
-                updateStatistics();
-            }
+            // Değerleri güncelle
+            document.getElementById('maxGoldValue').textContent = formatPrice(maxGold.price);
+            document.getElementById('maxGoldTime').textContent = maxGold.time;
+            document.getElementById('maxSilverValue').textContent = formatPrice(maxSilver.price);
+            document.getElementById('maxSilverTime').textContent = maxSilver.time;
+            document.getElementById('maxTotalValue').textContent = maxTotal.value > 0 ? formatCurrency(maxTotal.value) : '0,00 ₺';
+            document.getElementById('maxTotalTime').textContent = maxTotal.value > 0 ? maxTotal.time : '--:--';
         }
 
         function getChangeClass(changePercent) {
