@@ -831,6 +831,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             .metal-item {
                 max-width: 200px;
             }
+
+            .statistics-summary {
+                gap: 12px;
+            }
+
+            .stat-item {
+                min-height: 90px;
+                padding: 14px 10px;
+            }
+
+            .stat-title {
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: 15px;
+            }
+
+            .stat-time {
+                font-size: 11px;
+            }
         } 13px;
             }
 
