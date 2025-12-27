@@ -672,11 +672,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-summary {
-                padding: 16px 14px;
+                padding: 14px 12px;
             }
 
             .statistics-title {
-                font-size: 14px;
+                font-size: 13px;
+                margin-bottom: 12px;
             }
 
             .statistics-items {
@@ -684,21 +685,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistic-item {
-                padding: 12px 8px;
+                padding: 10px 6px;
+                min-height: 70px;
             }
 
             .statistic-label {
-                font-size: 11px;
+                font-size: 10px;
                 margin-bottom: 4px;
             }
 
             .statistic-value {
-                font-size: 14px;
+                font-size: 13px;
                 margin-bottom: 3px;
             }
 
             .statistic-time {
-                font-size: 10px;
+                font-size: 9px;
             }
 
             .price-history {
@@ -773,24 +775,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-items {
-                flex-direction: column;
-                gap: 8px;
+                gap: 6px;
             }
 
             .statistic-item {
-                padding: 10px 8px;
+                padding: 8px 4px;
+                min-height: 65px;
             }
 
             .statistic-label {
-                font-size: 10px;
+                font-size: 9px;
+                margin-bottom: 3px;
             }
 
             .statistic-value {
-                font-size: 13px;
+                font-size: 11px;
+                margin-bottom: 2px;
             }
 
             .statistic-time {
-                font-size: 9px;
+                font-size: 8px;
             }
 
             .history-header {
