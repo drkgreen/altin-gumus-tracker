@@ -672,33 +672,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-summary {
-                padding: 14px 12px;
-            }
-
-            .statistics-title {
-                font-size: 13px;
-                margin-bottom: 12px;
+                padding: 12px;
             }
 
             .statistics-items {
-                gap: 8px !important;
-                flex-wrap: nowrap !important;
+                gap: 6px;
             }
 
             .statistic-item {
-                padding: 10px 6px;
+                padding: 8px 6px;
                 min-height: 70px;
-                flex: 1 1 0 !important;
             }
 
             .statistic-label {
                 font-size: 9px;
-                margin-bottom: 4px;
+                margin-bottom: 3px;
             }
 
             .statistic-value {
-                font-size: 12px;
-                margin-bottom: 3px;
+                font-size: 11px;
+                margin-bottom: 2px;
             }
 
             .statistic-time {
@@ -777,24 +770,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-items {
-                gap: 6px !important;
-                flex-wrap: nowrap !important;
+                flex-direction: column;
+                gap: 8px;
             }
 
             .statistic-item {
-                padding: 8px 4px;
-                min-height: 65px;
-                flex: 1 1 0 !important;
+                padding: 6px 4px;
+                min-height: 60px;
             }
 
             .statistic-label {
                 font-size: 8px;
-                margin-bottom: 3px;
+                margin-bottom: 2px;
             }
 
             .statistic-value {
                 font-size: 10px;
-                margin-bottom: 2px;
+                margin-bottom: 1px;
             }
 
             .statistic-time {
@@ -940,23 +932,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <div class="statistics-summary">
-            <div class="statistics-header">
-                <div class="statistics-title" id="statisticsTitle">📊 Bugünün En Yüksek Değerleri</div>
-            </div>
             <div class="statistics-items">
                 <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Altın</div>
-                    <div class="statistic-value" id="maxGoldValue">0,00 ₺</div>
+                    <div class="statistic-label">En Yüksek<br>Altın Fiyatı</div>
+                    <div class="statistic-value" id="maxGoldValue">0,00₺</div>
                     <div class="statistic-time" id="maxGoldTime">--:--</div>
                 </div>
                 <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Gümüş</div>
-                    <div class="statistic-value" id="maxSilverValue">0,00 ₺</div>
+                    <div class="statistic-label">En Yüksek<br>Gümüş Fiyatı</div>
+                    <div class="statistic-value" id="maxSilverValue">0,00₺</div>
                     <div class="statistic-time" id="maxSilverTime">--:--</div>
                 </div>
                 <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Toplam</div>
-                    <div class="statistic-value" id="maxTotalValue">0,00 ₺</div>
+                    <div class="statistic-label">En Yüksek<br>Portföy Tutarı</div>
+                    <div class="statistic-value" id="maxTotalValue">0,00₺</div>
                     <div class="statistic-time" id="maxTotalTime">--:--</div>
                 </div>
             </div>
@@ -1103,17 +1092,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             document.getElementById(period + 'Tab').classList.add('active');
             
             const header = document.getElementById('timeHeader');
-            const statsTitle = document.getElementById('statisticsTitle');
             
             if (period === 'hourly') {
                 header.textContent = 'Saat';
-                statsTitle.textContent = '📊 Bugünün En Yüksek Değerleri';
             } else if (period === 'daily') {
                 header.textContent = 'Tarih';
-                statsTitle.textContent = '📈 Son 7 Günün En Yüksek Değerleri';
             } else if (period === 'monthly') {
                 header.textContent = 'Ay';
-                statsTitle.textContent = '🏆 Son 12 Ayın En Yüksek Değerleri';
             }
             
             updateTable();
