@@ -681,26 +681,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-items {
-                gap: 8px;
+                gap: 8px !important;
+                flex-wrap: nowrap !important;
             }
 
             .statistic-item {
                 padding: 10px 6px;
                 min-height: 70px;
+                flex: 1 1 0 !important;
             }
 
             .statistic-label {
-                font-size: 10px;
+                font-size: 9px;
                 margin-bottom: 4px;
             }
 
             .statistic-value {
-                font-size: 13px;
+                font-size: 12px;
                 margin-bottom: 3px;
             }
 
             .statistic-time {
-                font-size: 9px;
+                font-size: 8px;
             }
 
             .price-history {
@@ -775,26 +777,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .statistics-items {
-                gap: 6px;
+                gap: 6px !important;
+                flex-wrap: nowrap !important;
             }
 
             .statistic-item {
                 padding: 8px 4px;
                 min-height: 65px;
+                flex: 1 1 0 !important;
             }
 
             .statistic-label {
-                font-size: 9px;
+                font-size: 8px;
                 margin-bottom: 3px;
             }
 
             .statistic-value {
-                font-size: 11px;
+                font-size: 10px;
                 margin-bottom: 2px;
             }
 
             .statistic-time {
-                font-size: 8px;
+                font-size: 7px;
             }
 
             .history-header {
