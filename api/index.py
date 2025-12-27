@@ -601,65 +601,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 18px 16px;
             color: #e2e8f0;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .statistics-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #63b3ed;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .statistics-items {
             display: flex;
-            justify-content: center;
             gap: 12px;
         }
 
-        .statistic-item {
+        .stat-item {
             flex: 1;
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
             border-radius: 12px;
             padding: 14px 10px;
             text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             transition: all 0.3s ease;
         }
 
-        .statistic-item:hover {
+        .stat-item:hover {
             background: rgba(45, 55, 72, 0.8);
             border-color: rgba(99, 179, 237, 0.4);
         }
 
-        .statistic-label {
+        .stat-title {
             font-size: 12px;
-            color: rgba(226, 232, 240, 0.6);
-            margin-bottom: 6px;
-            font-weight: 500;
+            font-weight: 600;
+            color: #63b3ed;
+            margin-bottom: 8px;
         }
 
-        .statistic-value {
+        .stat-value {
             font-size: 16px;
             font-weight: 700;
+            color: #e2e8f0;
             margin-bottom: 4px;
         }
 
-        .statistic-value.gold {
-            color: #fbbf24;
-        }
-
-        .statistic-value.silver {
-            color: #94a3b8;
-        }
-
-        .statistic-value.total {
-            color: #63b3ed;
-        }
-
-        .statistic-time {
-            font-size: 10px;
-            color: rgba(226, 232, 240, 0.5);
+        .stat-time {
+            font-size: 11px;
+            color: rgba(226, 232, 240, 0.6);
             font-weight: 500;
         }
 
@@ -736,34 +717,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 margin-bottom: 8px;
             }
 
-            .statistics-summary {
-                padding: 16px 12px;
-            }
-
-            .statistics-title {
-                font-size: 14px;
-                margin-bottom: 14px;
-            }
-
-            .statistics-items {
-                gap: 10px;
-            }
-
-            .statistic-item {
-                padding: 12px 8px;
-            }
-
-            .statistic-label {
-                font-size: 11px;
-                margin-bottom: 5px;
-            }
-
-            .statistic-value {
-                font-size: 14px;
-            }
-
-            .statistic-time {
-                font-size: 9px;
+            .metal-value {
+                font-size: 18px;
             }
 
             .price-history {
@@ -787,17 +742,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 font-size: 10px;
             }
 
-            .price-table {
-                margin: 0 4px;
+            .statistics-summary {
+                padding: 14px 12px;
+                gap: 10px;
             }
 
-            .price-table th,
-            .price-table td {
-                padding: 8px 4px;
-                font-size: 10px;
+            .stat-item {
+                padding: 12px 8px;
+                min-height: 85px;
             }
 
-            .price-table th {
+            .stat-title {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+                margin-bottom: 3px;
+            }
+
+            .stat-time {
                 font-size: 10px;
             }
         }
@@ -833,17 +798,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 margin-bottom: 6px;
             }
 
-            .statistics-items {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .statistic-item {
-                padding: 10px 8px;
-            }
-
-            .statistic-value {
-                font-size: 13px;
+            .metal-value {
+                font-size: 16px;
             }
 
             .history-header {
@@ -942,27 +898,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <button class="login-btn" onclick="login()">Giriş</button>
             <div class="login-error" id="loginError">Hatalı şifre!</div>
         </div>
-
-        <div class="statistics-summary">
-            <div class="statistics-title">📊 En Yüksek Değerler</div>
-            <div class="statistics-items">
-                <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Altın</div>
-                    <div class="statistic-value gold" id="maxGoldPrice">0,00 ₺</div>
-                    <div class="statistic-time" id="maxGoldTime">--:--</div>
-                </div>
-                <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Gümüş</div>
-                    <div class="statistic-value silver" id="maxSilverPrice">0,00 ₺</div>
-                    <div class="statistic-time" id="maxSilverTime">--:--</div>
-                </div>
-                <div class="statistic-item">
-                    <div class="statistic-label">En Yüksek Toplam</div>
-                    <div class="statistic-value total" id="maxTotalValue">0,00 ₺</div>
-                    <div class="statistic-time" id="maxTotalTime">--:--</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="loading-screen" id="loadingScreen">
@@ -1002,6 +937,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
                 </div>
+            </div>
+        </div>
+
+        <div class="statistics-summary">
+            <div class="stat-item">
+                <div class="stat-title">⬆️ En Yüksek Altın</div>
+                <div class="stat-value" id="highestGold">0,00 ₺</div>
+                <div class="stat-time" id="highestGoldTime">--:--</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">⬆️ En Yüksek Gümüş</div>
+                <div class="stat-value" id="highestSilver">0,00 ₺</div>
+                <div class="stat-time" id="highestSilverTime">--:--</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">🏆 En Yüksek Portföy</div>
+                <div class="stat-value" id="highestPortfolio">0,00 ₺</div>
+                <div class="stat-time" id="highestPortfolioTime">--:--</div>
             </div>
         </div>
 
@@ -1159,7 +1112,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const tbody = document.getElementById('priceTableBody');
             tbody.innerHTML = '';
             
-            // İstatistikleri hesapla ve güncelle
+            // İstatistikleri hesapla
             updateStatistics();
             
             tableData[currentPeriod].forEach((item, index) => {
@@ -1183,41 +1136,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function updateStatistics() {
-            if (!tableData || !tableData[currentPeriod]) return;
-            
-            let maxGold = { price: 0, time: '--:--' };
-            let maxSilver = { price: 0, time: '--:--' };
-            let maxTotal = { value: 0, time: '--:--' };
-            
-            tableData[currentPeriod].forEach((item) => {
+            if (!tableData || !tableData[currentPeriod] || tableData[currentPeriod].length === 0) {
+                // Veri yoksa sıfırla
+                document.getElementById('highestGold').textContent = '0,00 ₺';
+                document.getElementById('highestGoldTime').textContent = '--:--';
+                document.getElementById('highestSilver').textContent = '0,00 ₺';
+                document.getElementById('highestSilverTime').textContent = '--:--';
+                document.getElementById('highestPortfolio').textContent = '0,00 ₺';
+                document.getElementById('highestPortfolioTime').textContent = '--:--';
+                return;
+            }
+
+            let highestGold = { price: 0, time: '' };
+            let highestSilver = { price: 0, time: '' };
+            let highestPortfolio = { value: 0, time: '' };
+
+            tableData[currentPeriod].forEach(item => {
                 // En yüksek altın fiyatı
-                if (item.gold_price > maxGold.price) {
-                    maxGold = { price: item.gold_price, time: item.time };
+                if (item.gold_price > highestGold.price) {
+                    highestGold = { price: item.gold_price, time: item.time };
                 }
-                
+
                 // En yüksek gümüş fiyatı
-                if (item.silver_price > maxSilver.price) {
-                    maxSilver = { price: item.silver_price, time: item.time };
+                if (item.silver_price > highestSilver.price) {
+                    highestSilver = { price: item.silver_price, time: item.time };
                 }
-                
-                // En yüksek toplam portföy değeri (eğer portföy varsa)
+
+                // En yüksek portföy değeri (sadece kullanıcının metalı varsa)
                 if (goldAmount > 0 || silverAmount > 0) {
-                    const totalValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                    if (totalValue > maxTotal.value) {
-                        maxTotal = { value: totalValue, time: item.time };
+                    const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
+                    if (portfolioValue > highestPortfolio.value) {
+                        highestPortfolio = { value: portfolioValue, time: item.time };
                     }
                 }
             });
+
+            // İstatistikleri güncelle
+            document.getElementById('highestGold').textContent = formatPrice(highestGold.price);
+            document.getElementById('highestGoldTime').textContent = highestGold.time || '--:--';
+            document.getElementById('highestSilver').textContent = formatPrice(highestSilver.price);
+            document.getElementById('highestSilverTime').textContent = highestSilver.time || '--:--';
             
-            // DOM'u güncelle
-            document.getElementById('maxGoldPrice').textContent = formatPrice(maxGold.price);
-            document.getElementById('maxGoldTime').textContent = maxGold.time;
-            
-            document.getElementById('maxSilverPrice').textContent = formatPrice(maxSilver.price);
-            document.getElementById('maxSilverTime').textContent = maxSilver.time;
-            
-            document.getElementById('maxTotalValue').textContent = maxTotal.value > 0 ? formatCurrency(maxTotal.value) : '0,00 ₺';
-            document.getElementById('maxTotalTime').textContent = maxTotal.time;
+            if (highestPortfolio.value > 0) {
+                document.getElementById('highestPortfolio').textContent = formatCurrency(highestPortfolio.value);
+                document.getElementById('highestPortfolioTime').textContent = highestPortfolio.time || '--:--';
+            } else {
+                document.getElementById('highestPortfolio').textContent = '0,00 ₺';
+                document.getElementById('highestPortfolioTime').textContent = '--:--';
+            }
         }
 
         function getChangeClass(changePercent) {
