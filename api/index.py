@@ -93,7 +93,7 @@ def get_daily_optimized_data():
                 if prev_day["gold_price"] > 0:
                     price_diff = day_data["gold_price"] - prev_day["gold_price"]
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
-            daily_data.append({"time": f"{day_data['time']} 📊", "gold_price": day_data["gold_price"], "silver_price": day_data["silver_price"], "change_percent": change_percent, "optimized": True, "peak_time": day_data["peak_time"], "portfolio_value": day_data["portfolio_value"]})
+            daily_data.append({"time": f"{day_data['time']}", "gold_price": day_data["gold_price"], "silver_price": day_data["silver_price"], "change_percent": change_percent, "optimized": True, "peak_time": day_data["peak_time"], "portfolio_value": day_data["portfolio_value"]})
         daily_data.reverse()
         return daily_data
     except:
@@ -124,7 +124,7 @@ def get_monthly_optimized_data():
                 if prev_month["gold_price"] > 0:
                     price_diff = month_data["gold_price"] - prev_month["gold_price"]
                     change_percent = (price_diff / prev_month["gold_price"]) * 100
-            monthly_data.append({"time": f"{month_data['time']} 🏆", "gold_price": month_data["gold_price"], "silver_price": month_data["silver_price"], "change_percent": change_percent, "optimized": True, "peak_time": month_data["peak_time"], "peak_date": month_data["peak_date"], "portfolio_value": month_data["portfolio_value"]})
+            monthly_data.append({"time": f"{month_data['time']}", "gold_price": month_data["gold_price"], "silver_price": month_data["silver_price"], "change_percent": change_percent, "optimized": True, "peak_time": month_data["peak_time"], "peak_date": month_data["peak_date"], "portfolio_value": month_data["portfolio_value"]})
         monthly_data.reverse()
         return monthly_data
     except:
@@ -1139,13 +1139,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 const row = document.createElement('tr');
                 
-                // Optimized veriler için sadece zaman bilgisi (emoji olmadan)
-                let timeDisplay = item.time;
-                if (item.optimized) {
-                    // Emoji'leri kaldır
-                    timeDisplay = item.time.replace(/📊|🏆/g, '').trim();
-                    timeDisplay = `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${timeDisplay}</span>`;
-                }
+                const timeDisplay = item.optimized ? 
+                    `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
+                    item.time;
                 
                 row.innerHTML = `
                     <td class="time">${timeDisplay}</td>
