@@ -913,7 +913,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="login-screen" id="loginScreen" style="display:none;">
         <div class="login-box">
-            <div class="login-title">Metal Tracker</div>
+            <div class="login-title">🔐 Metal Tracker</div>
             <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
             <button class="login-btn" onclick="login()">Giriş</button>
             <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -1139,9 +1139,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
                 const row = document.createElement('tr');
                 
-                const timeDisplay = item.optimized ? 
-                    `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
-                    item.time;
+                // Optimized veriler için sadece zaman bilgisi (emoji olmadan)
+                let timeDisplay = item.time;
+                if (item.optimized) {
+                    // Emoji'leri kaldır
+                    timeDisplay = item.time.replace(/📊|🏆/g, '').trim();
+                    timeDisplay = `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${timeDisplay}</span>`;
+                }
                 
                 row.innerHTML = `
                     <td class="time">${timeDisplay}</td>
