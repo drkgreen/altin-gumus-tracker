@@ -858,7 +858,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         @media (min-width: 481px) and (max-width: 768px) {
             .container {
-                max-width: 450px;
+                max-width: 500px;
                 gap: 16px;
             }
 
@@ -867,7 +867,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .metal-item {
-                max-width: 200px;
+                max-width: 250px;
             }
 
             .statistics-summary {
