@@ -188,14 +188,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .container {
-            max-width: 420px;
+            max-width: min(95vw, 420px);
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 0 4px;
+            gap: max(4px, min(1.5vh, 12px));
+            padding: max(2px, min(1vw, 8px));
             position: relative;
             z-index: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .login-screen {
@@ -325,10 +327,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(74, 85, 104, 0.4);
-            border-radius: 14px;
-            padding: 12px 16px;
+            border-radius: max(8px, min(2vw, 14px));
+            padding: max(8px, min(2vh, 16px)) max(10px, min(3vw, 20px));
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            min-height: 60px;
+            min-height: max(40px, min(8vh, 60px));
         }
 
         .header-left {
@@ -474,11 +476,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(74, 85, 104, 0.4);
-            border-radius: 16px;
-            padding: 16px 6px;
+            border-radius: max(10px, min(2.5vw, 16px));
+            padding: max(10px, min(2.5vh, 20px)) max(4px, min(1vw, 8px));
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-            margin: 0 -6px;
-            width: calc(100% + 12px);
+            margin: 0 max(-4px, min(-1vw, -8px));
+            width: calc(100% + max(8px, min(2vw, 16px)));
+            flex: 1;
+            min-height: 0;
         }
 
         .history-header {
@@ -597,49 +601,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(74, 85, 104, 0.4);
-            border-radius: 16px;
-            padding: 12px 10px;
+            border-radius: max(10px, min(2.5vw, 16px));
+            padding: max(8px, min(2vh, 16px)) max(6px, min(2vw, 12px));
             color: #e2e8f0;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
             display: flex;
-            gap: 8px;
+            gap: max(4px, min(1.5vw, 10px));
         }
 
         .stat-item {
             flex: 1;
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
-            border-radius: 12px;
-            padding: 10px 8px;
+            border-radius: max(8px, min(2vw, 12px));
+            padding: max(6px, min(1.5vh, 12px)) max(4px, min(1.5vw, 10px));
             text-align: center;
-            min-height: 80px;
+            min-height: max(60px, min(12vh, 80px));
             display: flex;
             flex-direction: column;
             justify-content: center;
             transition: all 0.3s ease;
         }
 
-        .stat-item:hover {
-            background: rgba(45, 55, 72, 0.8);
-            border-color: rgba(99, 179, 237, 0.4);
-        }
-
         .stat-title {
-            font-size: 11px;
+            font-size: max(9px, min(3vw, 12px));
             font-weight: 600;
             color: #63b3ed;
-            margin-bottom: 6px;
+            margin-bottom: max(3px, min(1vh, 6px));
         }
 
         .stat-value {
-            font-size: 16px;
+            font-size: max(12px, min(4vw, 16px));
             font-weight: 700;
             color: #e2e8f0;
-            margin-bottom: 4px;
+            margin-bottom: max(2px, min(0.5vh, 4px));
         }
 
         .stat-time {
-            font-size: 11px;
+            font-size: max(8px, min(2.5vw, 11px));
             color: rgba(226, 232, 240, 0.6);
             font-weight: 500;
         }
@@ -914,7 +913,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="login-screen" id="loginScreen" style="display:none;">
         <div class="login-box">
-            <div class="login-title">🔐 Metal Tracker</div>
+            <div class="login-title">Metal Tracker</div>
             <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
             <button class="login-btn" onclick="login()">Giriş</button>
             <div class="login-error" id="loginError">Hatalı şifre!</div>
