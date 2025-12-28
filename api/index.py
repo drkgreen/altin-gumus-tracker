@@ -192,7 +192,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 8px;
             padding: 0 4px;
             position: relative;
             z-index: 1;
@@ -598,11 +598,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             backdrop-filter: blur(10px);
             border: 1px solid rgba(74, 85, 104, 0.4);
             border-radius: 16px;
-            padding: 18px 16px;
+            padding: 12px 10px;
             color: #e2e8f0;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         .stat-item {
@@ -610,9 +610,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
             border-radius: 12px;
-            padding: 14px 10px;
+            padding: 10px 8px;
             text-align: center;
-            min-height: 100px;
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -625,10 +625,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .stat-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #63b3ed;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .stat-value {
@@ -648,7 +648,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             .container {
                 max-width: 100%;
                 padding: 0 8px;
-                gap: 14px;
+                gap: 6px;
             }
 
             .header {
@@ -947,13 +947,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="portfolio-amount" id="totalAmount">0,00 ₺</div>
             <div class="portfolio-metals">
                 <div class="metal-item">
-                    <div class="metal-name">🥇 Altın</div>
+                    <div class="metal-name">Altın</div>
                     <div class="metal-amount" id="goldAmount">0 gr</div>
                     <div class="metal-price" id="goldCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="goldPortfolioValue">0,00 ₺</div>
                 </div>
                 <div class="metal-item">
-                    <div class="metal-name">🥈 Gümüş</div>
+                    <div class="metal-name">Gümüş</div>
                     <div class="metal-amount" id="silverAmount">0 gr</div>
                     <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
@@ -963,17 +963,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <div class="statistics-summary">
             <div class="stat-item">
-                <div class="stat-title">⬆️ En Yüksek Altın</div>
+                <div class="stat-title">En Yüksek Altın</div>
                 <div class="stat-value" id="highestGold">0,00 ₺</div>
                 <div class="stat-time" id="highestGoldTime">--:--</div>
             </div>
             <div class="stat-item">
-                <div class="stat-title">⬆️ En Yüksek Gümüş</div>
+                <div class="stat-title">En Yüksek Gümüş</div>
                 <div class="stat-value" id="highestSilver">0,00 ₺</div>
                 <div class="stat-time" id="highestSilverTime">--:--</div>
             </div>
             <div class="stat-item">
-                <div class="stat-title">🏆 En Yüksek Portföy</div>
+                <div class="stat-title">En Yüksek Portföy</div>
                 <div class="stat-value" id="highestPortfolio">0,00 ₺</div>
                 <div class="stat-time" id="highestPortfolioTime">--:--</div>
             </div>
@@ -981,7 +981,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <div class="price-history">
             <div class="history-header">
-                <div class="history-title">📈 Fiyat Geçmişi</div>
+                <div class="history-title">Fiyat Geçmişi</div>
                 <div class="period-tabs">
                     <button class="period-tab active" onclick="switchPeriod('hourly')" id="hourlyTab">Saatlik</button>
                     <button class="period-tab" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
