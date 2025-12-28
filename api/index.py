@@ -630,22 +630,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .statistics-section {
-            margin-top: max(16px, min(3vh, 24px));
-            padding-top: max(12px, min(2.5vh, 18px));
-            border-top: 1px solid rgba(74, 85, 104, 0.3);
-        }
-
-        .statistics-title {
-            font-size: max(12px, min(3.5vw, 16px));
-            font-weight: 600;
-            color: #63b3ed;
-            text-align: center;
-            margin-bottom: max(10px, min(2vh, 16px));
+            margin-top: max(8px, min(1.5vh, 12px));
+            padding-top: 0;
         }
 
         .statistics-grid {
             display: flex;
-            gap: max(6px, min(1.5vw, 12px));
+            gap: max(4px, min(1vw, 8px));
         }
 
         .stat-item {
@@ -653,31 +644,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
             border-radius: max(8px, min(2vw, 12px));
-            padding: max(6px, min(1.5vh, 12px)) max(4px, min(1.5vw, 10px));
+            padding: max(8px, min(2vh, 16px)) max(6px, min(2vw, 12px));
             text-align: center;
-            min-height: max(60px, min(12vh, 80px));
+            min-height: max(70px, min(14vh, 90px));
             display: flex;
             flex-direction: column;
             justify-content: center;
             transition: all 0.3s ease;
         }
 
+        .stat-item:hover {
+            background: rgba(45, 55, 72, 0.8);
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
         .stat-title {
-            font-size: max(9px, min(3vw, 12px));
+            font-size: max(10px, min(3vw, 14px));
             font-weight: 600;
             color: #63b3ed;
-            margin-bottom: max(3px, min(1vh, 6px));
+            margin-bottom: max(4px, min(1vh, 8px));
         }
 
         .stat-value {
-            font-size: max(12px, min(4vw, 16px));
+            font-size: max(14px, min(4vw, 18px));
             font-weight: 700;
             color: #e2e8f0;
-            margin-bottom: max(2px, min(0.5vh, 4px));
+            margin-bottom: max(3px, min(0.5vh, 6px));
         }
 
         .stat-time {
-            font-size: max(8px, min(2.5vw, 11px));
+            font-size: max(9px, min(2.5vw, 12px));
             color: rgba(226, 232, 240, 0.6);
             font-weight: 500;
         }
@@ -858,7 +854,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         @media (min-width: 481px) and (max-width: 768px) {
             .container {
-                max-width: 500px;
+                max-width: 450px;
                 gap: 16px;
             }
 
@@ -867,7 +863,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             .metal-item {
-                max-width: 250px;
+                max-width: 200px;
             }
 
             .statistics-summary {
@@ -999,7 +995,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             
             <div class="statistics-section">
-                <div class="statistics-title">En Yüksek Değerler</div>
                 <div class="statistics-grid">
                     <div class="stat-item">
                         <div class="stat-title">En Yüksek Altın</div>
