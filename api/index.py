@@ -372,20 +372,43 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             white-space: nowrap;
         }
 
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: max(6px, min(1.5vw, 10px));
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: max(14px, min(4vw, 18px));
+            font-weight: 700;
+            color: #63b3ed;
+            white-space: nowrap;
+        }
+
+        .version {
+            font-size: max(8px, min(2.5vw, 11px));
+            color: rgba(99, 179, 237, 0.7);
+            background: rgba(99, 179, 237, 0.15);
+            padding: max(2px, min(0.5vh, 4px)) max(4px, min(1vw, 8px));
+            border-radius: max(4px, min(1vw, 8px));
+            white-space: nowrap;
+        }
+
         .actions {
             display: flex;
-            gap: 8px;
+            gap: max(6px, min(1.5vw, 10px));
             flex-shrink: 0;
         }
 
         .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: max(32px, min(8vw, 40px));
+            height: max(32px, min(8vw, 40px));
+            border-radius: max(6px, min(1.5vw, 10px));
             background: rgba(45, 55, 72, 0.8);
             border: 1px solid rgba(74, 85, 104, 0.4);
             color: #63b3ed;
-            font-size: 14px;
+            font-size: max(12px, min(3.5vw, 16px));
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -535,11 +558,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.5);
             border: 1px solid rgba(74, 85, 104, 0.2);
             margin: 0 8px;
+            max-height: max(300px, min(40vh, 400px));
+            overflow-y: auto;
         }
 
         .price-table table {
             width: 100%;
             border-collapse: collapse;
+        }
+
+        .price-table thead {
+            position: sticky;
+            top: 0;
+            background: rgba(45, 55, 72, 0.95);
+            z-index: 10;
         }
 
         .price-table th {
@@ -597,16 +629,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: rgba(226, 232, 240, 0.5);
         }
 
-        .statistics-summary {
-            background: rgba(45, 55, 72, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(74, 85, 104, 0.4);
-            border-radius: max(10px, min(2.5vw, 16px));
-            padding: max(8px, min(2vh, 16px)) max(6px, min(2vw, 12px));
-            color: #e2e8f0;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+        .statistics-section {
+            margin-top: max(16px, min(3vh, 24px));
+            padding-top: max(12px, min(2.5vh, 18px));
+            border-top: 1px solid rgba(74, 85, 104, 0.3);
+        }
+
+        .statistics-title {
+            font-size: max(12px, min(3.5vw, 16px));
+            font-weight: 600;
+            color: #63b3ed;
+            text-align: center;
+            margin-bottom: max(10px, min(2vh, 16px));
+        }
+
+        .statistics-grid {
             display: flex;
-            gap: max(4px, min(1.5vw, 10px));
+            gap: max(6px, min(1.5vw, 12px));
         }
 
         .stat-item {
@@ -958,23 +997,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
                 </div>
             </div>
-        </div>
-
-        <div class="statistics-summary">
-            <div class="stat-item">
-                <div class="stat-title">En Yüksek Altın</div>
-                <div class="stat-value" id="highestGold">0,00 ₺</div>
-                <div class="stat-time" id="highestGoldTime">--:--</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-title">En Yüksek Gümüş</div>
-                <div class="stat-value" id="highestSilver">0,00 ₺</div>
-                <div class="stat-time" id="highestSilverTime">--:--</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-title">En Yüksek Portföy</div>
-                <div class="stat-value" id="highestPortfolio">0,00 ₺</div>
-                <div class="stat-time" id="highestPortfolioTime">--:--</div>
+            
+            <div class="statistics-section">
+                <div class="statistics-title">En Yüksek Değerler</div>
+                <div class="statistics-grid">
+                    <div class="stat-item">
+                        <div class="stat-title">En Yüksek Altın</div>
+                        <div class="stat-value" id="highestGold">0,00 ₺</div>
+                        <div class="stat-time" id="highestGoldTime">--:--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-title">En Yüksek Gümüş</div>
+                        <div class="stat-value" id="highestSilver">0,00 ₺</div>
+                        <div class="stat-time" id="highestSilverTime">--:--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-title">En Yüksek Portföy</div>
+                        <div class="stat-value" id="highestPortfolio">0,00 ₺</div>
+                        <div class="stat-time" id="highestPortfolioTime">--:--</div>
+                    </div>
+                </div>
             </div>
         </div>
 
