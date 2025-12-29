@@ -1,4 +1,44 @@
-#!/usr/bin/env python3
+.login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #334155 75%, #1e293b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .login-box {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(32px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 28px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #60a5fa;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0#!/usr/bin/env python3
 """
 Metal Price Tracker Web App v3.0 - Secure Version
 Flask web uygulaması - Şifre korumalı
@@ -179,12 +219,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #334155 75%, #1e293b 100%);
             background-attachment: fixed;
             min-height: 100vh;
             padding: 15px;
             color: #e2e8f0;
             overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .container {
