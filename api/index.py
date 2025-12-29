@@ -644,9 +644,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
             border-radius: 10px;
-            padding: 12px 8px;
+            padding: 16px 12px;
             text-align: center;
-            min-height: 80px;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             justify-content: center;
