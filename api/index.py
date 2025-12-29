@@ -630,23 +630,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .statistics-section {
-            margin-top: max(8px, min(1.5vh, 12px));
+            margin-top: 12px;
             padding-top: 0;
         }
 
         .statistics-grid {
             display: flex;
-            gap: max(4px, min(1vw, 8px));
+            gap: 6px;
         }
 
         .stat-item {
             flex: 1;
             background: rgba(45, 55, 72, 0.6);
             border: 1px solid rgba(74, 85, 104, 0.3);
-            border-radius: max(8px, min(2vw, 12px));
-            padding: max(8px, min(2vh, 16px)) max(6px, min(2vw, 12px));
+            border-radius: 10px;
+            padding: 12px 8px;
             text-align: center;
-            min-height: max(70px, min(14vh, 90px));
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -659,21 +659,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .stat-title {
-            font-size: max(10px, min(3vw, 14px));
+            font-size: 11px;
             font-weight: 600;
             color: #63b3ed;
-            margin-bottom: max(4px, min(1vh, 8px));
+            margin-bottom: 6px;
         }
 
         .stat-value {
-            font-size: max(14px, min(4vw, 18px));
+            font-size: 15px;
             font-weight: 700;
             color: #e2e8f0;
-            margin-bottom: max(3px, min(0.5vh, 6px));
+            margin-bottom: 4px;
         }
 
         .stat-time {
-            font-size: max(9px, min(2.5vw, 12px));
+            font-size: 10px;
             color: rgba(226, 232, 240, 0.6);
             font-weight: 500;
         }
