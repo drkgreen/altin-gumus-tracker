@@ -610,6 +610,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .price-table .portfolio {
             font-weight: 700;
             color: #4299e1;
+            line-height: 1.2;
         }
 
         .price-table .change {
@@ -855,7 +856,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         @media (min-width: 481px) and (max-width: 768px) {
             .container {
                 max-width: 450px;
-                gap: 10px;
+                gap: 16px;
             }
 
             .portfolio-metals {
@@ -1272,6 +1273,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function formatCurrency(amount) {
+            if (!amount || amount === 0) return '0,00 ₺';
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -1279,7 +1281,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function formatPrice(price) {
-            if (!price) return '0,00 ₺';
+            if (!price || price === 0) return '0,00 ₺';
             return new Intl.NumberFormat('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
