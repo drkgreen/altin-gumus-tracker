@@ -855,7 +855,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         @media (min-width: 481px) and (max-width: 768px) {
             .container {
                 max-width: 450px;
-                gap: 16px;
+                gap: 10px;
             }
 
             .portfolio-metals {
