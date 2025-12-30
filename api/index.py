@@ -230,6 +230,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 @media (max-width:460px){
 .container{max-width:95%;padding:8px;padding-top:75px}
 .header{width:95%;top:8px;padding:12px 16px}
+.portfolio-metals{flex-direction:column;gap:8px}
+.statistics-grid{flex-direction:column;gap:5px}
+.stat-item{min-height:70px;padding:12px 8px}
 .header-center{display:none}
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
