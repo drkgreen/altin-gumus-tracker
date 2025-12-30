@@ -1,44 +1,4 @@
-.login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #334155 75%, #1e293b 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .login-box {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(32px);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 28px;
-            padding: 40px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 
-                0 25px 80px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .login-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: #60a5fa;
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 16px 20px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(59, 130, 246, 0#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Metal Price Tracker Web App v3.0 - Secure Version
 Flask web uygulaması - Şifre korumalı
@@ -122,7 +82,94 @@ def get_daily_optimized_data():
         now = datetime.now(timezone.utc)
         for i in range(6, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_record = next((r for r in daily_peaks if r.get("date") == target_date), None)
+            day_record = next((r for r in daily_peaks if r.get("date") == target_date),         .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #334155 75%, #1e293b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .login-box {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(32px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 28px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #60a5fa;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            font-size: 17px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .login-input::placeholder {
+            color: rgba(226, 232, 240, 0.5);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .login-error {
+            color: #ef4444;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        })
             if day_record:
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
                 daily_temp.append({"time": day_name, "gold_price": day_record["gold_price"], "silver_price": day_record["silver_price"], "peak_time": day_record.get("peak_time", "unknown"), "portfolio_value": day_record.get("portfolio_value", 0)})
