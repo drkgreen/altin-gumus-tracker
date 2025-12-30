@@ -228,13 +228,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(59,130,246,0.4)}
 .login-error{color:#ef4444;text-align:center;margin-top:12px;font-size:14px;display:none}
 @media (max-width:460px){
-.container{max-width:95%;padding:12px;padding-top:85px}
+.container{max-width:95%;padding:16px;padding-top:90px}
 .header{width:95%;top:10px;padding:16px 20px}
 .header-center{display:none}
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:12px;padding:6px 10px}
 .history-header{flex-direction:column;gap:10px}
 .period-tabs{justify-content:center}
-.price-table{margin:0 4px;max-height:280px}
+.price-table{margin:0 2px;max-height:280px}
 }
 </style>
 </head>
