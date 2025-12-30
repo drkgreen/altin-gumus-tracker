@@ -1938,19 +1938,35 @@
       "silver_price": 102.14,
       "portfolio_value": 6077.9800000000005,
       "optimized": true,
-      "daily_peak": true,
+      "daily_peak": false,
       "monthly_peak": false,
       "success": {
         "gold": true,
         "silver": true
       },
       "peak_time": "10:44:40"
+    },
+    {
+      "timestamp": 1767092972.674945,
+      "date": "2025-12-30",
+      "time": "11:09:32",
+      "gold_price": 5979.57,
+      "silver_price": 102.37,
+      "portfolio_value": 6081.94,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:09:32"
     }
   ],
-  "last_update": "2025-12-30T10:44:40.324324+00:00",
-  "total_records": 127,
+  "last_update": "2025-12-30T11:09:32.674945+00:00",
+  "total_records": 128,
   "bot_version": "3.0.0",
-  "last_optimization": "2025-12-30T10:44:40.324370+00:00",
+  "last_optimization": "2025-12-30T11:09:32.674978+00:00",
   "optimization_stats": {
     "date": "2025-12-18",
     "original_count": 27,
