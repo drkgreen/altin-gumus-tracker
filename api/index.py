@@ -1025,19 +1025,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <button class="period-tab" onclick="switchPeriod('monthly')" id="monthlyTab">Aylık</button>
                 </div>
             </div>
-            <div class="price-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th id="timeHeader">Saat</th>
-                            <th>Altın</th>
-                            <th>Gümüş</th>
-                            <th>Portföy</th>
-                            <th>Değişim</th>
-                        </tr>
-                    </thead>
-                    <tbody id="priceTableBody"></tbody>
-                </table>
+            <div class="chart-container">
+                <canvas id="priceChart" width="360" height="200"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color gold"></div>
+                    <span>Altın</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color silver"></div>
+                    <span>Gümüş</span>
+                </div>
             </div>
         </div>
     </div>
