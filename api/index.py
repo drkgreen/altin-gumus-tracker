@@ -1018,7 +1018,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <div class="price-history">
             <div class="history-header">
-                <div class="history-title">Fiyat Geçmişi</div>
+                <div class="history-title">Fiyat Çizelgesi</div>
                 <div class="period-tabs">
                     <button class="period-tab active" onclick="switchPeriod('hourly')" id="hourlyTab">Saatlik</button>
                     <button class="period-tab" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
@@ -1026,15 +1026,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </div>
             <div class="chart-container">
-                <canvas id="priceChart" width="360" height="200"></canvas>
+                <canvas class="chart-canvas" id="priceChart"></canvas>
+                <div class="chart-tooltip" id="chartTooltip"></div>
             </div>
             <div class="chart-legend">
                 <div class="legend-item">
-                    <div class="legend-color gold"></div>
+                    <div class="legend-color legend-gold"></div>
                     <span>Altın</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color silver"></div>
+                    <div class="legend-color legend-silver"></div>
                     <span>Gümüş</span>
                 </div>
             </div>
@@ -1164,32 +1165,227 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         function updateTable() {
-            if (!tableData || !tableData[currentPeriod]) return;
-            
-            const tbody = document.getElementById('priceTableBody');
-            tbody.innerHTML = '';
+            if (!tableData || !tableData[currentPeriod]) {
+                drawChart([]);
+                return;
+            }
             
             // İstatistikleri hesapla
             updateStatistics();
             
-            tableData[currentPeriod].forEach((item, index) => {
-                let portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-                const row = document.createElement('tr');
+            // Çizelgeyi çiz
+            drawChart(tableData[currentPeriod]);
+        }
+
+        function drawChart(data) {
+            const canvas = document.getElementById('priceChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * 2; // Retina desteği
+            canvas.height = rect.height * 2;
+            ctx.scale(2, 2);
+            
+            const width = rect.width;
+            const height = rect.height;
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            // Temizle
+            ctx.clearRect(0, 0, width, height);
+            
+            if (!data || data.length === 0) {
+                // Veri yoksa mesaj göster
+                ctx.fillStyle = '#64748b';
+                ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Fiyat verisi bulunamadı', width / 2, height / 2);
+                return;
+            }
+            
+            // Min-max değerleri bul
+            const goldPrices = data.map(d => d.gold_price).filter(p => p > 0);
+            const silverPrices = data.map(d => d.silver_price).filter(p => p > 0);
+            
+            if (goldPrices.length === 0 && silverPrices.length === 0) return;
+            
+            const minGold = Math.min(...goldPrices);
+            const maxGold = Math.max(...goldPrices);
+            const minSilver = Math.min(...silverPrices);
+            const maxSilver = Math.max(...silverPrices);
+            
+            // Y ekseni için ölçekleme
+            const minPrice = Math.min(minGold, minSilver * 30); // Gümüş 30x çarp (yaklaşık oran)
+            const maxPrice = Math.max(maxGold, maxSilver * 30);
+            const priceRange = maxPrice - minPrice;
+            
+            // Grid çizgileri
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            
+            // Yatay grid
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Dikey grid
+            const steps = Math.min(data.length, 6);
+            for (let i = 0; i <= steps; i++) {
+                const x = padding + (chartWidth / steps) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+            
+            // Altın çizgisi
+            if (goldPrices.length > 0) {
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 
-                const timeDisplay = item.optimized ? 
-                    `<span title="Peak değer (${item.peak_time || 'bilinmiyor'})">${item.time}</span>` : 
-                    item.time;
+                ctx.beginPath();
+                data.forEach((item, index) => {
+                    if (item.gold_price > 0) {
+                        const x = padding + (chartWidth / (data.length - 1)) * index;
+                        const y = height - padding - ((item.gold_price - minPrice) / priceRange) * chartHeight;
+                        
+                        if (index === 0 || data[index - 1].gold_price <= 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                });
+                ctx.stroke();
                 
-                row.innerHTML = `
-                    <td class="time">${timeDisplay}</td>
-                    <td class="price">${formatPrice(item.gold_price)}</td>
-                    <td class="price">${formatPrice(item.silver_price)}</td>
-                    <td class="portfolio">${portfolioValue > 0 ? formatCurrency(portfolioValue) : '-'}</td>
-                    <td class="change ${getChangeClass(item.change_percent)}">${formatChange(item.change_percent)}</td>
-                `;
+                // Altın noktaları
+                ctx.fillStyle = '#f59e0b';
+                data.forEach((item, index) => {
+                    if (item.gold_price > 0) {
+                        const x = padding + (chartWidth / (data.length - 1)) * index;
+                        const y = height - padding - ((item.gold_price - minPrice) / priceRange) * chartHeight;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+            
+            // Gümüş çizgisi (30x çarpılmış)
+            if (silverPrices.length > 0) {
+                ctx.strokeStyle = '#6b7280';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 
-                tbody.appendChild(row);
+                ctx.beginPath();
+                data.forEach((item, index) => {
+                    if (item.silver_price > 0) {
+                        const scaledPrice = item.silver_price * 30; // Ölçekleme
+                        const x = padding + (chartWidth / (data.length - 1)) * index;
+                        const y = height - padding - ((scaledPrice - minPrice) / priceRange) * chartHeight;
+                        
+                        if (index === 0 || data[index - 1].silver_price <= 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                });
+                ctx.stroke();
+                
+                // Gümüş noktaları
+                ctx.fillStyle = '#6b7280';
+                data.forEach((item, index) => {
+                    if (item.silver_price > 0) {
+                        const scaledPrice = item.silver_price * 30;
+                        const x = padding + (chartWidth / (data.length - 1)) * index;
+                        const y = height - padding - ((scaledPrice - minPrice) / priceRange) * chartHeight;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+            
+            // Y ekseni etiketleri
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'right';
+            
+            for (let i = 0; i <= 5; i++) {
+                const value = maxPrice - (priceRange / 5) * i;
+                const y = padding + (chartHeight / 5) * i;
+                ctx.fillText(formatPrice(value).replace(' ₺', ''), padding - 8, y + 4);
+            }
+            
+            // X ekseni etiketleri
+            ctx.textAlign = 'center';
+            const labelStep = Math.ceil(data.length / 5);
+            
+            data.forEach((item, index) => {
+                if (index % labelStep === 0 || index === data.length - 1) {
+                    const x = padding + (chartWidth / (data.length - 1)) * index;
+                    let label = item.time;
+                    
+                    // Uzun etiketleri kısalt
+                    if (label.length > 8) {
+                        label = label.substring(0, 8) + '...';
+                    }
+                    
+                    ctx.fillText(label, x, height - 10);
+                }
             });
+            
+            // Tooltip için mouse event'leri ekle
+            setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minPrice, priceRange);
+        }
+
+        function setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minPrice, priceRange) {
+            const tooltip = document.getElementById('chartTooltip');
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.onmousemove = function(e) {
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Hangi veri noktasına yakın olduğumuzu bul
+                const dataIndex = Math.round(((mouseX - padding) / chartWidth) * (data.length - 1));
+                
+                if (dataIndex >= 0 && dataIndex < data.length) {
+                    const item = data[dataIndex];
+                    const x = padding + (chartWidth / (data.length - 1)) * dataIndex;
+                    
+                    // Mouse bu noktaya yakın mı kontrol et
+                    if (Math.abs(mouseX - x) < 20) {
+                        tooltip.innerHTML = `
+                            <strong>${item.time}</strong><br>
+                            Altın: ${formatPrice(item.gold_price)}<br>
+                            Gümüş: ${formatPrice(item.silver_price)}
+                        `;
+                        tooltip.style.left = (e.clientX - tooltip.offsetWidth / 2) + 'px';
+                        tooltip.style.top = (e.clientY - tooltip.offsetHeight - 10) + 'px';
+                        tooltip.style.opacity = '1';
+                        return;
+                    }
+                }
+                
+                tooltip.style.opacity = '0';
+            };
+            
+            canvas.onmouseleave = function() {
+                tooltip.style.opacity = '0';
+            };
         }
 
         function updateStatistics() {
