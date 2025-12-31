@@ -82,7 +82,137 @@ def get_daily_optimized_data():
         now = datetime.now(timezone.utc)
         for i in range(6, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_record = next((r for r in daily_peaks if r.get("date") == target_date), None)
+            day_record = next((r for r in daily_peaks if r.get("date") == target_date),         .price-history {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 16px 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06), 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin: 0 -5px;
+            width: calc(100% + 10px);
+            flex: 1;
+            min-height: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding: 0 10px;
+            gap: 8px;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            flex-shrink: 0;
+        }
+
+        .period-tabs {
+            display: flex;
+            gap: 3px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 3px;
+            flex-shrink: 0;
+        }
+
+        .period-tab {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .period-tab.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .period-tab:hover:not(.active) {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .price-table {
+            overflow-x: auto;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            margin: 0 8px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .price-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .price-table thead {
+            position: sticky;
+            top: 0;
+            background: #f3f4f6;
+            z-index: 10;
+        }
+
+        .price-table th {
+            background: #f3f4f6;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 12px;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .price-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 12px;
+            color: #6b7280;
+            white-space: nowrap;
+            background: white;
+        }
+
+        .price-table tr:hover td {
+            background: #f9fafb;
+        }
+
+        .price-table .time {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .price-table .price {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .price-table .portfolio {
+            font-weight: 700;
+            color: #22c55e;
+            line-height: 1.2;
+        }
+
+        .price-table .change {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .change.positive {
+            color)
             if day_record:
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
                 daily_temp.append({"time": day_name, "gold_price": day_record["gold_price"], "silver_price": day_record["silver_price"], "peak_time": day_record.get("peak_time", "unknown"), "portfolio_value": day_record.get("portfolio_value", 0)})
@@ -179,11 +309,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f1f3f4 100%);
             background-attachment: fixed;
             min-height: 100vh;
             padding: 15px;
-            color: #e2e8f0;
+            color: #374151;
             overflow-x: hidden;
         }
 
@@ -219,7 +349,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f1f3f4 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -233,20 +363,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .loading-spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(99, 179, 237, 0.3);
-            border-top: 3px solid #63b3ed;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 16px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .loading-text {
-            color: #63b3ed;
+            color: #3b82f6;
             font-size: 16px;
             font-weight: 500;
         }
