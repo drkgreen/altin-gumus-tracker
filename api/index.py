@@ -82,19 +82,7 @@ def get_daily_optimized_data():
         now = datetime.now(timezone.utc)
         for i in range(6, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_record = next((r for r in daily_peaks if r.get("date") == target_date),         <div class="header">
-            <div class="header-left">
-                <div class="logo">🔐 Metal Tracker</div>
-                <div class="version">v3.0</div>
-            </div>
-            <div class="header-center">
-                <div class="update-time" id="headerTime">--:--</div>
-            </div>
-            <div class="actions">
-                <button class="action-btn" onclick="fetchPrice()" id="refreshBtn" title="Yenile">⟳</button>
-                <button class="action-btn" onclick="logout()" title="Çıkış">🚪</button>
-            </div>
-        </div>)
+            day_record = next((r for r in daily_peaks if r.get("date") == target_date), None)
             if day_record:
                 day_name = (now - timedelta(days=i)).strftime("%d.%m")
                 daily_temp.append({"time": day_name, "gold_price": day_record["gold_price"], "silver_price": day_record["silver_price"], "peak_time": day_record.get("peak_time", "unknown"), "portfolio_value": day_record.get("portfolio_value", 0)})
@@ -191,10 +179,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             padding: 15px;
-            color: #334155;
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
 
         .container {
