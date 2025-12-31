@@ -1026,8 +1026,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </div>
             <div class="chart-container">
-                <canvas class="chart-canvas" id="priceChart"></canvas>
-                <div class="chart-tooltip" id="chartTooltip"></div>
+                <div class="chart-wrapper">
+                    <canvas class="chart-canvas" id="priceChart"></canvas>
+                    <div class="chart-tooltip" id="chartTooltip"></div>
+                </div>
             </div>
             <div class="chart-legend">
                 <div class="legend-item">
@@ -1179,31 +1181,39 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         function drawChart(data) {
             const canvas = document.getElementById('priceChart');
-            if (!canvas) return;
+            const wrapper = canvas.parentElement;
+            if (!canvas || !wrapper) return;
             
             const ctx = canvas.getContext('2d');
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * 2; // Retina desteği
-            canvas.height = rect.height * 2;
-            ctx.scale(2, 2);
             
-            const width = rect.width;
-            const height = rect.height;
-            const padding = 40;
-            const chartWidth = width - padding * 2;
-            const chartHeight = height - padding * 2;
-            
-            // Temizle
-            ctx.clearRect(0, 0, width, height);
-            
+            // Veri yoksa mesaj göster
             if (!data || data.length === 0) {
-                // Veri yoksa mesaj göster
-                ctx.fillStyle = '#64748b';
-                ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Fiyat verisi bulunamadı', width / 2, height / 2);
+                wrapper.innerHTML = `
+                    <div class="no-data-message">
+                        Fiyat verisi bulunamadı
+                    </div>
+                `;
                 return;
             }
+            
+            // Canvas boyutunu ayarla (veri sayısına göre genişlik)
+            const minWidth = 600;
+            const dataPointWidth = Math.max(40, 600 / Math.max(data.length, 10));
+            const totalWidth = Math.max(minWidth, data.length * dataPointWidth);
+            const height = 260; // Sabit yükseklik
+            
+            canvas.width = totalWidth * 2; // Retina
+            canvas.height = height * 2;
+            canvas.style.width = totalWidth + 'px';
+            canvas.style.height = height + 'px';
+            ctx.scale(2, 2);
+            
+            const padding = { left: 60, right: 30, top: 20, bottom: 40 };
+            const chartWidth = totalWidth - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            // Temizle
+            ctx.clearRect(0, 0, totalWidth, height);
             
             // Min-max değerleri bul
             const goldPrices = data.map(d => d.gold_price).filter(p => p > 0);
@@ -1216,35 +1226,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const minSilver = Math.min(...silverPrices);
             const maxSilver = Math.max(...silverPrices);
             
-            // Y ekseni için ölçekleme
-            const minPrice = Math.min(minGold, minSilver * 30); // Gümüş 30x çarp (yaklaşık oran)
-            const maxPrice = Math.max(maxGold, maxSilver * 30);
-            const priceRange = maxPrice - minPrice;
+            // Her metal için ayrı ölçekleme
+            const goldRange = maxGold - minGold || 1;
+            const silverRange = maxSilver - minSilver || 1;
+            
+            // Arkaplan
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, totalWidth, height);
             
             // Grid çizgileri
-            ctx.strokeStyle = '#f1f5f9';
+            ctx.strokeStyle = '#e5e7eb';
             ctx.lineWidth = 1;
             
-            // Yatay grid
+            // Yatay grid (5 çizgi)
             for (let i = 0; i <= 5; i++) {
-                const y = padding + (chartHeight / 5) * i;
+                const y = padding.top + (chartHeight / 5) * i;
                 ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(width - padding, y);
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(totalWidth - padding.right, y);
                 ctx.stroke();
             }
             
-            // Dikey grid
-            const steps = Math.min(data.length, 6);
-            for (let i = 0; i <= steps; i++) {
-                const x = padding + (chartWidth / steps) * i;
+            // Dikey grid (veri noktalarında)
+            const gridStep = Math.max(1, Math.floor(data.length / 10));
+            for (let i = 0; i < data.length; i += gridStep) {
+                const x = padding.left + (chartWidth / (data.length - 1)) * i;
                 ctx.beginPath();
-                ctx.moveTo(x, padding);
-                ctx.lineTo(x, height - padding);
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
                 ctx.stroke();
             }
             
-            // Altın çizgisi
+            // Altın çizgisi (sol Y ekseni)
             if (goldPrices.length > 0) {
                 ctx.strokeStyle = '#f59e0b';
                 ctx.lineWidth = 3;
@@ -1252,13 +1265,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ctx.lineJoin = 'round';
                 
                 ctx.beginPath();
+                let firstPoint = true;
+                
                 data.forEach((item, index) => {
                     if (item.gold_price > 0) {
-                        const x = padding + (chartWidth / (data.length - 1)) * index;
-                        const y = height - padding - ((item.gold_price - minPrice) / priceRange) * chartHeight;
+                        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+                        const y = padding.top + chartHeight - ((item.gold_price - minGold) / goldRange) * chartHeight;
                         
-                        if (index === 0 || data[index - 1].gold_price <= 0) {
+                        if (firstPoint) {
                             ctx.moveTo(x, y);
+                            firstPoint = false;
                         } else {
                             ctx.lineTo(x, y);
                         }
@@ -1270,8 +1286,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ctx.fillStyle = '#f59e0b';
                 data.forEach((item, index) => {
                     if (item.gold_price > 0) {
-                        const x = padding + (chartWidth / (data.length - 1)) * index;
-                        const y = height - padding - ((item.gold_price - minPrice) / priceRange) * chartHeight;
+                        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+                        const y = padding.top + chartHeight - ((item.gold_price - minGold) / goldRange) * chartHeight;
                         
                         ctx.beginPath();
                         ctx.arc(x, y, 4, 0, Math.PI * 2);
@@ -1280,7 +1296,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 });
             }
             
-            // Gümüş çizgisi (30x çarpılmış)
+            // Gümüş çizgisi (sağ Y ekseni)
             if (silverPrices.length > 0) {
                 ctx.strokeStyle = '#6b7280';
                 ctx.lineWidth = 3;
@@ -1288,14 +1304,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ctx.lineJoin = 'round';
                 
                 ctx.beginPath();
+                let firstPoint = true;
+                
                 data.forEach((item, index) => {
                     if (item.silver_price > 0) {
-                        const scaledPrice = item.silver_price * 30; // Ölçekleme
-                        const x = padding + (chartWidth / (data.length - 1)) * index;
-                        const y = height - padding - ((scaledPrice - minPrice) / priceRange) * chartHeight;
+                        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+                        const y = padding.top + chartHeight - ((item.silver_price - minSilver) / silverRange) * chartHeight;
                         
-                        if (index === 0 || data[index - 1].silver_price <= 0) {
+                        if (firstPoint) {
                             ctx.moveTo(x, y);
+                            firstPoint = false;
                         } else {
                             ctx.lineTo(x, y);
                         }
@@ -1307,9 +1325,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ctx.fillStyle = '#6b7280';
                 data.forEach((item, index) => {
                     if (item.silver_price > 0) {
-                        const scaledPrice = item.silver_price * 30;
-                        const x = padding + (chartWidth / (data.length - 1)) * index;
-                        const y = height - padding - ((scaledPrice - minPrice) / priceRange) * chartHeight;
+                        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+                        const y = padding.top + chartHeight - ((item.silver_price - minSilver) / silverRange) * chartHeight;
                         
                         ctx.beginPath();
                         ctx.arc(x, y, 4, 0, Math.PI * 2);
@@ -1318,61 +1335,100 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 });
             }
             
-            // Y ekseni etiketleri
-            ctx.fillStyle = '#64748b';
-            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            // Sol Y ekseni etiketleri (Altın)
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'right';
             
             for (let i = 0; i <= 5; i++) {
-                const value = maxPrice - (priceRange / 5) * i;
-                const y = padding + (chartHeight / 5) * i;
-                ctx.fillText(formatPrice(value).replace(' ₺', ''), padding - 8, y + 4);
+                const value = minGold + (goldRange / 5) * (5 - i);
+                const y = padding.top + (chartHeight / 5) * i;
+                ctx.fillText(Math.round(value).toLocaleString('tr-TR'), padding.left - 10, y + 4);
+            }
+            
+            // Sağ Y ekseni etiketleri (Gümüş)
+            ctx.fillStyle = '#6b7280';
+            ctx.textAlign = 'left';
+            
+            for (let i = 0; i <= 5; i++) {
+                const value = minSilver + (silverRange / 5) * (5 - i);
+                const y = padding.top + (chartHeight / 5) * i;
+                ctx.fillText(Math.round(value).toLocaleString('tr-TR'), totalWidth - padding.right + 10, y + 4);
             }
             
             // X ekseni etiketleri
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
-            const labelStep = Math.ceil(data.length / 5);
             
+            const labelStep = Math.max(1, Math.floor(data.length / 8));
             data.forEach((item, index) => {
                 if (index % labelStep === 0 || index === data.length - 1) {
-                    const x = padding + (chartWidth / (data.length - 1)) * index;
+                    const x = padding.left + (chartWidth / (data.length - 1)) * index;
                     let label = item.time;
                     
                     // Uzun etiketleri kısalt
-                    if (label.length > 8) {
-                        label = label.substring(0, 8) + '...';
+                    if (label.length > 10) {
+                        label = label.substring(0, 8) + '..';
                     }
                     
-                    ctx.fillText(label, x, height - 10);
+                    // Rotasyonlu yazı için
+                    ctx.save();
+                    ctx.translate(x, height - 15);
+                    ctx.rotate(-Math.PI / 6); // 30 derece döndür
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
                 }
             });
             
+            // Y ekseni başlıkları
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('ALTIN (₺)', 0, 0);
+            ctx.restore();
+            
+            ctx.fillStyle = '#6b7280';
+            ctx.save();
+            ctx.translate(totalWidth - 15, height / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillText('GÜMÜŞ (₺)', 0, 0);
+            ctx.restore();
+            
             // Tooltip için mouse event'leri ekle
-            setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minPrice, priceRange);
+            setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minGold, goldRange, minSilver, silverRange);
         }
 
-        function setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minPrice, priceRange) {
+        function setupChartTooltip(canvas, data, padding, chartWidth, chartHeight, minGold, goldRange, minSilver, silverRange) {
             const tooltip = document.getElementById('chartTooltip');
-            const rect = canvas.getBoundingClientRect();
             
             canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 
+                // Canvas ölçekleme faktörünü hesapla
+                const scaleX = canvas.style.width ? parseFloat(canvas.style.width) / rect.width : 1;
+                const actualX = mouseX * scaleX;
+                
                 // Hangi veri noktasına yakın olduğumuzu bul
-                const dataIndex = Math.round(((mouseX - padding) / chartWidth) * (data.length - 1));
+                const dataIndex = Math.round(((actualX - padding.left) / chartWidth) * (data.length - 1));
                 
                 if (dataIndex >= 0 && dataIndex < data.length) {
                     const item = data[dataIndex];
-                    const x = padding + (chartWidth / (data.length - 1)) * dataIndex;
+                    const pointX = padding.left + (chartWidth / (data.length - 1)) * dataIndex;
                     
                     // Mouse bu noktaya yakın mı kontrol et
-                    if (Math.abs(mouseX - x) < 20) {
+                    if (Math.abs(actualX - pointX) < 25) {
                         tooltip.innerHTML = `
-                            <strong>${item.time}</strong><br>
-                            Altın: ${formatPrice(item.gold_price)}<br>
-                            Gümüş: ${formatPrice(item.silver_price)}
+                            <div style="font-weight: bold; margin-bottom: 4px;">${item.time}</div>
+                            <div style="color: #f59e0b;">🟡 Altın: ${formatPrice(item.gold_price)}</div>
+                            <div style="color: #6b7280;">⚪ Gümüş: ${formatPrice(item.silver_price)}</div>
                         `;
+                        
                         tooltip.style.left = (e.clientX - tooltip.offsetWidth / 2) + 'px';
                         tooltip.style.top = (e.clientY - tooltip.offsetHeight - 10) + 'px';
                         tooltip.style.opacity = '1';
