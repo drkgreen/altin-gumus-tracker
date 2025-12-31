@@ -83,12 +83,14 @@ def get_daily_optimized_data():
         for i in range(6, -1, -1):
             target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
             day_record = next((r for r in daily_peaks if r.get("date") == target_date),         <div class="header">
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="header-left">
                 <div class="logo">🔐 Metal Tracker</div>
                 <div class="version">v3.0</div>
             </div>
-            <div class="update-time" id="headerTime">--:--</div>
-            <div style="display: flex; gap: 8px;">
+            <div class="header-center">
+                <div class="update-time" id="headerTime">--:--</div>
+            </div>
+            <div class="actions">
                 <button class="action-btn" onclick="fetchPrice()" id="refreshBtn" title="Yenile">⟳</button>
                 <button class="action-btn" onclick="logout()" title="Çıkış">🚪</button>
             </div>
