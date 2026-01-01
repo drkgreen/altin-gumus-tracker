@@ -215,9 +215,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);background-attachment:fixed;min-height:100vh;padding:15px;color:#e2e8f0}
-.container{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding:12px;padding-top:85px;min-height:100vh}
-.header{position:fixed;top:15px;left:50%;transform:translateX(-50%);width:440px;display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.2);border-radius:16px;padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:1000}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);background-attachment:fixed;min-height:100vh;padding:0;color:#e2e8f0}
+.container{max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding:0;padding-top:80px;min-height:100vh}
+.header{position:fixed;top:0;left:0;right:0;width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:16px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:1000}
 .header-left{display:flex;align-items:center;gap:12px}
 .header-center{flex:1;display:flex;justify-content:center}
 .logo{font-size:16px;font-weight:700;color:#60a5fa;white-space:nowrap}
@@ -226,7 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .actions{display:flex;gap:8px}
 .action-btn{width:36px;height:36px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;font-size:14px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
 .action-btn:hover{background:rgba(59,130,246,0.2);transform:translateY(-1px)}
-.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.2);border-radius:20px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);text-align:center}
+.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
 .portfolio-amount{font-size:28px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
 .portfolio-metals{display:flex;gap:10px;margin-top:16px}
 .metal-item{flex:1;background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s}
@@ -242,7 +242,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.2);border-radius:16px;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-top:1px solid rgba(59,130,246,0.2);padding:20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);padding-bottom:20px}
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
 .history-title{font-size:14px;font-weight:600;color:#60a5fa;white-space:nowrap}
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
@@ -262,13 +262,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(59,130,246,0.4)}
 .login-error{color:#ef4444;text-align:center;margin-top:12px;font-size:14px;display:none}
 @media (max-width:460px){
-.container{max-width:95%;padding:8px;padding-top:75px}
-.header{width:95%;top:8px;padding:12px 16px}
+.container{max-width:100%;padding:0;padding-top:70px}
+.header{top:0;left:0;right:0;width:100%;padding:12px 16px;border-radius:0}
 .header-center{display:none}
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
 .chart-canvas{height:150px!important}
+.portfolio-summary{padding:16px}
+.price-history{padding:16px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
