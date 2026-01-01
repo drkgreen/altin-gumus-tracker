@@ -283,10 +283,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{min-width:320px!important;width:320px!important;height:150px}
-.chart-canvas{width:320px!important;height:150px!important}
-.chart-x-labels{min-width:320px!important;width:320px!important}
-.chart-y-axis{width:50px}
+.chart-canvas-wrapper{height:200px}
+.chart-canvas{height:200px!important}
+.chart-legend{gap:8px}
+.legend-item{padding:4px 8px}
+.legend-label{font-size:11px}
+.legend-value{font-size:10px}
 .portfolio-summary{padding:16px 2px;padding-bottom:12px}
 .price-history{padding:12px 2px;padding-bottom:16px}
 }
@@ -368,57 +370,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="charts-container">
 <div class="chart-wrapper">
-<div class="chart-header">
-<div class="chart-title">
-<span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
+<div class="chart-legend">
+<div class="legend-item" id="legendGold" onclick="toggleDataset('gold')">
+<div class="legend-line" style="background:#fbbf24"></div>
+<span class="legend-label">Altın</span>
+<span class="legend-value" id="legendGoldValue">0,00 ₺</span>
+</div>
+<div class="legend-item" id="legendSilver" onclick="toggleDataset('silver')">
+<div class="legend-line" style="background:#94a3b8"></div>
+<span class="legend-label">Gümüş</span>
+<span class="legend-value" id="legendSilverValue">0,00 ₺</span>
+</div>
+<div class="legend-item" id="legendPortfolio" onclick="toggleDataset('portfolio')">
+<div class="legend-line" style="background:#60a5fa"></div>
+<span class="legend-label">Portföy</span>
+<span class="legend-value" id="legendPortfolioValue">0,00 ₺</span>
 </div>
 </div>
-<div class="chart-scroll-area" id="goldScrollArea">
-<div class="chart-canvas-container">
-<div class="chart-y-axis" id="goldYAxis"></div>
 <div class="chart-canvas-wrapper">
-<canvas id="goldChart" class="chart-canvas"></canvas>
-</div>
-</div>
-</div>
-<div class="chart-footer" id="goldFooter">
-<div class="chart-x-labels" id="goldXLabels"></div>
-</div>
-</div>
-<div class="chart-wrapper">
-<div class="chart-header">
-<div class="chart-title">
-<span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
-</div>
-</div>
-<div class="chart-scroll-area" id="silverScrollArea">
-<div class="chart-canvas-container">
-<div class="chart-y-axis" id="silverYAxis"></div>
-<div class="chart-canvas-wrapper">
-<canvas id="silverChart" class="chart-canvas"></canvas>
-</div>
-</div>
-</div>
-<div class="chart-footer" id="silverFooter">
-<div class="chart-x-labels" id="silverXLabels"></div>
-</div>
-</div>
-<div class="chart-wrapper">
-<div class="chart-header">
-<div class="chart-title">
-<span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
-</div>
-</div>
-<div class="chart-scroll-area" id="portfolioScrollArea">
-<div class="chart-canvas-container">
-<div class="chart-y-axis" id="portfolioYAxis"></div>
-<div class="chart-canvas-wrapper">
-<canvas id="portfolioChart" class="chart-canvas"></canvas>
-</div>
-</div>
-</div>
-<div class="chart-footer" id="portfolioFooter">
-<div class="chart-x-labels" id="portfolioXLabels"></div>
+<canvas id="combinedChart" class="chart-canvas"></canvas>
 </div>
 </div>
 </div>
@@ -431,9 +401,12 @@ let tableData = {};
 let currentPeriod = 'hourly';
 let goldAmount = 0;
 let silverAmount = 0;
-let goldChart = null;
-let silverChart = null;
-let portfolioChart = null;
+let combinedChart = null;
+let visibleDatasets = {
+    gold: true,
+    silver: true,
+    portfolio: true
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -739,116 +712,8 @@ function syncScrolls() {
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    
-    // Destroy existing chart
-    if (canvasId === 'goldChart' && goldChart) {
-        goldChart.destroy();
-        goldChart = null;
-    }
-    if (canvasId === 'silverChart' && silverChart) {
-        silverChart.destroy();
-        silverChart = null;
-    }
-    if (canvasId === 'portfolioChart' && portfolioChart) {
-        portfolioChart.destroy();
-        portfolioChart = null;
-    }
-    
-    // Create segment colors for up/down
-    const segmentColors = [];
-    for (let i = 1; i < data.length; i++) {
-        if (data[i] > data[i-1]) {
-            segmentColors.push('#22c55e'); // Green for up
-        } else if (data[i] < data[i-1]) {
-            segmentColors.push('#ef4444'); // Red for down
-        } else {
-            segmentColors.push(borderColor); // Default color
-        }
-    }
-    
-    // Point styles - peak noktalar yıldız, diğerleri küçük nokta
-    const pointStyles = labels.map((_, idx) => peakIndices.includes(idx) ? 'star' : 'circle');
-    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 10 : 2); // Diğer noktalar küçük nokta (2px)
-    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 1);
-    
-    const chart = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderColor: borderColor,
-                backgroundColor: backgroundColor + '40',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.3,
-                pointBackgroundColor: labels.map((_, idx) => 
-                    peakIndices.includes(idx) ? '#fbbf24' : borderColor
-                ),
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: pointBorderWidths,
-                pointRadius: pointRadii,
-                pointStyle: pointStyles,
-                pointHoverRadius: labels.map((_, idx) => peakIndices.includes(idx) ? 12 : 4),
-                segment: {
-                    borderColor: ctx => {
-                        const idx = ctx.p0DataIndex;
-                        return segmentColors[idx] || borderColor;
-                    }
-                }
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    titleColor: '#60a5fa',
-                    bodyColor: '#e2e8f0',
-                    borderColor: 'rgba(59, 130, 246, 0.3)',
-                    borderWidth: 1,
-                    padding: 12,
-                    displayColors: false,
-                    callbacks: {
-                        title: ctx => ctx[0].label,
-                        label: ctx => {
-                            const value = ctx.parsed.y;
-                            const formatted = new Intl.NumberFormat('tr-TR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }).format(value) + ' ₺';
-                            const isPeak = peakIndices.includes(ctx.dataIndex);
-                            return isPeak ? `${formatted} ⭐ PEAK` : formatted;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    display: false  // X eksenini gizle (manuel label kullanıyoruz)
-                },
-                y: {
-                    display: false  // Y eksenini gizle (manuel label kullanıyoruz)
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            }
-        }
-    });
-    
-    // Store chart reference
-    if (canvasId === 'goldChart') goldChart = chart;
-    if (canvasId === 'silverChart') silverChart = chart;
-    if (canvasId === 'portfolioChart') portfolioChart = chart;
+    // Bu fonksiyon artık kullanılmıyor - kombinedChart kullanılıyor
+    return;
 }
 
 function updateStatistics() {
