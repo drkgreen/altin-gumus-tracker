@@ -252,8 +252,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
-.chart-canvas-wrapper{width:100%;height:180px;position:relative}
-.chart-canvas{width:100%!important;height:180px!important}
+.chart-canvas-wrapper{min-width:800px;width:800px;height:180px;position:relative}
+.chart-canvas{width:800px!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-left{font-size:15px;color:#e2e8f0}
 .chart-price{color:#ef4444;font-weight:700}
@@ -278,8 +278,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{height:150px}
-.chart-canvas{height:150px!important}
+.chart-canvas-wrapper{min-width:600px;width:600px;height:150px}
+.chart-canvas{width:600px!important;height:150px!important}
 .portfolio-summary{padding:16px 2px;padding-bottom:12px}
 .price-history{padding:12px 2px;padding-bottom:16px}
 }
@@ -397,12 +397,6 @@ let silverAmount = 0;
 let goldChart = null;
 let silverChart = null;
 let portfolioChart = null;
-let displayedDataCount = {
-    hourly: 5,
-    daily: 5,
-    monthly: 5
-};
-let isLoadingMore = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -544,10 +538,6 @@ function switchPeriod(period) {
     currentPeriod = period;
     document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
     document.getElementById(period + 'Tab').classList.add('active');
-    
-    // Veri sayısını sıfırla (her sekme değişiminde baştan başla)
-    displayedDataCount[period] = 5;
-    
     updateCharts();
 }
 
@@ -557,39 +547,26 @@ function updateCharts() {
     const allData = tableData[currentPeriod];
     if (allData.length === 0) return;
     
-    // Son N veriyi al (5 veri)
-    const displayCount = Math.min(displayedDataCount[currentPeriod], allData.length);
-    const data = allData.slice(-displayCount);
+    // TÜM veriyi kullan
+    const data = allData;
     
     const labels = data.map(item => item.time);
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Peak'leri TÜM veriden hesapla
-    const allGoldPrices = allData.map(item => item.gold_price);
-    const allSilverPrices = allData.map(item => item.silver_price);
-    const allPortfolioValues = allData.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
+    // Peak hesapla
+    const maxGoldPrice = Math.max(...goldPrices);
+    const maxSilverPrice = Math.max(...silverPrices);
+    const maxPortfolioValue = Math.max(...portfolioValues);
     
-    const maxGoldPrice = Math.max(...allGoldPrices);
-    const maxSilverPrice = Math.max(...allSilverPrices);
-    const maxPortfolioValue = Math.max(...allPortfolioValues);
+    const goldPeakIndex = goldPrices.indexOf(maxGoldPrice);
+    const silverPeakIndex = silverPrices.indexOf(maxSilverPrice);
+    const portfolioPeakIndex = portfolioValues.indexOf(maxPortfolioValue);
     
-    const allGoldPeakIndex = allData.findIndex(item => item.gold_price === maxGoldPrice);
-    const allSilverPeakIndex = allData.findIndex(item => item.silver_price === maxSilverPrice);
-    const allPortfolioPeakIndex = allData.findIndex(item => 
-        ((goldAmount * item.gold_price) + (silverAmount * item.silver_price)) === maxPortfolioValue
-    );
-    
-    // Görünen veri içinde peak var mı?
-    const visibleStartIndex = allData.length - displayCount;
-    const goldPeakIndex = (allGoldPeakIndex >= visibleStartIndex) ? allGoldPeakIndex - visibleStartIndex : -1;
-    const silverPeakIndex = (allSilverPeakIndex >= visibleStartIndex) ? allSilverPeakIndex - visibleStartIndex : -1;
-    const portfolioPeakIndex = (allPortfolioPeakIndex >= visibleStartIndex) ? allPortfolioPeakIndex - visibleStartIndex : -1;
-    
-    const goldPeakTime = allData[allGoldPeakIndex]?.time || '--';
-    const silverPeakTime = allData[allSilverPeakIndex]?.time || '--';
-    const portfolioPeakTime = allData[allPortfolioPeakIndex]?.time || '--';
+    const goldPeakTime = labels[goldPeakIndex];
+    const silverPeakTime = labels[silverPeakIndex];
+    const portfolioPeakTime = labels[portfolioPeakIndex];
     
     // Başlıkları güncelle
     document.getElementById('goldChartTitle').innerHTML = 
@@ -601,71 +578,15 @@ function updateCharts() {
     document.getElementById('portfolioChartTitle').innerHTML = 
         `En Yüksek Portföy: <span class="chart-price">${formatCurrency(maxPortfolioValue)}</span> (${portfolioPeakTime})`;
     
-    const goldPeakIndices = goldPeakIndex >= 0 ? [goldPeakIndex] : [];
-    const silverPeakIndices = silverPeakIndex >= 0 ? [silverPeakIndex] : [];
-    const portfolioPeakIndices = portfolioPeakIndex >= 0 ? [portfolioPeakIndex] : [];
+    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
+    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
+    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
     
-    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', goldPeakIndices);
-    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', silverPeakIndices);
-    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', portfolioPeakIndices);
-    
-    // Scroll event listener ekle
-    setupScrollListeners();
-}
-
-function setupScrollListeners() {
-    document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
-        // Önceki listener'ı kaldır
-        wrapper.removeEventListener('scroll', handleChartScroll);
-        // Yeni listener ekle
-        wrapper.addEventListener('scroll', handleChartScroll);
-    });
-}
-
-function handleChartScroll(event) {
-    if (isLoadingMore) return;
-    
-    const wrapper = event.target;
-    const scrollLeft = wrapper.scrollLeft;
-    
-    // Sola yaklaştı mı kontrol et (ilk 50px)
-    if (scrollLeft < 50) {
-        loadMoreData();
-    }
-}
-
-function loadMoreData() {
-    if (!tableData || !tableData[currentPeriod]) return;
-    if (isLoadingMore) return;
-    
-    const allData = tableData[currentPeriod];
-    const currentCount = displayedDataCount[currentPeriod];
-    
-    // Daha fazla veri var mı?
-    if (currentCount >= allData.length) return;
-    
-    isLoadingMore = true;
-    
-    // Scroll pozisyonlarını kaydet
-    const scrollPositions = [];
-    document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
-        scrollPositions.push(wrapper.scrollLeft);
-    });
-    
-    // 5 veri daha ekle
-    displayedDataCount[currentPeriod] = Math.min(currentCount + 5, allData.length);
-    
-    // Grafikleri güncelle
-    updateCharts();
-    
-    // Scroll pozisyonunu koru (yeni veri eklenince sağa kaymasın)
+    // Grafikleri en sağa scroll et (son 5 veriyi göster)
     setTimeout(() => {
-        document.querySelectorAll('.chart-wrapper').forEach((wrapper, idx) => {
-            // Eski scroll pozisyonunu korumaya çalış
-            const oldScroll = scrollPositions[idx] || 0;
-            wrapper.scrollLeft = oldScroll + 100; // Biraz sağa kaydır
+        document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
+            wrapper.scrollLeft = wrapper.scrollWidth;
         });
-        isLoadingMore = false;
     }, 100);
 }
 
