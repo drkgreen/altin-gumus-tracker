@@ -251,7 +251,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:0;position:relative;overflow:hidden}
+.chart-header{position:sticky;top:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);z-index:20;padding:16px;border-bottom:1px solid rgba(59,130,246,0.1)}
+.chart-scroll-area{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;padding:0 16px}
+.chart-footer{position:sticky;bottom:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);z-index:20;padding:12px 16px;border-top:1px solid rgba(59,130,246,0.1);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-x-labels{display:flex;justify-content:space-around;min-width:800px;width:800px}
+.chart-x-label{font-size:10px;color:rgba(226,232,240,0.7);text-align:center;flex:1}
 .chart-canvas-wrapper{min-width:800px;width:800px;height:180px;position:relative}
 .chart-canvas{width:800px!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
@@ -280,6 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tabs{justify-content:center}
 .chart-canvas-wrapper{min-width:600px;width:600px;height:150px}
 .chart-canvas{width:600px!important;height:150px!important}
+.chart-x-labels{min-width:600px;width:600px}
 .portfolio-summary{padding:16px 2px;padding-bottom:12px}
 .price-history{padding:12px 2px;padding-bottom:16px}
 }
@@ -361,27 +367,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="charts-container">
 <div class="chart-wrapper">
+<div class="chart-header">
 <div class="chart-title">
 <span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
 </div>
+</div>
+<div class="chart-scroll-area" id="goldScrollArea">
 <div class="chart-canvas-wrapper">
 <canvas id="goldChart" class="chart-canvas"></canvas>
 </div>
 </div>
+<div class="chart-footer" id="goldFooter">
+<div class="chart-x-labels" id="goldXLabels"></div>
+</div>
+</div>
 <div class="chart-wrapper">
+<div class="chart-header">
 <div class="chart-title">
 <span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
 </div>
+</div>
+<div class="chart-scroll-area" id="silverScrollArea">
 <div class="chart-canvas-wrapper">
 <canvas id="silverChart" class="chart-canvas"></canvas>
 </div>
 </div>
+<div class="chart-footer" id="silverFooter">
+<div class="chart-x-labels" id="silverXLabels"></div>
+</div>
+</div>
 <div class="chart-wrapper">
+<div class="chart-header">
 <div class="chart-title">
 <span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
 </div>
+</div>
+<div class="chart-scroll-area" id="portfolioScrollArea">
 <div class="chart-canvas-wrapper">
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
+</div>
+</div>
+<div class="chart-footer" id="portfolioFooter">
+<div class="chart-x-labels" id="portfolioXLabels"></div>
 </div>
 </div>
 </div>
@@ -578,16 +605,82 @@ function updateCharts() {
     document.getElementById('portfolioChartTitle').innerHTML = 
         `En Yüksek Portföy: <span class="chart-price">${formatCurrency(maxPortfolioValue)}</span> (${portfolioPeakTime})`;
     
+    // X ekseni label'larını oluştur
+    createXLabels('goldXLabels', labels);
+    createXLabels('silverXLabels', labels);
+    createXLabels('portfolioXLabels', labels);
+    
     createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
     createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
     createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
     
-    // Grafikleri en sağa scroll et (son 5 veriyi göster)
+    // Scroll senkronizasyonu kur
+    syncScrolls();
+    
+    // Grafikleri en sağa scroll et
     setTimeout(() => {
-        document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
-            wrapper.scrollLeft = wrapper.scrollWidth;
+        const scrollAreas = document.querySelectorAll('.chart-scroll-area');
+        const footers = document.querySelectorAll('.chart-footer');
+        scrollAreas.forEach(area => {
+            area.scrollLeft = area.scrollWidth;
+        });
+        footers.forEach(footer => {
+            footer.scrollLeft = footer.scrollWidth;
         });
     }, 100);
+}
+
+function createXLabels(elementId, labels) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    labels.forEach(label => {
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'chart-x-label';
+        labelDiv.textContent = label;
+        container.appendChild(labelDiv);
+    });
+}
+
+function syncScrolls() {
+    const scrollAreas = [
+        document.getElementById('goldScrollArea'),
+        document.getElementById('silverScrollArea'),
+        document.getElementById('portfolioScrollArea')
+    ];
+    
+    const footers = [
+        document.getElementById('goldFooter'),
+        document.getElementById('silverFooter'),
+        document.getElementById('portfolioFooter')
+    ];
+    
+    // Her scroll area için footer'ı senkronize et
+    scrollAreas.forEach((area, index) => {
+        if (!area) return;
+        
+        area.removeEventListener('scroll', area._scrollHandler);
+        area._scrollHandler = function() {
+            if (footers[index]) {
+                footers[index].scrollLeft = area.scrollLeft;
+            }
+        };
+        area.addEventListener('scroll', area._scrollHandler);
+    });
+    
+    // Her footer için scroll area'yı senkronize et
+    footers.forEach((footer, index) => {
+        if (!footer) return;
+        
+        footer.removeEventListener('scroll', footer._scrollHandler);
+        footer._scrollHandler = function() {
+            if (scrollAreas[index]) {
+                scrollAreas[index].scrollLeft = footer.scrollLeft;
+            }
+        };
+        footer.addEventListener('scroll', footer._scrollHandler);
+    });
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
@@ -684,16 +777,7 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
             },
             scales: {
                 x: {
-                    grid: {
-                        color: 'rgba(59, 130, 246, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: 'rgba(226, 232, 240, 0.7)',
-                        font: {
-                            size: 10
-                        }
-                    }
+                    display: false  // X eksenini gizle (manuel label kullanıyoruz)
                 },
                 y: {
                     grid: {
