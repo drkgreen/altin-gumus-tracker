@@ -733,6 +733,9 @@ function updatePortfolio() {
     document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
     document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
     document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+    
+    // Grafikleri de güncelle
+    updateCharts();
 }
 
 function formatCurrency(amount) {
