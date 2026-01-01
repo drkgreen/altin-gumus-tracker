@@ -236,7 +236,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .metal-amount{font-size:12px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:12px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:16px;font-weight:700;color:#e2e8f0;white-space:nowrap}
-.statistics-section{margin-top:12px}
+.statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
 .stat-item:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
@@ -252,7 +252,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
-.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:center}
+.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.chart-title-left{font-size:12px;color:#e2e8f0}
+.chart-title-right{font-size:10px;color:rgba(226,232,240,0.6)}
 .chart-canvas{width:100%!important;height:180px!important}
 .login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-box{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:32px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
@@ -352,15 +354,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="charts-container">
 <div class="chart-wrapper">
-<div class="chart-title">Altın Fiyat Grafiği</div>
+<div class="chart-title">
+<span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
+<span class="chart-title-right" id="goldChartTime">--:--</span>
+</div>
 <canvas id="goldChart" class="chart-canvas"></canvas>
 </div>
 <div class="chart-wrapper">
-<div class="chart-title">Gümüş Fiyat Grafiği</div>
+<div class="chart-title">
+<span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
+<span class="chart-title-right" id="silverChartTime">--:--</span>
+</div>
 <canvas id="silverChart" class="chart-canvas"></canvas>
 </div>
 <div class="chart-wrapper">
-<div class="chart-title">Portföy Değer Grafiği</div>
+<div class="chart-title">
+<span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
+<span class="chart-title-right" id="portfolioChartTime">--:--</span>
+</div>
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
 </div>
 </div>
@@ -523,8 +534,6 @@ function switchPeriod(period) {
 function updateCharts() {
     if (!tableData || !tableData[currentPeriod]) return;
     
-    updateStatistics();
-    
     const data = tableData[currentPeriod];
     if (data.length === 0) return;
     
@@ -532,11 +541,33 @@ function updateCharts() {
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
-    const peakIndices = data.map((item, idx) => item.is_peak ? idx : null).filter(idx => idx !== null);
     
-    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', peakIndices);
-    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', peakIndices);
-    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', peakIndices);
+    // Her grafik için kendi peak'ini bul
+    const goldPeakIndex = goldPrices.indexOf(Math.max(...goldPrices));
+    const silverPeakIndex = silverPrices.indexOf(Math.max(...silverPrices));
+    const portfolioPeakIndex = portfolioValues.indexOf(Math.max(...portfolioValues));
+    
+    // Peak zamanlarını al
+    const goldPeakTime = labels[goldPeakIndex];
+    const silverPeakTime = labels[silverPeakIndex];
+    const portfolioPeakTime = labels[portfolioPeakIndex];
+    
+    // Başlıkları güncelle
+    document.getElementById('goldChartTitle').textContent = 
+        `En Yüksek Altın: ${formatPrice(goldPrices[goldPeakIndex])} (${goldPeakTime})`;
+    document.getElementById('goldChartTime').textContent = goldPeakTime;
+    
+    document.getElementById('silverChartTitle').textContent = 
+        `En Yüksek Gümüş: ${formatPrice(silverPrices[silverPeakIndex])} (${silverPeakTime})`;
+    document.getElementById('silverChartTime').textContent = silverPeakTime;
+    
+    document.getElementById('portfolioChartTitle').textContent = 
+        `En Yüksek Portföy: ${formatCurrency(portfolioValues[portfolioPeakIndex])} (${portfolioPeakTime})`;
+    document.getElementById('portfolioChartTime').textContent = portfolioPeakTime;
+    
+    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
+    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
+    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
@@ -569,10 +600,10 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
         }
     }
     
-    // Point styles for peaks
+    // Point styles - sadece peak noktalar görünsün
     const pointStyles = labels.map((_, idx) => peakIndices.includes(idx) ? 'star' : 'circle');
-    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 8 : 3);
-    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 1);
+    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 10 : 0); // Normal noktalar görünmez
+    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 0);
     
     const chart = new Chart(canvas, {
         type: 'line',
@@ -586,12 +617,14 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
                 borderWidth: 2,
                 fill: false,
                 tension: 0.3,
-                pointBackgroundColor: borderColor,
+                pointBackgroundColor: labels.map((_, idx) => 
+                    peakIndices.includes(idx) ? '#fbbf24' : borderColor
+                ),
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: pointBorderWidths,
                 pointRadius: pointRadii,
                 pointStyle: pointStyles,
-                pointHoverRadius: 6,
+                pointHoverRadius: labels.map((_, idx) => peakIndices.includes(idx) ? 12 : 4),
                 segment: {
                     borderColor: ctx => {
                         const idx = ctx.p0DataIndex;
@@ -673,47 +706,8 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
 }
 
 function updateStatistics() {
-    if (!tableData || !tableData[currentPeriod] || tableData[currentPeriod].length === 0) {
-        document.getElementById('highestGold').textContent = '0,00 ₺';
-        document.getElementById('highestGoldTime').textContent = '--:--';
-        document.getElementById('highestSilver').textContent = '0,00 ₺';
-        document.getElementById('highestSilverTime').textContent = '--:--';
-        document.getElementById('highestPortfolio').textContent = '0,00 ₺';
-        document.getElementById('highestPortfolioTime').textContent = '--:--';
-        return;
-    }
-    
-    let highestGold = {price: 0, time: ''};
-    let highestSilver = {price: 0, time: ''};
-    let highestPortfolio = {value: 0, time: ''};
-    
-    tableData[currentPeriod].forEach(item => {
-        if (item.gold_price > highestGold.price) {
-            highestGold = {price: item.gold_price, time: item.time};
-        }
-        if (item.silver_price > highestSilver.price) {
-            highestSilver = {price: item.silver_price, time: item.time};
-        }
-        if (goldAmount > 0 || silverAmount > 0) {
-            const portfolioValue = (goldAmount * item.gold_price) + (silverAmount * item.silver_price);
-            if (portfolioValue > highestPortfolio.value) {
-                highestPortfolio = {value: portfolioValue, time: item.time};
-            }
-        }
-    });
-    
-    document.getElementById('highestGold').textContent = formatPrice(highestGold.price);
-    document.getElementById('highestGoldTime').textContent = highestGold.time || '--:--';
-    document.getElementById('highestSilver').textContent = formatPrice(highestSilver.price);
-    document.getElementById('highestSilverTime').textContent = highestSilver.time || '--:--';
-    
-    if (highestPortfolio.value > 0) {
-        document.getElementById('highestPortfolio').textContent = formatCurrency(highestPortfolio.value);
-        document.getElementById('highestPortfolioTime').textContent = highestPortfolio.time || '--:--';
-    } else {
-        document.getElementById('highestPortfolio').textContent = '0,00 ₺';
-        document.getElementById('highestPortfolioTime').textContent = '--:--';
-    }
+    // Bu fonksiyon artık kullanılmıyor - grafik başlıkları updateCharts() içinde güncelleniyor
+    return;
 }
 
 function updatePortfolio() {
