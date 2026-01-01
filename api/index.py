@@ -226,16 +226,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .actions{display:flex;gap:8px}
 .action-btn{width:36px;height:36px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;font-size:14px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
 .action-btn:hover{background:rgba(59,130,246,0.2);transform:translateY(-1px)}
-.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
-.portfolio-amount{font-size:28px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
+.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px 2px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
+.portfolio-amount{font-size:33px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
 .portfolio-metals{display:flex;gap:0;margin-top:16px}
 .metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
 .metal-item:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
 .metal-item:hover{background:rgba(59,130,246,0.05);transform:none}
-.metal-name{font-size:15px;font-weight:600;color:#60a5fa;margin-bottom:8px;white-space:nowrap}
-.metal-amount{font-size:12px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
-.metal-price{font-size:12px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
-.metal-value{font-size:16px;font-weight:700;color:#e2e8f0;white-space:nowrap}
+.metal-name{font-size:20px;font-weight:600;color:#60a5fa;margin-bottom:8px;white-space:nowrap}
+.metal-amount{font-size:17px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
+.metal-price{font-size:17px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
+.metal-value{font-size:21px;font-weight:700;color:#e2e8f0;white-space:nowrap}
 .statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
@@ -244,16 +244,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-top:1px solid rgba(59,130,246,0.2);padding:20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);padding-bottom:20px}
+.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:20px}
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
 .history-title{font-size:14px;font-weight:600;color:#60a5fa;white-space:nowrap}
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden}
+.chart-canvas-wrapper{min-width:800px;width:100%;height:180px;position:relative}
+.chart-canvas{width:100%!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-left{font-size:12px;color:#e2e8f0}
+.chart-wrapper::-webkit-scrollbar{height:6px}
+.chart-wrapper::-webkit-scrollbar-track{background:rgba(15,23,42,0.4);border-radius:3px}
+.chart-wrapper::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.4);border-radius:3px}
+.chart-wrapper::-webkit-scrollbar-thumb:hover{background:rgba(59,130,246,0.6)}
 .chart-canvas{width:100%!important;height:180px!important}
 .login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-box{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:32px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
@@ -271,9 +277,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
+.chart-canvas-wrapper{min-width:600px;height:150px}
 .chart-canvas{height:150px!important}
-.portfolio-summary{padding:16px}
-.price-history{padding:16px}
+.portfolio-summary{padding:16px 2px}
+.price-history{padding:16px 2px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -356,19 +363,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="chart-title">
 <span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
 </div>
+<div class="chart-canvas-wrapper">
 <canvas id="goldChart" class="chart-canvas"></canvas>
+</div>
 </div>
 <div class="chart-wrapper">
 <div class="chart-title">
 <span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
 </div>
+<div class="chart-canvas-wrapper">
 <canvas id="silverChart" class="chart-canvas"></canvas>
+</div>
 </div>
 <div class="chart-wrapper">
 <div class="chart-title">
 <span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
 </div>
+<div class="chart-canvas-wrapper">
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 </div>
