@@ -228,17 +228,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .action-btn:hover{background:rgba(59,130,246,0.2);transform:translateY(-1px)}
 .portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
 .portfolio-amount{font-size:28px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
-.portfolio-metals{display:flex;gap:10px;margin-top:16px}
-.metal-item{flex:1;background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s}
-.metal-item:hover{background:rgba(59,130,246,0.1);transform:translateY(-1px)}
+.portfolio-metals{display:flex;gap:0;margin-top:16px}
+.metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
+.metal-item:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
+.metal-item:hover{background:rgba(59,130,246,0.05);transform:none}
 .metal-name{font-size:15px;font-weight:600;color:#60a5fa;margin-bottom:8px;white-space:nowrap}
 .metal-amount{font-size:12px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:12px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:16px;font-weight:700;color:#e2e8f0;white-space:nowrap}
 .statistics-section{margin-top:12px}
-.statistics-grid{display:flex;gap:6px}
-.stat-item{flex:1;background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s}
-.stat-item:hover{background:rgba(59,130,246,0.1);transform:translateY(-1px)}
+.statistics-grid{display:flex;gap:0}
+.stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
+.stat-item:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
+.stat-item:hover{background:rgba(59,130,246,0.05);transform:none}
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
