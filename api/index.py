@@ -283,9 +283,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{min-width:600px;width:600px;height:150px}
-.chart-canvas{width:600px!important;height:150px!important}
-.chart-x-labels{min-width:600px;width:600px}
+.chart-canvas-wrapper{min-width:320px!important;width:320px!important;height:150px}
+.chart-canvas{width:320px!important;height:150px!important}
+.chart-x-labels{min-width:320px!important;width:320px!important}
+.chart-y-axis{width:50px}
 .portfolio-summary{padding:16px 2px;padding-bottom:12px}
 .price-history{padding:12px 2px;padding-bottom:16px}
 }
@@ -373,8 +374,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 </div>
 <div class="chart-scroll-area" id="goldScrollArea">
+<div class="chart-canvas-container">
+<div class="chart-y-axis" id="goldYAxis"></div>
 <div class="chart-canvas-wrapper">
 <canvas id="goldChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 <div class="chart-footer" id="goldFooter">
@@ -388,8 +392,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 </div>
 <div class="chart-scroll-area" id="silverScrollArea">
+<div class="chart-canvas-container">
+<div class="chart-y-axis" id="silverYAxis"></div>
 <div class="chart-canvas-wrapper">
 <canvas id="silverChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 <div class="chart-footer" id="silverFooter">
@@ -403,8 +410,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 </div>
 <div class="chart-scroll-area" id="portfolioScrollArea">
+<div class="chart-canvas-container">
+<div class="chart-y-axis" id="portfolioYAxis"></div>
 <div class="chart-canvas-wrapper">
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 <div class="chart-footer" id="portfolioFooter">
@@ -574,7 +584,7 @@ function updateCharts() {
     const allData = tableData[currentPeriod];
     if (allData.length === 0) return;
     
-    // TÜM veriyi kullan
+    // TÜM veriyi kullan ama canvas genişliğini 5 veri için ayarla
     const data = allData;
     
     const labels = data.map(item => item.time);
@@ -605,10 +615,35 @@ function updateCharts() {
     document.getElementById('portfolioChartTitle').innerHTML = 
         `En Yüksek Portföy: <span class="chart-price">${formatCurrency(maxPortfolioValue)}</span> (${portfolioPeakTime})`;
     
+    // Canvas genişliğini veri sayısına göre ayarla (her veri için ~80px)
+    const dataCount = labels.length;
+    const pixelPerData = 80;
+    const canvasWidth = Math.max(400, dataCount * pixelPerData);
+    
+    // Canvas ve X label genişliklerini ayarla
+    document.querySelectorAll('.chart-canvas-wrapper').forEach(wrapper => {
+        wrapper.style.minWidth = canvasWidth + 'px';
+        wrapper.style.width = canvasWidth + 'px';
+    });
+    
+    document.querySelectorAll('.chart-canvas').forEach(canvas => {
+        canvas.style.width = canvasWidth + 'px';
+    });
+    
+    document.querySelectorAll('.chart-x-labels').forEach(labels => {
+        labels.style.minWidth = canvasWidth + 'px';
+        labels.style.width = canvasWidth + 'px';
+    });
+    
     // X ekseni label'larını oluştur
     createXLabels('goldXLabels', labels);
     createXLabels('silverXLabels', labels);
     createXLabels('portfolioXLabels', labels);
+    
+    // Y ekseni label'larını oluştur
+    createYLabels('goldYAxis', goldPrices);
+    createYLabels('silverYAxis', silverPrices);
+    createYLabels('portfolioYAxis', portfolioValues);
     
     createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
     createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
@@ -628,6 +663,26 @@ function updateCharts() {
             footer.scrollLeft = footer.scrollWidth;
         });
     }, 100);
+}
+
+function createYLabels(elementId, data) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    
+    const minValue = Math.min(...data);
+    const maxValue = Math.max(...data);
+    const step = (maxValue - minValue) / 4;
+    
+    const yLabels = [];
+    for (let i = 0; i <= 4; i++) {
+        yLabels.push(maxValue - (step * i));
+    }
+    
+    container.innerHTML = `
+        <div style="display:flex;flex-direction:column;justify-content:space-between;height:180px;padding:10px 5px;align-items:flex-end;">
+            ${yLabels.map(val => `<div style="font-size:9px;color:rgba(226,232,240,0.6);">${Math.round(val)}</div>`).join('')}
+        </div>
+    `;
 }
 
 function createXLabels(elementId, labels) {
@@ -780,20 +835,7 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
                     display: false  // X eksenini gizle (manuel label kullanıyoruz)
                 },
                 y: {
-                    grid: {
-                        color: 'rgba(59, 130, 246, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: 'rgba(226, 232, 240, 0.7)',
-                        font: {
-                            size: 10
-                        },
-                        callback: value => new Intl.NumberFormat('tr-TR', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                        }).format(value)
-                    }
+                    display: false  // Y eksenini gizle (manuel label kullanıyoruz)
                 }
             },
             interaction: {
