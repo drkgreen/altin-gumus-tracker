@@ -216,7 +216,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);background-attachment:fixed;min-height:100vh;padding:0;color:#e2e8f0}
-.container{max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding:0;padding-top:80px;min-height:100vh}
+.container{max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:0;padding:0;padding-top:80px;min-height:100vh}
 .header{position:fixed;top:0;left:0;right:0;width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:16px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:1000}
 .header-left{display:flex;align-items:center;gap:12px}
 .header-center{flex:1;display:flex;justify-content:center}
@@ -226,7 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .actions{display:flex;gap:8px}
 .action-btn{width:36px;height:36px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;font-size:14px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
 .action-btn:hover{background:rgba(59,130,246,0.2);transform:translateY(-1px)}
-.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px 2px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
+.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
 .portfolio-amount{font-size:33px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
 .portfolio-metals{display:flex;gap:0;margin-top:16px}
 .metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
@@ -244,15 +244,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:20px}
+.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:16px 2px;padding-bottom:20px}
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
 .history-title{font-size:14px;font-weight:600;color:#60a5fa;white-space:nowrap}
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden}
-.chart-canvas-wrapper{min-width:800px;width:100%;height:180px;position:relative}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-canvas-wrapper{width:100%;height:180px;position:relative}
 .chart-canvas{width:100%!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-left{font-size:12px;color:#e2e8f0}
@@ -277,10 +277,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{min-width:600px;height:150px}
+.chart-canvas-wrapper{height:150px}
 .chart-canvas{height:150px!important}
-.portfolio-summary{padding:16px 2px}
-.price-history{padding:16px 2px}
+.portfolio-summary{padding:16px 2px;padding-bottom:12px}
+.price-history{padding:12px 2px;padding-bottom:16px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -543,37 +543,61 @@ function switchPeriod(period) {
 function updateCharts() {
     if (!tableData || !tableData[currentPeriod]) return;
     
-    const data = tableData[currentPeriod];
-    if (data.length === 0) return;
+    const allData = tableData[currentPeriod];
+    if (allData.length === 0) return;
+    
+    // Son 7 veriyi al
+    const data = allData.slice(-7);
     
     const labels = data.map(item => item.time);
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Her grafik için kendi peak'ini bul
-    const goldPeakIndex = goldPrices.indexOf(Math.max(...goldPrices));
-    const silverPeakIndex = silverPrices.indexOf(Math.max(...silverPrices));
-    const portfolioPeakIndex = portfolioValues.indexOf(Math.max(...portfolioValues));
+    // Her grafik için kendi peak'ini bul (TÜM veriden)
+    const allGoldPrices = allData.map(item => item.gold_price);
+    const allSilverPrices = allData.map(item => item.silver_price);
+    const allPortfolioValues = allData.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Peak zamanlarını al
-    const goldPeakTime = labels[goldPeakIndex];
-    const silverPeakTime = labels[silverPeakIndex];
-    const portfolioPeakTime = labels[portfolioPeakIndex];
+    const maxGoldPrice = Math.max(...allGoldPrices);
+    const maxSilverPrice = Math.max(...allSilverPrices);
+    const maxPortfolioValue = Math.max(...allPortfolioValues);
+    
+    const allGoldPeakIndex = allData.findIndex(item => item.gold_price === maxGoldPrice);
+    const allSilverPeakIndex = allData.findIndex(item => item.silver_price === maxSilverPrice);
+    const allPortfolioPeakIndex = allData.findIndex((item, idx) => 
+        ((goldAmount * item.gold_price) + (silverAmount * item.silver_price)) === maxPortfolioValue
+    );
+    
+    // Görünen 7 veri içinde peak var mı kontrol et
+    const visibleStartIndex = allData.length - 7;
+    const goldPeakIndex = (allGoldPeakIndex >= visibleStartIndex) ? allGoldPeakIndex - visibleStartIndex : -1;
+    const silverPeakIndex = (allSilverPeakIndex >= visibleStartIndex) ? allSilverPeakIndex - visibleStartIndex : -1;
+    const portfolioPeakIndex = (allPortfolioPeakIndex >= visibleStartIndex) ? allPortfolioPeakIndex - visibleStartIndex : -1;
+    
+    // Peak zamanlarını al (tüm veriden)
+    const goldPeakTime = allData[allGoldPeakIndex]?.time || '--';
+    const silverPeakTime = allData[allSilverPeakIndex]?.time || '--';
+    const portfolioPeakTime = allData[allPortfolioPeakIndex]?.time || '--';
     
     // Başlıkları güncelle
     document.getElementById('goldChartTitle').textContent = 
-        `En Yüksek Altın: ${formatPrice(goldPrices[goldPeakIndex])} (${goldPeakTime})`;
+        `En Yüksek Altın: ${formatPrice(maxGoldPrice)} (${goldPeakTime})`;
     
     document.getElementById('silverChartTitle').textContent = 
-        `En Yüksek Gümüş: ${formatPrice(silverPrices[silverPeakIndex])} (${silverPeakTime})`;
+        `En Yüksek Gümüş: ${formatPrice(maxSilverPrice)} (${silverPeakTime})`;
     
     document.getElementById('portfolioChartTitle').textContent = 
-        `En Yüksek Portföy: ${formatCurrency(portfolioValues[portfolioPeakIndex])} (${portfolioPeakTime})`;
+        `En Yüksek Portföy: ${formatCurrency(maxPortfolioValue)} (${portfolioPeakTime})`;
     
-    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
-    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
-    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
+    // Sadece görünen alanda peak varsa göster
+    const goldPeakIndices = goldPeakIndex >= 0 ? [goldPeakIndex] : [];
+    const silverPeakIndices = silverPeakIndex >= 0 ? [silverPeakIndex] : [];
+    const portfolioPeakIndices = portfolioPeakIndex >= 0 ? [portfolioPeakIndex] : [];
+    
+    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', goldPeakIndices);
+    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', silverPeakIndices);
+    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', portfolioPeakIndices);
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
