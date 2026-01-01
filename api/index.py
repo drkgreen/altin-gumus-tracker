@@ -252,9 +252,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
-.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-left{font-size:12px;color:#e2e8f0}
-.chart-title-right{font-size:10px;color:rgba(226,232,240,0.6)}
 .chart-canvas{width:100%!important;height:180px!important}
 .login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-box{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:32px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
@@ -356,21 +355,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="chart-wrapper">
 <div class="chart-title">
 <span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
-<span class="chart-title-right" id="goldChartTime">--:--</span>
 </div>
 <canvas id="goldChart" class="chart-canvas"></canvas>
 </div>
 <div class="chart-wrapper">
 <div class="chart-title">
 <span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
-<span class="chart-title-right" id="silverChartTime">--:--</span>
 </div>
 <canvas id="silverChart" class="chart-canvas"></canvas>
 </div>
 <div class="chart-wrapper">
 <div class="chart-title">
 <span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
-<span class="chart-title-right" id="portfolioChartTime">--:--</span>
 </div>
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
 </div>
@@ -555,15 +551,12 @@ function updateCharts() {
     // Başlıkları güncelle
     document.getElementById('goldChartTitle').textContent = 
         `En Yüksek Altın: ${formatPrice(goldPrices[goldPeakIndex])} (${goldPeakTime})`;
-    document.getElementById('goldChartTime').textContent = goldPeakTime;
     
     document.getElementById('silverChartTitle').textContent = 
         `En Yüksek Gümüş: ${formatPrice(silverPrices[silverPeakIndex])} (${silverPeakTime})`;
-    document.getElementById('silverChartTime').textContent = silverPeakTime;
     
     document.getElementById('portfolioChartTitle').textContent = 
         `En Yüksek Portföy: ${formatCurrency(portfolioValues[portfolioPeakIndex])} (${portfolioPeakTime})`;
-    document.getElementById('portfolioChartTime').textContent = portfolioPeakTime;
     
     createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
     createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
@@ -600,10 +593,10 @@ function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgro
         }
     }
     
-    // Point styles - sadece peak noktalar görünsün
+    // Point styles - peak noktalar yıldız, diğerleri küçük nokta
     const pointStyles = labels.map((_, idx) => peakIndices.includes(idx) ? 'star' : 'circle');
-    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 10 : 0); // Normal noktalar görünmez
-    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 0);
+    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 10 : 2); // Diğer noktalar küçük nokta (2px)
+    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 1);
     
     const chart = new Chart(canvas, {
         type: 'line',
