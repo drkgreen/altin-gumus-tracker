@@ -251,11 +251,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
 .chart-canvas-wrapper{width:100%;height:180px;position:relative}
 .chart-canvas{width:100%!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
-.chart-title-left{font-size:12px;color:#e2e8f0}
+.chart-title-left{font-size:15px;color:#e2e8f0}
+.chart-price{color:#ef4444;font-weight:700}
 .chart-wrapper::-webkit-scrollbar{height:6px}
 .chart-wrapper::-webkit-scrollbar-track{background:rgba(15,23,42,0.4);border-radius:3px}
 .chart-wrapper::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.4);border-radius:3px}
@@ -546,58 +547,48 @@ function updateCharts() {
     const allData = tableData[currentPeriod];
     if (allData.length === 0) return;
     
-    // Son 7 veriyi al
-    const data = allData.slice(-7);
+    // TÜM veriyi kullan
+    const data = allData;
     
     const labels = data.map(item => item.time);
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Her grafik için kendi peak'ini bul (TÜM veriden)
-    const allGoldPrices = allData.map(item => item.gold_price);
-    const allSilverPrices = allData.map(item => item.silver_price);
-    const allPortfolioValues = allData.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
+    // Her grafik için kendi peak'ini bul
+    const maxGoldPrice = Math.max(...goldPrices);
+    const maxSilverPrice = Math.max(...silverPrices);
+    const maxPortfolioValue = Math.max(...portfolioValues);
     
-    const maxGoldPrice = Math.max(...allGoldPrices);
-    const maxSilverPrice = Math.max(...allSilverPrices);
-    const maxPortfolioValue = Math.max(...allPortfolioValues);
+    const goldPeakIndex = goldPrices.indexOf(maxGoldPrice);
+    const silverPeakIndex = silverPrices.indexOf(maxSilverPrice);
+    const portfolioPeakIndex = portfolioValues.indexOf(maxPortfolioValue);
     
-    const allGoldPeakIndex = allData.findIndex(item => item.gold_price === maxGoldPrice);
-    const allSilverPeakIndex = allData.findIndex(item => item.silver_price === maxSilverPrice);
-    const allPortfolioPeakIndex = allData.findIndex((item, idx) => 
-        ((goldAmount * item.gold_price) + (silverAmount * item.silver_price)) === maxPortfolioValue
-    );
+    // Peak zamanlarını al
+    const goldPeakTime = labels[goldPeakIndex];
+    const silverPeakTime = labels[silverPeakIndex];
+    const portfolioPeakTime = labels[portfolioPeakIndex];
     
-    // Görünen 7 veri içinde peak var mı kontrol et
-    const visibleStartIndex = allData.length - 7;
-    const goldPeakIndex = (allGoldPeakIndex >= visibleStartIndex) ? allGoldPeakIndex - visibleStartIndex : -1;
-    const silverPeakIndex = (allSilverPeakIndex >= visibleStartIndex) ? allSilverPeakIndex - visibleStartIndex : -1;
-    const portfolioPeakIndex = (allPortfolioPeakIndex >= visibleStartIndex) ? allPortfolioPeakIndex - visibleStartIndex : -1;
+    // Başlıkları güncelle - tutar bilgisi kırmızı
+    document.getElementById('goldChartTitle').innerHTML = 
+        `En Yüksek Altın: <span class="chart-price">${formatPrice(maxGoldPrice)}</span> (${goldPeakTime})`;
     
-    // Peak zamanlarını al (tüm veriden)
-    const goldPeakTime = allData[allGoldPeakIndex]?.time || '--';
-    const silverPeakTime = allData[allSilverPeakIndex]?.time || '--';
-    const portfolioPeakTime = allData[allPortfolioPeakIndex]?.time || '--';
+    document.getElementById('silverChartTitle').innerHTML = 
+        `En Yüksek Gümüş: <span class="chart-price">${formatPrice(maxSilverPrice)}</span> (${silverPeakTime})`;
     
-    // Başlıkları güncelle
-    document.getElementById('goldChartTitle').textContent = 
-        `En Yüksek Altın: ${formatPrice(maxGoldPrice)} (${goldPeakTime})`;
+    document.getElementById('portfolioChartTitle').innerHTML = 
+        `En Yüksek Portföy: <span class="chart-price">${formatCurrency(maxPortfolioValue)}</span> (${portfolioPeakTime})`;
     
-    document.getElementById('silverChartTitle').textContent = 
-        `En Yüksek Gümüş: ${formatPrice(maxSilverPrice)} (${silverPeakTime})`;
+    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
+    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
+    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
     
-    document.getElementById('portfolioChartTitle').textContent = 
-        `En Yüksek Portföy: ${formatCurrency(maxPortfolioValue)} (${portfolioPeakTime})`;
-    
-    // Sadece görünen alanda peak varsa göster
-    const goldPeakIndices = goldPeakIndex >= 0 ? [goldPeakIndex] : [];
-    const silverPeakIndices = silverPeakIndex >= 0 ? [silverPeakIndex] : [];
-    const portfolioPeakIndices = portfolioPeakIndex >= 0 ? [portfolioPeakIndex] : [];
-    
-    createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', goldPeakIndices);
-    createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', silverPeakIndices);
-    createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', portfolioPeakIndices);
+    // Grafikleri en sağa scroll et (son veriyi göster)
+    setTimeout(() => {
+        document.querySelectorAll('.chart-wrapper').forEach(wrapper => {
+            wrapper.scrollLeft = wrapper.scrollWidth;
+        });
+    }, 100);
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
