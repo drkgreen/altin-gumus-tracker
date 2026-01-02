@@ -252,7 +252,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
-.chart-canvas-wrapper{width:100%;height:180px;position:relative}
+.chart-canvas-wrapper{width:120%;min-width:120%;height:180px;position:relative}
 .chart-canvas{width:100%!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-left{font-size:12px;color:#e2e8f0}
@@ -277,7 +277,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{height:150px}
+.chart-canvas-wrapper{width:130%;min-width:130%;height:150px}
 .chart-canvas{height:150px!important}
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 2px}
@@ -620,11 +620,21 @@ function setupScrollListeners() {
 function handleChartScroll(event) {
     const wrapper = event.target;
     const scrollLeft = wrapper.scrollLeft;
+    const scrollWidth = wrapper.scrollWidth;
+    const clientWidth = wrapper.clientWidth;
     
-    // Sola kaydırıldı mı kontrol et (scroll position 0'a yaklaştı)
-    if (scrollLeft < 50 && displayedDataStartIndex[currentPeriod] > 0) {
+    // Sola kaydırıldı mı kontrol et (scroll position 0'a yakın)
+    // Ve daha fazla veri var mı kontrol et
+    if (scrollLeft < 100 && displayedDataStartIndex[currentPeriod] > 0) {
+        const currentScrollLeft = wrapper.scrollLeft;
+        
         // Daha eski verileri yükle
         loadMoreData();
+        
+        // Scroll pozisyonunu koru (yeni veriler eklenince sağa kaymasın)
+        setTimeout(() => {
+            wrapper.scrollLeft = currentScrollLeft + (wrapper.scrollWidth - scrollWidth);
+        }, 50);
     }
 }
 
@@ -640,7 +650,12 @@ function loadMoreData() {
         const newStart = Math.max(0, currentStart - ITEMS_PER_PAGE);
         displayedDataStartIndex[currentPeriod] = newStart;
         
-        // Grafikleri güncelle
+        // Grafikleri güncelle (scroll event listener'ı geçici olarak devre dışı)
+        const chartWrappers = document.querySelectorAll('.chart-wrapper');
+        chartWrappers.forEach(wrapper => {
+            wrapper.removeEventListener('scroll', handleChartScroll);
+        });
+        
         updateCharts();
     }
 }
