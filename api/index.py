@@ -256,7 +256,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .chart-canvas-wrapper{width:200%;min-width:200%;height:250px;position:relative}
 .chart-canvas{width:100%!important;height:250px!important}
 .chart-legend{display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#e2e8f0}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#e2e8f0;cursor:pointer;transition:opacity 0.3s;user-select:none}
+.legend-item:hover{opacity:0.7}
+.legend-item.hidden{opacity:0.4;text-decoration:line-through}
 .legend-color{width:20px;height:3px;border-radius:2px}
 .chart-title{font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chart-title-value{color:#ef4444;font-weight:700}
@@ -379,15 +381,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 </div>
 <div class="chart-legend">
-<div class="legend-item">
+<div class="legend-item" onclick="toggleDataset(0)" id="legend-gold">
 <div class="legend-color" style="background:#fbbf24"></div>
 <span>Altın</span>
 </div>
-<div class="legend-item">
+<div class="legend-item" onclick="toggleDataset(1)" id="legend-silver">
 <div class="legend-color" style="background:#94a3b8"></div>
 <span>Gümüş</span>
 </div>
-<div class="legend-item">
+<div class="legend-item" onclick="toggleDataset(2)" id="legend-portfolio">
 <div class="legend-color" style="background:#60a5fa"></div>
 <span>Portföy</span>
 </div>
@@ -619,11 +621,12 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
                     borderWidth: 2,
                     fill: false,
                     tension: 0.3,
-                    pointRadius: 2,
+                    pointRadius: 4,
                     pointBackgroundColor: '#fbbf24',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 1,
-                    pointHoverRadius: 5
+                    pointHoverRadius: 8,
+                    pointHitRadius: 10
                 },
                 {
                     label: 'Gümüş',
@@ -634,11 +637,12 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
                     borderWidth: 2,
                     fill: false,
                     tension: 0.3,
-                    pointRadius: 2,
+                    pointRadius: 4,
                     pointBackgroundColor: '#94a3b8',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 1,
-                    pointHoverRadius: 5
+                    pointHoverRadius: 8,
+                    pointHitRadius: 10
                 },
                 {
                     label: 'Portföy',
@@ -649,11 +653,12 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
                     borderWidth: 2,
                     fill: false,
                     tension: 0.3,
-                    pointRadius: 2,
+                    pointRadius: 4,
                     pointBackgroundColor: '#60a5fa',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 1,
-                    pointHoverRadius: 5
+                    pointHoverRadius: 8,
+                    pointHitRadius: 10
                 }
             ]
         },
@@ -665,6 +670,9 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
                     display: false
                 },
                 tooltip: {
+                    enabled: true,
+                    mode: 'point',
+                    intersect: true,
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     titleColor: '#60a5fa',
                     bodyColor: '#e2e8f0',
@@ -706,8 +714,8 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
                 }
             },
             interaction: {
-                intersect: false,
-                mode: 'index'
+                mode: 'point',
+                intersect: true
             }
         }
     });
@@ -735,6 +743,25 @@ function updatePortfolio() {
     document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
     document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
     document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
+}
+
+function toggleDataset(datasetIndex) {
+    if (!combinedChart) return;
+    
+    const meta = combinedChart.getDatasetMeta(datasetIndex);
+    meta.hidden = !meta.hidden;
+    
+    // Legend görünümünü güncelle
+    const legendIds = ['legend-gold', 'legend-silver', 'legend-portfolio'];
+    const legendElement = document.getElementById(legendIds[datasetIndex]);
+    
+    if (meta.hidden) {
+        legendElement.classList.add('hidden');
+    } else {
+        legendElement.classList.remove('hidden');
+    }
+    
+    combinedChart.update();
 }
 
 function formatCurrency(amount) {
