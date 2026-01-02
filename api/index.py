@@ -251,9 +251,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
+.chart-scroll-container{overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
 .chart-canvas-wrapper{width:200%;min-width:200%;height:250px;position:relative}
 .chart-canvas{width:100%!important;height:250px!important}
+.chart-legend{display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#e2e8f0}
+.legend-color{width:20px;height:3px;border-radius:2px}
 .chart-title{font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chart-title-value{color:#ef4444;font-weight:700}
 .chart-title-separator{color:rgba(226,232,240,0.5)}
@@ -282,6 +286,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .chart-canvas{height:200px!important}
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 2px}
+.chart-legend{gap:12px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -368,8 +373,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <span class="chart-title-separator">|</span>
 <span>Portföy: <span class="chart-title-value">--</span></span>
 </div>
+<div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="combinedChart" class="chart-canvas"></canvas>
+</div>
+</div>
+<div class="chart-legend">
+<div class="legend-item">
+<div class="legend-color" style="background:#fbbf24"></div>
+<span>Altın</span>
+</div>
+<div class="legend-item">
+<div class="legend-color" style="background:#94a3b8"></div>
+<span>Gümüş</span>
+</div>
+<div class="legend-item">
+<div class="legend-color" style="background:#60a5fa"></div>
+<span>Portföy</span>
+</div>
 </div>
 </div>
 </div>
@@ -641,16 +662,7 @@ function createCombinedChart(labels, normalizedGold, normalizedSilver, normalize
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        color: '#e2e8f0',
-                        font: {
-                            size: 11
-                        },
-                        usePointStyle: true,
-                        padding: 15
-                    }
+                    display: false
                 },
                 tooltip: {
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
