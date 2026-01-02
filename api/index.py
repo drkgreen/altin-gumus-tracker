@@ -216,7 +216,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);background-attachment:fixed;min-height:100vh;padding:0;color:#e2e8f0}
-.container{max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:0;padding:0;padding-top:80px;min-height:100vh}
+.container{max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding:0;padding-top:80px;min-height:100vh}
 .header{position:fixed;top:0;left:0;right:0;width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:16px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:1000}
 .header-left{display:flex;align-items:center;gap:12px}
 .header-center{flex:1;display:flex;justify-content:center}
@@ -226,7 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .actions{display:flex;gap:8px}
 .action-btn{width:36px;height:36px;border-radius:8px;background:rgba(15,23,42,0.6);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;font-size:14px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
 .action-btn:hover{background:rgba(59,130,246,0.2);transform:translateY(-1px)}
-.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
+.portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px 2px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
 .portfolio-amount{font-size:33px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
 .portfolio-metals{display:flex;gap:0;margin-top:16px}
 .metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
@@ -244,24 +244,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:16px 2px;padding-bottom:20px}
+.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:20px}
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
 .history-title{font-size:14px;font-weight:600;color:#60a5fa;white-space:nowrap}
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:0;position:relative;overflow:hidden}
-.chart-header{position:sticky;top:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);z-index:20;padding:16px;border-bottom:1px solid rgba(59,130,246,0.1)}
-.chart-scroll-area{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;padding:0 16px}
-.chart-footer{position:sticky;bottom:0;background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);z-index:20;padding:12px 16px;border-top:1px solid rgba(59,130,246,0.1);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
-.chart-x-labels{display:flex;justify-content:space-around;min-width:800px;width:800px}
-.chart-x-label{font-size:10px;color:rgba(226,232,240,0.7);text-align:center;flex:1}
-.chart-canvas-wrapper{min-width:800px;width:800px;height:180px;position:relative}
-.chart-canvas{width:800px!important;height:180px!important}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;overflow-x:auto;overflow-y:hidden}
+.chart-canvas-wrapper{min-width:800px;width:100%;height:180px;position:relative}
+.chart-canvas{width:100%!important;height:180px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
-.chart-title-left{font-size:15px;color:#e2e8f0}
-.chart-price{color:#ef4444;font-weight:700}
+.chart-title-left{font-size:12px;color:#e2e8f0}
 .chart-wrapper::-webkit-scrollbar{height:6px}
 .chart-wrapper::-webkit-scrollbar-track{background:rgba(15,23,42,0.4);border-radius:3px}
 .chart-wrapper::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.4);border-radius:3px}
@@ -283,14 +277,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-canvas-wrapper{height:200px}
-.chart-canvas{height:200px!important}
-.chart-legend{gap:8px}
-.legend-item{padding:4px 8px}
-.legend-label{font-size:11px}
-.legend-value{font-size:10px}
-.portfolio-summary{padding:16px 2px;padding-bottom:12px}
-.price-history{padding:12px 2px;padding-bottom:16px}
+.chart-canvas-wrapper{min-width:600px;height:150px}
+.chart-canvas{height:150px!important}
+.portfolio-summary{padding:16px 2px}
+.price-history{padding:16px 2px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -370,25 +360,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="charts-container">
 <div class="chart-wrapper">
-<div class="chart-legend">
-<div class="legend-item" id="legendGold" onclick="toggleDataset('gold')">
-<div class="legend-line" style="background:#fbbf24"></div>
-<span class="legend-label">Altın</span>
-<span class="legend-value" id="legendGoldValue">0,00 ₺</span>
-</div>
-<div class="legend-item" id="legendSilver" onclick="toggleDataset('silver')">
-<div class="legend-line" style="background:#94a3b8"></div>
-<span class="legend-label">Gümüş</span>
-<span class="legend-value" id="legendSilverValue">0,00 ₺</span>
-</div>
-<div class="legend-item" id="legendPortfolio" onclick="toggleDataset('portfolio')">
-<div class="legend-line" style="background:#60a5fa"></div>
-<span class="legend-label">Portföy</span>
-<span class="legend-value" id="legendPortfolioValue">0,00 ₺</span>
-</div>
+<div class="chart-title">
+<span class="chart-title-left" id="goldChartTitle">En Yüksek Altın: --</span>
 </div>
 <div class="chart-canvas-wrapper">
-<canvas id="combinedChart" class="chart-canvas"></canvas>
+<canvas id="goldChart" class="chart-canvas"></canvas>
+</div>
+</div>
+<div class="chart-wrapper">
+<div class="chart-title">
+<span class="chart-title-left" id="silverChartTitle">En Yüksek Gümüş: --</span>
+</div>
+<div class="chart-canvas-wrapper">
+<canvas id="silverChart" class="chart-canvas"></canvas>
+</div>
+</div>
+<div class="chart-wrapper">
+<div class="chart-title">
+<span class="chart-title-left" id="portfolioChartTitle">En Yüksek Portföy: --</span>
+</div>
+<div class="chart-canvas-wrapper">
+<canvas id="portfolioChart" class="chart-canvas"></canvas>
 </div>
 </div>
 </div>
@@ -401,12 +393,9 @@ let tableData = {};
 let currentPeriod = 'hourly';
 let goldAmount = 0;
 let silverAmount = 0;
-let combinedChart = null;
-let visibleDatasets = {
-    gold: true,
-    silver: true,
-    portfolio: true
-};
+let goldChart = null;
+let silverChart = null;
+let portfolioChart = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -516,27 +505,19 @@ async function fetchPrice() {
         const silverData = await silverResponse.json();
         const tableDataResult = await tableResponse.json();
         
-        console.log('Gold Data:', goldData);
-        console.log('Silver Data:', silverData);
-        console.log('Table Data:', tableDataResult);
-        
         if (goldData.success) {
             let cleaned = goldData.price.replace(/[^\d,]/g, '');
             currentGoldPrice = parseFloat(cleaned.replace(',', '.'));
-            console.log('Current Gold Price:', currentGoldPrice);
         }
         
         if (silverData.success) {
             let cleaned = silverData.price.replace(/[^\d,]/g, '');
             currentSilverPrice = parseFloat(cleaned.replace(',', '.'));
-            console.log('Current Silver Price:', currentSilverPrice);
         }
         
         if (tableDataResult.success) {
             tableData = tableDataResult.data;
-            console.log('Table Data Loaded:', tableData);
-            console.log('Current Period:', currentPeriod);
-            console.log('Period Data:', tableData[currentPeriod]);
+            updateCharts();
         }
         
         document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {
@@ -562,166 +543,172 @@ function switchPeriod(period) {
 function updateCharts() {
     if (!tableData || !tableData[currentPeriod]) return;
     
-    const allData = tableData[currentPeriod];
-    if (allData.length === 0) return;
-    
-    // TÜM veriyi kullan ama canvas genişliğini 5 veri için ayarla
-    const data = allData;
+    const data = tableData[currentPeriod];
+    if (data.length === 0) return;
     
     const labels = data.map(item => item.time);
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Peak hesapla
-    const maxGoldPrice = Math.max(...goldPrices);
-    const maxSilverPrice = Math.max(...silverPrices);
-    const maxPortfolioValue = Math.max(...portfolioValues);
+    // Her grafik için kendi peak'ini bul
+    const goldPeakIndex = goldPrices.indexOf(Math.max(...goldPrices));
+    const silverPeakIndex = silverPrices.indexOf(Math.max(...silverPrices));
+    const portfolioPeakIndex = portfolioValues.indexOf(Math.max(...portfolioValues));
     
-    const goldPeakIndex = goldPrices.indexOf(maxGoldPrice);
-    const silverPeakIndex = silverPrices.indexOf(maxSilverPrice);
-    const portfolioPeakIndex = portfolioValues.indexOf(maxPortfolioValue);
-    
+    // Peak zamanlarını al
     const goldPeakTime = labels[goldPeakIndex];
     const silverPeakTime = labels[silverPeakIndex];
     const portfolioPeakTime = labels[portfolioPeakIndex];
     
     // Başlıkları güncelle
-    document.getElementById('goldChartTitle').innerHTML = 
-        `En Yüksek Altın: <span class="chart-price">${formatPrice(maxGoldPrice)}</span> (${goldPeakTime})`;
+    document.getElementById('goldChartTitle').textContent = 
+        `En Yüksek Altın: ${formatPrice(goldPrices[goldPeakIndex])} (${goldPeakTime})`;
     
-    document.getElementById('silverChartTitle').innerHTML = 
-        `En Yüksek Gümüş: <span class="chart-price">${formatPrice(maxSilverPrice)}</span> (${silverPeakTime})`;
+    document.getElementById('silverChartTitle').textContent = 
+        `En Yüksek Gümüş: ${formatPrice(silverPrices[silverPeakIndex])} (${silverPeakTime})`;
     
-    document.getElementById('portfolioChartTitle').innerHTML = 
-        `En Yüksek Portföy: <span class="chart-price">${formatCurrency(maxPortfolioValue)}</span> (${portfolioPeakTime})`;
-    
-    // Canvas genişliğini veri sayısına göre ayarla (her veri için ~80px)
-    const dataCount = labels.length;
-    const pixelPerData = 80;
-    const canvasWidth = Math.max(400, dataCount * pixelPerData);
-    
-    // Canvas ve X label genişliklerini ayarla
-    document.querySelectorAll('.chart-canvas-wrapper').forEach(wrapper => {
-        wrapper.style.minWidth = canvasWidth + 'px';
-        wrapper.style.width = canvasWidth + 'px';
-    });
-    
-    document.querySelectorAll('.chart-canvas').forEach(canvas => {
-        canvas.style.width = canvasWidth + 'px';
-    });
-    
-    document.querySelectorAll('.chart-x-labels').forEach(labels => {
-        labels.style.minWidth = canvasWidth + 'px';
-        labels.style.width = canvasWidth + 'px';
-    });
-    
-    // X ekseni label'larını oluştur
-    createXLabels('goldXLabels', labels);
-    createXLabels('silverXLabels', labels);
-    createXLabels('portfolioXLabels', labels);
-    
-    // Y ekseni label'larını oluştur
-    createYLabels('goldYAxis', goldPrices);
-    createYLabels('silverYAxis', silverPrices);
-    createYLabels('portfolioYAxis', portfolioValues);
+    document.getElementById('portfolioChartTitle').textContent = 
+        `En Yüksek Portföy: ${formatCurrency(portfolioValues[portfolioPeakIndex])} (${portfolioPeakTime})`;
     
     createOrUpdateChart('goldChart', 'Altın Fiyatı (₺)', labels, goldPrices, '#fbbf24', '#f59e0b', [goldPeakIndex]);
     createOrUpdateChart('silverChart', 'Gümüş Fiyatı (₺)', labels, silverPrices, '#94a3b8', '#64748b', [silverPeakIndex]);
     createOrUpdateChart('portfolioChart', 'Portföy Değeri (₺)', labels, portfolioValues, '#60a5fa', '#3b82f6', [portfolioPeakIndex]);
-    
-    // Scroll senkronizasyonu kur
-    syncScrolls();
-    
-    // Grafikleri en sağa scroll et
-    setTimeout(() => {
-        const scrollAreas = document.querySelectorAll('.chart-scroll-area');
-        const footers = document.querySelectorAll('.chart-footer');
-        scrollAreas.forEach(area => {
-            area.scrollLeft = area.scrollWidth;
-        });
-        footers.forEach(footer => {
-            footer.scrollLeft = footer.scrollWidth;
-        });
-    }, 100);
-}
-
-function createYLabels(elementId, data) {
-    const container = document.getElementById(elementId);
-    if (!container) return;
-    
-    const minValue = Math.min(...data);
-    const maxValue = Math.max(...data);
-    const step = (maxValue - minValue) / 4;
-    
-    const yLabels = [];
-    for (let i = 0; i <= 4; i++) {
-        yLabels.push(maxValue - (step * i));
-    }
-    
-    container.innerHTML = `
-        <div style="display:flex;flex-direction:column;justify-content:space-between;height:180px;padding:10px 5px;align-items:flex-end;">
-            ${yLabels.map(val => `<div style="font-size:9px;color:rgba(226,232,240,0.6);">${Math.round(val)}</div>`).join('')}
-        </div>
-    `;
-}
-
-function createXLabels(elementId, labels) {
-    const container = document.getElementById(elementId);
-    if (!container) return;
-    
-    container.innerHTML = '';
-    labels.forEach(label => {
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'chart-x-label';
-        labelDiv.textContent = label;
-        container.appendChild(labelDiv);
-    });
-}
-
-function syncScrolls() {
-    const scrollAreas = [
-        document.getElementById('goldScrollArea'),
-        document.getElementById('silverScrollArea'),
-        document.getElementById('portfolioScrollArea')
-    ];
-    
-    const footers = [
-        document.getElementById('goldFooter'),
-        document.getElementById('silverFooter'),
-        document.getElementById('portfolioFooter')
-    ];
-    
-    // Her scroll area için footer'ı senkronize et
-    scrollAreas.forEach((area, index) => {
-        if (!area) return;
-        
-        area.removeEventListener('scroll', area._scrollHandler);
-        area._scrollHandler = function() {
-            if (footers[index]) {
-                footers[index].scrollLeft = area.scrollLeft;
-            }
-        };
-        area.addEventListener('scroll', area._scrollHandler);
-    });
-    
-    // Her footer için scroll area'yı senkronize et
-    footers.forEach((footer, index) => {
-        if (!footer) return;
-        
-        footer.removeEventListener('scroll', footer._scrollHandler);
-        footer._scrollHandler = function() {
-            if (scrollAreas[index]) {
-                scrollAreas[index].scrollLeft = footer.scrollLeft;
-            }
-        };
-        footer.addEventListener('scroll', footer._scrollHandler);
-    });
 }
 
 function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
-    // Bu fonksiyon artık kullanılmıyor - kombinedChart kullanılıyor
-    return;
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    // Destroy existing chart
+    if (canvasId === 'goldChart' && goldChart) {
+        goldChart.destroy();
+        goldChart = null;
+    }
+    if (canvasId === 'silverChart' && silverChart) {
+        silverChart.destroy();
+        silverChart = null;
+    }
+    if (canvasId === 'portfolioChart' && portfolioChart) {
+        portfolioChart.destroy();
+        portfolioChart = null;
+    }
+    
+    // Create segment colors for up/down
+    const segmentColors = [];
+    for (let i = 1; i < data.length; i++) {
+        if (data[i] > data[i-1]) {
+            segmentColors.push('#22c55e'); // Green for up
+        } else if (data[i] < data[i-1]) {
+            segmentColors.push('#ef4444'); // Red for down
+        } else {
+            segmentColors.push(borderColor); // Default color
+        }
+    }
+    
+    // Point styles - peak noktalar yıldız, diğerleri küçük nokta
+    const pointStyles = labels.map((_, idx) => peakIndices.includes(idx) ? 'star' : 'circle');
+    const pointRadii = labels.map((_, idx) => peakIndices.includes(idx) ? 10 : 2); // Diğer noktalar küçük nokta (2px)
+    const pointBorderWidths = labels.map((_, idx) => peakIndices.includes(idx) ? 2 : 1);
+    
+    const chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: borderColor,
+                backgroundColor: backgroundColor + '40',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3,
+                pointBackgroundColor: labels.map((_, idx) => 
+                    peakIndices.includes(idx) ? '#fbbf24' : borderColor
+                ),
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: pointBorderWidths,
+                pointRadius: pointRadii,
+                pointStyle: pointStyles,
+                pointHoverRadius: labels.map((_, idx) => peakIndices.includes(idx) ? 12 : 4),
+                segment: {
+                    borderColor: ctx => {
+                        const idx = ctx.p0DataIndex;
+                        return segmentColors[idx] || borderColor;
+                    }
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleColor: '#60a5fa',
+                    bodyColor: '#e2e8f0',
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: ctx => ctx[0].label,
+                        label: ctx => {
+                            const value = ctx.parsed.y;
+                            const formatted = new Intl.NumberFormat('tr-TR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }).format(value) + ' ₺';
+                            const isPeak = peakIndices.includes(ctx.dataIndex);
+                            return isPeak ? `${formatted} ⭐ PEAK` : formatted;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(59, 130, 246, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: 'rgba(226, 232, 240, 0.7)',
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(59, 130, 246, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: 'rgba(226, 232, 240, 0.7)',
+                        font: {
+                            size: 10
+                        },
+                        callback: value => new Intl.NumberFormat('tr-TR', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }).format(value)
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+    
+    // Store chart reference
+    if (canvasId === 'goldChart') goldChart = chart;
+    if (canvasId === 'silverChart') silverChart = chart;
+    if (canvasId === 'portfolioChart') portfolioChart = chart;
 }
 
 function updateStatistics() {
@@ -741,9 +728,6 @@ function updatePortfolio() {
     document.getElementById('silverCurrentPrice').textContent = formatPrice(currentSilverPrice) + '/gr';
     document.getElementById('goldPortfolioValue').textContent = formatCurrency(goldValue);
     document.getElementById('silverPortfolioValue').textContent = formatCurrency(silverValue);
-    
-    // Grafikleri de güncelle
-    updateCharts();
 }
 
 function formatCurrency(amount) {
