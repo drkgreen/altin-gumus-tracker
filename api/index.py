@@ -516,19 +516,27 @@ async function fetchPrice() {
         const silverData = await silverResponse.json();
         const tableDataResult = await tableResponse.json();
         
+        console.log('Gold Data:', goldData);
+        console.log('Silver Data:', silverData);
+        console.log('Table Data:', tableDataResult);
+        
         if (goldData.success) {
             let cleaned = goldData.price.replace(/[^\d,]/g, '');
             currentGoldPrice = parseFloat(cleaned.replace(',', '.'));
+            console.log('Current Gold Price:', currentGoldPrice);
         }
         
         if (silverData.success) {
             let cleaned = silverData.price.replace(/[^\d,]/g, '');
             currentSilverPrice = parseFloat(cleaned.replace(',', '.'));
+            console.log('Current Silver Price:', currentSilverPrice);
         }
         
         if (tableDataResult.success) {
             tableData = tableDataResult.data;
-            updateCharts();
+            console.log('Table Data Loaded:', tableData);
+            console.log('Current Period:', currentPeriod);
+            console.log('Period Data:', tableData[currentPeriod]);
         }
         
         document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {
