@@ -276,7 +276,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-y-axis{width:40px;font-size:8px;padding:5px 2px}
+.chart-y-axis{width:38px;font-size:7px;padding:5px 2px}
+.y-axis-label{font-size:7px}
 .chart-canvas-wrapper{height:180px;overflow:hidden}
 .chart-canvas{height:180px!important;display:block}
 .portfolio-summary{padding:16px 2px}
@@ -630,6 +631,21 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     canvas.style.width = wrapperWidth + 'px';
     canvas.style.height = wrapperHeight + 'px';
     
+    // X ekseni için eşit dağılımlı label seçimi
+    const totalLabels = labels.length;
+    const targetLabelCount = 8; // Hedef label sayısı
+    const step = Math.floor(totalLabels / targetLabelCount);
+    
+    // Eşit aralıklarla label'ları seç
+    const selectedIndices = [];
+    for (let i = 0; i < totalLabels; i += step) {
+        selectedIndices.push(i);
+    }
+    // Son label'ı da ekle
+    if (selectedIndices[selectedIndices.length - 1] !== totalLabels - 1) {
+        selectedIndices.push(totalLabels - 1);
+    }
+    
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
     
@@ -677,7 +693,12 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
             responsive: false,
             maintainAspectRatio: false,
             layout: {
-                padding: 0
+                padding: {
+                    left: 0,
+                    right: 10,
+                    top: 5,
+                    bottom: 0
+                }
             },
             plugins: {
                 legend: {
@@ -712,22 +733,30 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
             scales: {
                 x: {
                     grid: {
-                        color: 'rgba(59, 130, 246, 0.1)',
+                        display: false,
                         drawBorder: false
                     },
                     ticks: {
                         color: 'rgba(226, 232, 240, 0.7)',
                         font: {
-                            size: 10
+                            size: 9
                         },
-                        maxTicksLimit: 8,
-                        autoSkip: true,
                         maxRotation: 0,
-                        minRotation: 0
+                        minRotation: 0,
+                        callback: function(value, index) {
+                            // Sadece seçili index'lerde label göster
+                            if (selectedIndices.includes(index)) {
+                                return labels[index];
+                            }
+                            return '';
+                        }
                     }
                 },
                 y: {
-                    display: false
+                    display: false,
+                    grid: {
+                        display: false
+                    }
                 }
             },
             interaction: {
