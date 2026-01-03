@@ -700,13 +700,8 @@ function createSingleChart(canvasId, label, labels, normalizedData, originalData
     if (canvasId === 'portfolioChart') portfolioChart = chart;
 }
 
-function createOrUpdateChart(canvasId, label, labels, data, borderColor, backgroundColor, peakIndices) {
-    // Bu fonksiyon artık kullanılmıyor - tek grafik sistemi var
-    return;
-}
-
 function updateStatistics() {
-    // Bu fonksiyon artık kullanılmıyor - grafik başlıkları updateCharts() içinde güncelleniyor
+    // Bu fonksiyon artık kullanılmıyor
     return;
 }
 
