@@ -277,8 +277,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
 .chart-y-axis{width:40px;font-size:8px;padding:5px 2px}
-.chart-canvas-wrapper{height:180px}
-.chart-canvas{height:180px!important}
+.chart-canvas-wrapper{height:180px;overflow:hidden}
+.chart-canvas{height:180px!important;display:block}
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 2px}
 }
@@ -620,9 +620,15 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Canvas genişliği sabit (container genişliği)
+    // Canvas boyutlarını kesin ayarla
     const canvasWrapper = canvas.parentElement;
-    canvasWrapper.style.width = '100%';
+    const wrapperWidth = canvasWrapper.offsetWidth;
+    const wrapperHeight = canvasWrapper.offsetHeight;
+    
+    canvas.width = wrapperWidth;
+    canvas.height = wrapperHeight;
+    canvas.style.width = wrapperWidth + 'px';
+    canvas.style.height = wrapperHeight + 'px';
     
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
@@ -643,9 +649,9 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     
     // Gradient oluştur
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, color + '80'); // Üstte açık
-    gradient.addColorStop(1, color + '10'); // Altta çok açık
+    const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
+    gradient.addColorStop(0, color + '80');
+    gradient.addColorStop(1, color + '10');
     
     const chart = new Chart(canvas, {
         type: 'line',
@@ -668,8 +674,11 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
             }]
         },
         options: {
-            responsive: true,
+            responsive: false,
             maintainAspectRatio: false,
+            layout: {
+                padding: 0
+            },
             plugins: {
                 legend: {
                     display: false
