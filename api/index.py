@@ -282,7 +282,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
 .chart-y-axis{width:50px;font-size:8px;padding:5px 3px}
-.chart-canvas-wrapper{width:250%;min-width:250%;height:180px}
+.chart-canvas-wrapper{height:180px}
 .chart-canvas{height:180px!important}
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 2px}
@@ -614,6 +614,13 @@ function createCustomYAxis(yAxisId, data, isPortfolio) {
 function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPortfolio) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    
+    // Dinamik genişlik hesapla (her veri için 60px)
+    const dataLength = labels.length;
+    const minWidth = Math.max(dataLength * 60, 400); // Minimum 400px
+    const canvasWrapper = canvas.parentElement;
+    canvasWrapper.style.width = minWidth + 'px';
+    canvasWrapper.style.minWidth = minWidth + 'px';
     
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
