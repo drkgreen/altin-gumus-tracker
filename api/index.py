@@ -247,9 +247,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;display:flex;flex-direction:column}
-.chart-content{display:flex;gap:0}
+.chart-content{display:flex;gap:0;flex-direction:row-reverse}
 .chart-y-axis{width:60px;flex-shrink:0;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
-.y-axis-label{text-align:right;white-space:nowrap}
+.y-axis-label{text-align:left;white-space:nowrap}
 .chart-scroll-container{flex:1;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
 .chart-canvas-wrapper{width:200%;min-width:200%;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
@@ -276,7 +276,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-y-axis{width:50px;font-size:8px;padding:5px 3px}
+.chart-y-axis{width:40px;font-size:8px;padding:5px 2px}
 .chart-canvas-wrapper{height:180px}
 .chart-canvas{height:180px!important}
 .portfolio-summary{padding:16px 2px}
@@ -589,15 +589,25 @@ function createCustomYAxis(yAxisId, data, isPortfolio) {
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min;
-    const step = range / 5; // 5 adet label
+    const step = range / 5;
     
     const labels = [];
     for (let i = 5; i >= 0; i--) {
         const value = min + (step * i);
         if (isPortfolio) {
-            labels.push(formatCurrency(value));
+            // Portföy için kısaltılmış format (130k, 125k)
+            if (value >= 1000) {
+                labels.push(Math.round(value / 1000) + 'k₺');
+            } else {
+                labels.push(formatCurrency(value));
+            }
         } else {
-            labels.push(formatPrice(value));
+            // Altın/Gümüş için kısaltılmış format
+            if (value >= 1000) {
+                labels.push((value / 1000).toFixed(1) + 'k₺');
+            } else {
+                labels.push(Math.round(value) + '₺');
+            }
         }
     }
     
@@ -610,12 +620,9 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Dinamik genişlik hesapla (her veri için 60px)
-    const dataLength = labels.length;
-    const minWidth = Math.max(dataLength * 60, 400); // Minimum 400px
+    // Canvas genişliği sabit (container genişliği)
     const canvasWrapper = canvas.parentElement;
-    canvasWrapper.style.width = minWidth + 'px';
-    canvasWrapper.style.minWidth = minWidth + 'px';
+    canvasWrapper.style.width = '100%';
     
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
@@ -634,6 +641,12 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
         portfolioChart = null;
     }
     
+    // Gradient oluştur
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, color + '80'); // Üstte açık
+    gradient.addColorStop(1, color + '10'); // Altta çok açık
+    
     const chart = new Chart(canvas, {
         type: 'line',
         data: {
@@ -642,16 +655,16 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 label: label,
                 data: data,
                 borderColor: color,
-                backgroundColor: 'transparent',
+                backgroundColor: gradient,
                 borderWidth: 2,
-                fill: false,
-                tension: 0.3,
-                pointRadius: 4,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHitRadius: 20,
                 pointBackgroundColor: color,
                 pointBorderColor: '#ffffff',
-                pointBorderWidth: 1,
-                pointHoverRadius: 8,
-                pointHitRadius: 10
+                pointBorderWidth: 2
             }]
         },
         options: {
@@ -663,8 +676,8 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 },
                 tooltip: {
                     enabled: true,
-                    mode: 'point',
-                    intersect: true,
+                    mode: 'index',
+                    intersect: false,
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     titleColor: '#60a5fa',
                     bodyColor: '#e2e8f0',
@@ -697,7 +710,11 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                         color: 'rgba(226, 232, 240, 0.7)',
                         font: {
                             size: 10
-                        }
+                        },
+                        maxTicksLimit: 8,
+                        autoSkip: true,
+                        maxRotation: 0,
+                        minRotation: 0
                     }
                 },
                 y: {
@@ -705,8 +722,8 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 }
             },
             interaction: {
-                mode: 'point',
-                intersect: true
+                mode: 'index',
+                intersect: false
             }
         }
     });
