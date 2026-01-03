@@ -47,21 +47,20 @@ def get_hourly_data():
         if not records:
             return []
         
-        now = datetime.now(timezone.utc)
-        today = now.strftime("%Y-%m-%d")
         hourly_data = []
         
-        today_records = [r for r in records if r.get("date") == today and r.get("gold_price") and r.get("silver_price") and not r.get("optimized", False)]
+        # TÜM saatlik kayıtları al (optimized olmayan)
+        hourly_records = [r for r in records if not r.get("optimized", False) and r.get("gold_price") and r.get("silver_price")]
         
-        if today_records:
-            sorted_records = sorted(today_records, key=lambda x: x.get("timestamp", 0), reverse=True)
+        if hourly_records:
+            sorted_records = sorted(hourly_records, key=lambda x: x.get("timestamp", 0))
             for i, record in enumerate(sorted_records):
                 timestamp = record.get("timestamp", 0)
                 local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
-                time_label = local_time.strftime("%H:%M")
+                time_label = local_time.strftime("%d.%m %H:%M")
                 change_percent = 0
-                if i < len(sorted_records) - 1:
-                    prev_record = sorted_records[i + 1]
+                if i > 0:
+                    prev_record = sorted_records[i - 1]
                     if prev_record and prev_record.get("gold_price"):
                         price_diff = record["gold_price"] - prev_record["gold_price"]
                         change_percent = (price_diff / prev_record["gold_price"]) * 100
@@ -73,7 +72,6 @@ def get_hourly_data():
                     "optimized": False,
                     "is_peak": False
                 })
-        hourly_data.reverse()
         return hourly_data
     except:
         return []
@@ -84,39 +82,36 @@ def get_daily_optimized_data():
         records = history.get("records", [])
         if not records:
             return []
+        
+        # TÜM daily_peak kayıtları al
         daily_peaks = [r for r in records if r.get("daily_peak") == True]
         daily_data = []
-        daily_temp = []
-        now = datetime.now(timezone.utc)
-        for i in range(6, -1, -1):
-            target_date = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_record = next((r for r in daily_peaks if r.get("date") == target_date), None)
-            if day_record:
-                day_name = (now - timedelta(days=i)).strftime("%d.%m")
-                daily_temp.append({
-                    "time": day_name,
-                    "gold_price": day_record["gold_price"],
-                    "silver_price": day_record["silver_price"],
-                    "peak_time": day_record.get("peak_time", "unknown"),
-                    "portfolio_value": day_record.get("portfolio_value", 0)
-                })
-        for i, day_data in enumerate(daily_temp):
+        
+        # Tarihe göre sırala
+        sorted_peaks = sorted(daily_peaks, key=lambda x: x.get("date", ""))
+        
+        for i, day_record in enumerate(sorted_peaks):
+            day_date = datetime.strptime(day_record["date"], "%Y-%m-%d")
+            day_name = day_date.strftime("%d.%m.%Y")
+            
             change_percent = 0
             if i > 0:
-                prev_day = daily_temp[i-1]
+                prev_day = sorted_peaks[i-1]
                 if prev_day["gold_price"] > 0:
-                    price_diff = day_data["gold_price"] - prev_day["gold_price"]
+                    price_diff = day_record["gold_price"] - prev_day["gold_price"]
                     change_percent = (price_diff / prev_day["gold_price"]) * 100
+            
             daily_data.append({
-                "time": day_data['time'],
-                "gold_price": day_data["gold_price"],
-                "silver_price": day_data["silver_price"],
+                "time": day_name,
+                "gold_price": day_record["gold_price"],
+                "silver_price": day_record["silver_price"],
                 "change_percent": change_percent,
                 "optimized": True,
-                "peak_time": day_data["peak_time"],
-                "portfolio_value": day_data["portfolio_value"],
+                "peak_time": day_record.get("peak_time", "unknown"),
+                "portfolio_value": day_record.get("portfolio_value", 0),
                 "is_peak": True
             })
+        
         return daily_data
     except:
         return []
