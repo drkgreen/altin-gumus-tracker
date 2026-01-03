@@ -251,8 +251,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
-.chart-scroll-container{overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;display:flex;flex-direction:column}
+.chart-content{display:flex;gap:0}
+.chart-y-axis{width:60px;flex-shrink:0;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
+.y-axis-label{text-align:right;white-space:nowrap}
+.chart-scroll-container{flex:1;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
 .chart-canvas-wrapper{width:200%;min-width:200%;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
@@ -278,6 +281,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
+.chart-y-axis{width:50px;font-size:8px;padding:5px 3px}
 .chart-canvas-wrapper{width:250%;min-width:250%;height:180px}
 .chart-canvas{height:180px!important}
 .portfolio-summary{padding:16px 2px}
@@ -364,9 +368,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="chart-title">
 Altın: <span class="chart-title-value" id="goldChartValue">--</span>
 </div>
+<div class="chart-content">
+<div class="chart-y-axis" id="goldYAxis"></div>
 <div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="goldChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 </div>
@@ -374,9 +381,12 @@ Altın: <span class="chart-title-value" id="goldChartValue">--</span>
 <div class="chart-title">
 Gümüş: <span class="chart-title-value" id="silverChartValue">--</span>
 </div>
+<div class="chart-content">
+<div class="chart-y-axis" id="silverYAxis"></div>
 <div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="silverChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 </div>
@@ -384,9 +394,12 @@ Gümüş: <span class="chart-title-value" id="silverChartValue">--</span>
 <div class="chart-title">
 Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
+<div class="chart-content">
+<div class="chart-y-axis" id="portfolioYAxis"></div>
 <div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
+</div>
 </div>
 </div>
 </div>
@@ -558,19 +571,6 @@ function updateCharts() {
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Normalize fonksiyonu (0-100 arası)
-    const normalize = (arr) => {
-        const min = Math.min(...arr);
-        const max = Math.max(...arr);
-        const range = max - min;
-        if (range === 0) return arr.map(() => 50);
-        return arr.map(val => ((val - min) / range) * 100);
-    };
-    
-    const normalizedGold = normalize(goldPrices);
-    const normalizedSilver = normalize(silverPrices);
-    const normalizedPortfolio = normalize(portfolioValues);
-    
     // En yüksek değerleri bul
     const maxGold = Math.max(...goldPrices);
     const maxSilver = Math.max(...silverPrices);
@@ -581,15 +581,42 @@ function updateCharts() {
     document.getElementById('silverChartValue').textContent = formatPrice(maxSilver);
     document.getElementById('portfolioChartValue').textContent = formatCurrency(maxPortfolio);
     
-    // 3 ayrı grafik oluştur
-    createSingleChart('goldChart', 'Altın', labels, normalizedGold, goldPrices, '#fbbf24');
-    createSingleChart('silverChart', 'Gümüş', labels, normalizedSilver, silverPrices, '#94a3b8');
-    createSingleChart('portfolioChart', 'Portföy', labels, normalizedPortfolio, portfolioValues, '#60a5fa');
+    // 3 ayrı grafik oluştur (gerçek değerlerle)
+    createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
+    createSingleChart('silverChart', 'silverYAxis', 'Gümüş', labels, silverPrices, '#94a3b8', false);
+    createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
 }
 
-function createSingleChart(canvasId, label, labels, normalizedData, originalData, color) {
+function createCustomYAxis(yAxisId, data, isPortfolio) {
+    const yAxisElement = document.getElementById(yAxisId);
+    if (!yAxisElement) return;
+    
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min;
+    const step = range / 5; // 5 adet label
+    
+    const labels = [];
+    for (let i = 5; i >= 0; i--) {
+        const value = min + (step * i);
+        if (isPortfolio) {
+            labels.push(formatCurrency(value));
+        } else {
+            labels.push(formatPrice(value));
+        }
+    }
+    
+    yAxisElement.innerHTML = labels.map(label => 
+        `<div class="y-axis-label">${label}</div>`
+    ).join('');
+}
+
+function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPortfolio) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    
+    // Custom Y ekseni oluştur
+    createCustomYAxis(yAxisId, data, isPortfolio);
     
     // Eski grafiği temizle
     if (canvasId === 'goldChart' && goldChart) {
@@ -611,8 +638,7 @@ function createSingleChart(canvasId, label, labels, normalizedData, originalData
             labels: labels,
             datasets: [{
                 label: label,
-                data: normalizedData,
-                originalData: originalData,
+                data: data,
                 borderColor: color,
                 backgroundColor: 'transparent',
                 borderWidth: 2,
@@ -647,12 +673,12 @@ function createSingleChart(canvasId, label, labels, normalizedData, originalData
                     callbacks: {
                         title: ctx => ctx[0].label,
                         label: ctx => {
-                            const originalValue = ctx.dataset.originalData[ctx.dataIndex];
+                            const value = ctx.parsed.y;
                             let formatted;
-                            if (label === 'Portföy') {
-                                formatted = formatCurrency(originalValue);
+                            if (isPortfolio) {
+                                formatted = formatCurrency(value);
                             } else {
-                                formatted = formatPrice(originalValue);
+                                formatted = formatPrice(value);
                             }
                             return `${label}: ${formatted}`;
                         }
@@ -673,18 +699,7 @@ function createSingleChart(canvasId, label, labels, normalizedData, originalData
                     }
                 },
                 y: {
-                    display: true,
-                    grid: {
-                        color: 'rgba(59, 130, 246, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: 'rgba(226, 232, 240, 0.7)',
-                        font: {
-                            size: 10
-                        },
-                        callback: value => Math.round(value)
-                    }
+                    display: false
                 }
             },
             interaction: {
