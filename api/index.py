@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.7 - Y Ekseni Padding Optimizasyonu
+Metal Price Tracker Web App v3.8 - Gelişmiş İstatistik Sekmesi
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -175,6 +175,173 @@ def get_table_data():
     except:
         return {"hourly": [], "daily": [], "monthly": []}
 
+def calculate_statistics():
+    """Gelişmiş istatistik hesaplamaları"""
+    try:
+        history = load_price_history()
+        records = history.get("records", [])
+        config = load_portfolio_config()
+        gold_amount = config.get('gold_amount', 1)
+        silver_amount = config.get('silver_amount', 1)
+        
+        if not records:
+            return {"success": False}
+        
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
+        
+        # Bugünkü veriler
+        today_records = [r for r in records if r.get("date") == today and r.get("gold_price") and r.get("silver_price")]
+        
+        # Son 7 gün
+        week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+        week_records = [r for r in records if r.get("date") >= week_ago and r.get("gold_price") and r.get("silver_price")]
+        
+        # Son 30 gün
+        month_ago = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+        month_records = [r for r in records if r.get("date") >= month_ago and r.get("gold_price") and r.get("silver_price")]
+        
+        # Tüm peak değerleri
+        all_peaks = [r for r in records if r.get("daily_peak") == True]
+        
+        # Bugün istatistikleri
+        today_stats = {}
+        if today_records:
+            gold_prices = [r["gold_price"] for r in today_records]
+            silver_prices = [r["silver_price"] for r in today_records]
+            today_stats = {
+                "gold_high": max(gold_prices),
+                "gold_low": min(gold_prices),
+                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
+                "silver_high": max(silver_prices),
+                "silver_low": min(silver_prices),
+                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
+                "data_points": len(today_records)
+            }
+        
+        # Haftalık istatistikler
+        week_stats = {}
+        if week_records:
+            gold_prices = [r["gold_price"] for r in week_records]
+            silver_prices = [r["silver_price"] for r in week_records]
+            week_stats = {
+                "gold_avg": sum(gold_prices) / len(gold_prices),
+                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
+                "silver_avg": sum(silver_prices) / len(silver_prices),
+                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
+                "volatility": (max(gold_prices) - min(gold_prices)) / min(gold_prices) * 100 if gold_prices else 0
+            }
+        
+        # Aylık istatistikler
+        month_stats = {}
+        if month_records:
+            gold_prices = [r["gold_price"] for r in month_records]
+            silver_prices = [r["silver_price"] for r in month_records]
+            portfolio_values = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in month_records]
+            month_stats = {
+                "gold_avg": sum(gold_prices) / len(gold_prices),
+                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
+                "silver_avg": sum(silver_prices) / len(silver_prices),
+                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
+                "portfolio_avg": sum(portfolio_values) / len(portfolio_values),
+                "portfolio_change": ((portfolio_values[-1] - portfolio_values[0]) / portfolio_values[0] * 100) if len(portfolio_values) > 1 else 0
+            }
+        
+        # Tüm zamanlar peak
+        all_time_peak = {}
+        if all_peaks:
+            gold_peaks = [r["gold_price"] for r in all_peaks]
+            silver_peaks = [r["silver_price"] for r in all_peaks]
+            portfolio_peaks = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in all_peaks]
+            
+            max_gold_idx = gold_peaks.index(max(gold_peaks))
+            max_silver_idx = silver_peaks.index(max(silver_peaks))
+            max_portfolio_idx = portfolio_peaks.index(max(portfolio_peaks))
+            
+            all_time_peak = {
+                "gold_peak": max(gold_peaks),
+                "gold_peak_date": all_peaks[max_gold_idx].get("date"),
+                "gold_peak_time": all_peaks[max_gold_idx].get("peak_time", ""),
+                "silver_peak": max(silver_peaks),
+                "silver_peak_date": all_peaks[max_silver_idx].get("date"),
+                "silver_peak_time": all_peaks[max_silver_idx].get("peak_time", ""),
+                "portfolio_peak": max(portfolio_peaks),
+                "portfolio_peak_date": all_peaks[max_portfolio_idx].get("date"),
+                "portfolio_peak_time": all_peaks[max_portfolio_idx].get("peak_time", "")
+            }
+        
+        # Volatilite & Risk skoru
+        volatility_score = 0
+        risk_score = 5.0
+        if week_records:
+            gold_prices = [r["gold_price"] for r in week_records]
+            std_dev = (sum([(p - week_stats["gold_avg"])**2 for p in gold_prices]) / len(gold_prices)) ** 0.5
+            volatility_score = (std_dev / week_stats["gold_avg"]) * 100
+            
+            # Risk skoru (0-10): Volatilite bazlı
+            if volatility_score < 1:
+                risk_score = 2.0
+            elif volatility_score < 2:
+                risk_score = 4.0
+            elif volatility_score < 3:
+                risk_score = 6.0
+            elif volatility_score < 4:
+                risk_score = 8.0
+            else:
+                risk_score = 9.5
+        
+        # Altın vs Gümüş
+        gold_vs_silver = {}
+        if month_records:
+            gold_first = month_records[0]["gold_price"]
+            gold_last = month_records[-1]["gold_price"]
+            silver_first = month_records[0]["silver_price"]
+            silver_last = month_records[-1]["silver_price"]
+            
+            gold_perf = ((gold_last - gold_first) / gold_first * 100)
+            silver_perf = ((silver_last - silver_first) / silver_first * 100)
+            
+            gold_vs_silver = {
+                "gold_performance": gold_perf,
+                "silver_performance": silver_perf,
+                "winner": "gold" if gold_perf > silver_perf else "silver",
+                "difference": abs(gold_perf - silver_perf),
+                "ratio": gold_last / silver_last if silver_last > 0 else 0
+            }
+        
+        # Saatlik analiz
+        hourly_analysis = {}
+        if today_records and len(today_records) > 2:
+            gold_prices_with_time = [(r["gold_price"], r.get("time", "")) for r in today_records]
+            sorted_by_price = sorted(gold_prices_with_time, key=lambda x: x[0])
+            
+            hourly_analysis = {
+                "best_buy_time": sorted_by_price[0][1],
+                "best_sell_time": sorted_by_price[-1][1],
+                "price_difference": sorted_by_price[-1][0] - sorted_by_price[0][0]
+            }
+        
+        return {
+            "success": True,
+            "today": today_stats,
+            "week": week_stats,
+            "month": month_stats,
+            "all_time_peak": all_time_peak,
+            "volatility": {
+                "score": volatility_score,
+                "level": "Düşük" if volatility_score < 2 else ("Orta" if volatility_score < 3.5 else "Yüksek")
+            },
+            "risk": {
+                "score": risk_score,
+                "level": "Düşük" if risk_score < 4 else ("Orta" if risk_score < 7 else "Yüksek")
+            },
+            "gold_vs_silver": gold_vs_silver,
+            "hourly_analysis": hourly_analysis
+        }
+    except Exception as e:
+        print(f"Statistics error: {e}")
+        return {"success": False, "error": str(e)}
+
 def get_gold_price():
     try:
         url = "https://m.doviz.com/altin/yapikredi/gram-altin"
@@ -208,7 +375,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.7</title>
+<title>Metal Tracker v3.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -247,6 +414,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
+.statistics-container{display:none;flex-direction:column;gap:16px;padding:0 12px}
+.stat-card{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px}
+.stat-card-title{font-size:14px;font-weight:600;color:#60a5fa;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-item-box{background:rgba(15,23,42,0.3);border-radius:8px;padding:12px}
+.stat-label{font-size:10px;color:rgba(226,232,240,0.6);margin-bottom:4px}
+.stat-value-large{font-size:20px;font-weight:700;color:#e2e8f0}
+.stat-change{font-size:12px;font-weight:600;margin-top:4px}
+.stat-change.positive{color:#10b981}
+.stat-change.negative{color:#ef4444}
+.stat-change.neutral{color:rgba(226,232,240,0.6)}
+.risk-bar{width:100%;height:8px;background:rgba(15,23,42,0.6);border-radius:4px;overflow:hidden;margin-top:8px}
+.risk-bar-fill{height:100%;background:linear-gradient(90deg,#10b981,#fbbf24,#ef4444);transition:width 0.3s}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(59,130,246,0.1)}
+.stat-row:last-child{border-bottom:none}
+.stat-row-label{font-size:11px;color:rgba(226,232,240,0.7)}
+.stat-row-value{font-size:12px;font-weight:600;color:#e2e8f0}
+.winner-badge{display:inline-block;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;background:rgba(16,185,129,0.2);color:#10b981}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:12px;position:relative}
 .chart-content{display:flex;gap:4px;align-items:stretch;flex-direction:row-reverse}
@@ -289,7 +474,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.7</div>
+<div class="login-title">🔐 Metal Tracker v3.8</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -303,7 +488,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.7</div>
+<div class="version">v3.8</div>
 </div>
 </div>
 <div class="header-center">
@@ -357,6 +542,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <button class="period-tab active" onclick="switchPeriod('hourly')" id="hourlyTab">Saatlik</button>
 <button class="period-tab" onclick="switchPeriod('daily')" id="dailyTab">Günlük</button>
 <button class="period-tab" onclick="switchPeriod('monthly')" id="monthlyTab">Aylık</button>
+<button class="period-tab" onclick="switchPeriod('statistics')" id="statisticsTab">İstatistik</button>
 </div>
 </div>
 <div class="charts-container">
@@ -394,12 +580,103 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 </div>
 </div>
+<div class="statistics-container" id="statisticsContainer">
+<div class="stat-card">
+<div class="stat-card-title">📊 Genel Durum</div>
+<div class="stat-grid">
+<div class="stat-item-box">
+<div class="stat-label">Bugün</div>
+<div class="stat-value-large" id="statTodayValue">--</div>
+<div class="stat-change" id="statTodayChange">--</div>
+</div>
+<div class="stat-item-box">
+<div class="stat-label">Bu Hafta</div>
+<div class="stat-value-large" id="statWeekValue">--</div>
+<div class="stat-change" id="statWeekChange">--</div>
+</div>
+<div class="stat-item-box">
+<div class="stat-label">Bu Ay</div>
+<div class="stat-value-large" id="statMonthValue">--</div>
+<div class="stat-change" id="statMonthChange">--</div>
+</div>
+<div class="stat-item-box">
+<div class="stat-label">Portföy Ortalaması</div>
+<div class="stat-value-large" id="statPortfolioAvg">--</div>
+<div class="stat-change neutral" id="statDataPoints">-- veri</div>
+</div>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-card-title">🏆 Tüm Zamanlar Peak</div>
+<div class="stat-row">
+<div class="stat-row-label">En Yüksek Portföy</div>
+<div class="stat-row-value" id="statPeakPortfolio">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">En Yüksek Altın</div>
+<div class="stat-row-value" id="statPeakGold">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">En Yüksek Gümüş</div>
+<div class="stat-row-value" id="statPeakSilver">--</div>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-card-title">⚡ Volatilite & Risk</div>
+<div class="stat-row">
+<div class="stat-row-label">Volatilite Seviyesi</div>
+<div class="stat-row-value" id="statVolatilityLevel">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Risk Skoru</div>
+<div class="stat-row-value" id="statRiskScore">--</div>
+</div>
+<div class="risk-bar">
+<div class="risk-bar-fill" id="riskBarFill" style="width:50%"></div>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-card-title">⚖️ Altın vs Gümüş</div>
+<div class="stat-row">
+<div class="stat-row-label">Altın Performans (30 gün)</div>
+<div class="stat-row-value" id="statGoldPerf">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Gümüş Performans (30 gün)</div>
+<div class="stat-row-value" id="statSilverPerf">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Kazanan</div>
+<div class="stat-row-value" id="statWinner">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Gümüş/Altın Oranı</div>
+<div class="stat-row-value" id="statRatio">--</div>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-card-title">⏰ Saatlik Analiz</div>
+<div class="stat-row">
+<div class="stat-row-label">En İyi Alım Saati (Bugün)</div>
+<div class="stat-row-value" id="statBestBuy">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">En İyi Satış Saati (Bugün)</div>
+<div class="stat-row-value" id="statBestSell">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Fiyat Farkı</div>
+<div class="stat-row-value" id="statPriceDiff">--</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <script>
 let currentGoldPrice = 0;
 let currentSilverPrice = 0;
 let tableData = {};
+let statisticsData = {};
 let currentPeriod = 'hourly';
 let goldAmount = 0;
 let silverAmount = 0;
@@ -505,15 +782,17 @@ async function fetchPrice() {
     try {
         refreshBtn.style.transform = 'rotate(360deg)';
         
-        const [goldResponse, silverResponse, tableResponse] = await Promise.all([
+        const [goldResponse, silverResponse, tableResponse, statsResponse] = await Promise.all([
             fetch('/api/gold-price'),
             fetch('/api/silver-price'),
-            fetch('/api/table-data')
+            fetch('/api/table-data'),
+            fetch('/api/statistics')
         ]);
         
         const goldData = await goldResponse.json();
         const silverData = await silverResponse.json();
         const tableDataResult = await tableResponse.json();
+        const statsDataResult = await statsResponse.json();
         
         if (goldData.success) {
             let cleaned = goldData.price.replace(/[^\d,]/g, '');
@@ -527,7 +806,16 @@ async function fetchPrice() {
         
         if (tableDataResult.success) {
             tableData = tableDataResult.data;
-            updateCharts();
+            if (currentPeriod !== 'statistics') {
+                updateCharts();
+            }
+        }
+        
+        if (statsDataResult.success) {
+            statisticsData = statsDataResult;
+            if (currentPeriod === 'statistics') {
+                updateStatistics();
+            }
         }
         
         document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {
@@ -547,7 +835,16 @@ function switchPeriod(period) {
     currentPeriod = period;
     document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
     document.getElementById(period + 'Tab').classList.add('active');
-    updateCharts();
+    
+    if (period === 'statistics') {
+        document.querySelector('.charts-container').style.display = 'none';
+        document.getElementById('statisticsContainer').style.display = 'flex';
+        updateStatistics();
+    } else {
+        document.querySelector('.charts-container').style.display = 'flex';
+        document.getElementById('statisticsContainer').style.display = 'none';
+        updateCharts();
+    }
 }
 
 function updateCharts() {
@@ -841,6 +1138,106 @@ function formatPrice(price) {
         maximumFractionDigits: 2
     }).format(price) + ' ₺';
 }
+
+function updateStatistics() {
+    if (!statisticsData || !statisticsData.success) return;
+    
+    const data = statisticsData;
+    
+    // Bugün
+    if (data.today && data.today.gold_change !== undefined) {
+        const todayChange = data.today.gold_change;
+        document.getElementById('statTodayValue').textContent = formatPrice(data.today.gold_high);
+        const changeEl = document.getElementById('statTodayChange');
+        changeEl.textContent = `${todayChange >= 0 ? '↑' : '↓'} ${todayChange >= 0 ? '+' : ''}${todayChange.toFixed(2)}%`;
+        changeEl.className = 'stat-change ' + (todayChange >= 0 ? 'positive' : 'negative');
+    }
+    
+    // Bu Hafta
+    if (data.week && data.week.gold_change !== undefined) {
+        const weekChange = data.week.gold_change;
+        document.getElementById('statWeekValue').textContent = formatPrice(data.week.gold_avg);
+        const changeEl = document.getElementById('statWeekChange');
+        changeEl.textContent = `${weekChange >= 0 ? '↑' : '↓'} ${weekChange >= 0 ? '+' : ''}${weekChange.toFixed(2)}%`;
+        changeEl.className = 'stat-change ' + (weekChange >= 0 ? 'positive' : 'negative');
+    }
+    
+    // Bu Ay
+    if (data.month && data.month.portfolio_change !== undefined) {
+        const monthChange = data.month.portfolio_change;
+        document.getElementById('statMonthValue').textContent = formatCurrency(data.month.portfolio_avg);
+        const changeEl = document.getElementById('statMonthChange');
+        changeEl.textContent = `${monthChange >= 0 ? '↑' : '↓'} ${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(2)}%`;
+        changeEl.className = 'stat-change ' + (monthChange >= 0 ? 'positive' : 'negative');
+    }
+    
+    // Portföy Ortalaması
+    if (data.month && data.month.portfolio_avg) {
+        document.getElementById('statPortfolioAvg').textContent = formatCurrency(data.month.portfolio_avg);
+    }
+    if (data.today && data.today.data_points) {
+        document.getElementById('statDataPoints').textContent = `${data.today.data_points} veri`;
+    }
+    
+    // Peak değerler
+    if (data.all_time_peak) {
+        const peak = data.all_time_peak;
+        if (peak.portfolio_peak) {
+            document.getElementById('statPeakPortfolio').textContent = 
+                `${formatCurrency(peak.portfolio_peak)} (${peak.portfolio_peak_date})`;
+        }
+        if (peak.gold_peak) {
+            document.getElementById('statPeakGold').textContent = 
+                `${formatPrice(peak.gold_peak)} (${peak.gold_peak_date})`;
+        }
+        if (peak.silver_peak) {
+            document.getElementById('statPeakSilver').textContent = 
+                `${formatPrice(peak.silver_peak)} (${peak.silver_peak_date})`;
+        }
+    }
+    
+    // Volatilite & Risk
+    if (data.volatility) {
+        document.getElementById('statVolatilityLevel').textContent = 
+            `${data.volatility.level} (${data.volatility.score.toFixed(2)}%)`;
+    }
+    if (data.risk) {
+        document.getElementById('statRiskScore').textContent = 
+            `${data.risk.score.toFixed(1)}/10 - ${data.risk.level}`;
+        document.getElementById('riskBarFill').style.width = `${data.risk.score * 10}%`;
+    }
+    
+    // Altın vs Gümüş
+    if (data.gold_vs_silver) {
+        const gvs = data.gold_vs_silver;
+        document.getElementById('statGoldPerf').textContent = 
+            `${gvs.gold_performance >= 0 ? '+' : ''}${gvs.gold_performance.toFixed(2)}%`;
+        document.getElementById('statSilverPerf').textContent = 
+            `${gvs.silver_performance >= 0 ? '+' : ''}${gvs.silver_performance.toFixed(2)}%`;
+        
+        const winner = gvs.winner === 'gold' ? 'Altın' : 'Gümüş';
+        document.getElementById('statWinner').innerHTML = 
+            `<span class="winner-badge">${winner} (+${gvs.difference.toFixed(2)}%)</span>`;
+        
+        if (gvs.ratio) {
+            document.getElementById('statRatio').textContent = `1:${gvs.ratio.toFixed(2)}`;
+        }
+    }
+    
+    // Saatlik analiz
+    if (data.hourly_analysis) {
+        const ha = data.hourly_analysis;
+        if (ha.best_buy_time) {
+            document.getElementById('statBestBuy').textContent = ha.best_buy_time;
+        }
+        if (ha.best_sell_time) {
+            document.getElementById('statBestSell').textContent = ha.best_sell_time;
+        }
+        if (ha.price_difference) {
+            document.getElementById('statPriceDiff').textContent = formatPrice(ha.price_difference);
+        }
+    }
+}
 </script>
 </body>
 </html>"""
@@ -906,6 +1303,14 @@ def api_table_data():
     try:
         data = get_table_data()
         return jsonify({'success': bool(data), 'data': data or {}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/statistics')
+def api_statistics():
+    try:
+        data = calculate_statistics()
+        return jsonify(data)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
