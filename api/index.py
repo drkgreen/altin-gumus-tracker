@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.4 - Peak Bilgisi Başlıklarda
+Metal Price Tracker Web App v3.5 - X Ekseni Format Düzeltmesi
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -208,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.4</title>
+<title>Metal Tracker v3.5</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -288,7 +288,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.4</div>
+<div class="login-title">🔐 Metal Tracker v3.5</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -302,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.4</div>
+<div class="version">v3.5</div>
 </div>
 </div>
 <div class="header-center">
@@ -555,7 +555,8 @@ function updateCharts() {
     const data = tableData[currentPeriod];
     if (data.length === 0) return;
     
-    const labels = data.map(item => item.time);
+    // X ekseni etiketlerini formatla
+    const labels = data.map(item => formatXAxisLabel(item.time));
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
@@ -577,6 +578,24 @@ function updateCharts() {
     createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
     createSingleChart('silverChart', 'silverYAxis', 'Gümüş', labels, silverPrices, '#94a3b8', false);
     createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
+}
+
+function formatXAxisLabel(time) {
+    if (currentPeriod === 'hourly') {
+        // Saatlik: saat formatı (09:00)
+        return time;
+    } else if (currentPeriod === 'daily') {
+        // Günlük: gün.ay formatı (10.11.2024 → 10.11)
+        const parts = time.split('.');
+        if (parts.length >= 3) {
+            return `${parts[0]}.${parts[1]}`;
+        }
+        return time;
+    } else if (currentPeriod === 'monthly') {
+        // Aylık: ay adı (Ocak 2025)
+        return time;
+    }
+    return time;
 }
 
 function getPeakInfo(data, goldPrices, silverPrices, portfolioValues) {
@@ -772,7 +791,8 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                         autoSkip: true,
                         autoSkipPadding: 20,
                         maxTicksLimit: 5
-                    }
+                    },
+                    reverse: false
                 },
                 y: {
                     display: false
