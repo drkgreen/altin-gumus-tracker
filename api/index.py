@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.5 - X Ekseni Format Düzeltmesi
+Metal Price Tracker Web App v3.7 - Y Ekseni Padding Optimizasyonu
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -208,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.5</title>
+<title>Metal Tracker v3.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -241,16 +241,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-title{font-size:10px;font-weight:600;color:#60a5fa;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-value{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-time{font-size:9px;color:rgba(226,232,240,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 2px;padding-bottom:20px;border-top:1px solid rgba(59,130,246,0.2)}
+.price-history{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);padding:20px 0;padding-bottom:20px;border-top:1px solid rgba(59,130,246,0.2)}
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px}
 .history-title{font-size:14px;font-weight:600;color:#60a5fa;white-space:nowrap}
 .period-tabs{display:flex;gap:3px;background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:3px}
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
-.chart-content{display:flex;gap:8px;align-items:stretch;flex-direction:row-reverse}
-.chart-y-axis{width:60px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:12px;position:relative}
+.chart-content{display:flex;gap:4px;align-items:stretch;flex-direction:row-reverse}
+.chart-y-axis{width:45px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:3px 1px;font-size:8px;color:rgba(226,232,240,0.7)}
 .y-axis-label{text-align:left;white-space:nowrap}
 .chart-canvas-wrapper{flex:1;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
@@ -276,11 +276,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-y-axis{width:50px;font-size:8px;padding:5px 3px}
+.chart-y-axis{width:40px;font-size:7px;padding:3px 1px}
 .chart-canvas-wrapper{height:180px}
 .chart-canvas{height:180px!important}
 .portfolio-summary{padding:16px 2px}
-.price-history{padding:16px 2px}
+.price-history{padding:16px 0}
+.chart-wrapper{padding:10px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -288,7 +289,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.5</div>
+<div class="login-title">🔐 Metal Tracker v3.7</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -302,7 +303,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.5</div>
+<div class="version">v3.7</div>
 </div>
 </div>
 <div class="header-center">
