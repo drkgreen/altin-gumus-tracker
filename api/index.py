@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.8 - Gelişmiş İstatistik Sekmesi
+Metal Price Tracker Web App v3.9 - Genel Performans Kartları
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -375,7 +375,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.8</title>
+<title>Metal Tracker v3.9</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -425,6 +425,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .stat-change.positive{color:#10b981}
 .stat-change.negative{color:#ef4444}
 .stat-change.neutral{color:rgba(226,232,240,0.6)}
+.performance-card{background:linear-gradient(135deg,rgba(15,23,42,0.6),rgba(30,41,59,0.4));border:1px solid rgba(59,130,246,0.2);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.performance-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;background:radial-gradient(circle,rgba(59,130,246,0.15),transparent);border-radius:50%;transform:translate(30%,-30%)}
+.perf-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.perf-icon{font-size:24px}
+.perf-period{font-size:11px;color:rgba(226,232,240,0.5);font-weight:500}
+.perf-main{margin-bottom:12px}
+.perf-label{font-size:12px;color:rgba(226,232,240,0.7);margin-bottom:8px;font-weight:500}
+.perf-value{font-size:32px;font-weight:800;color:#60a5fa;line-height:1;margin-bottom:8px}
+.perf-change-row{display:flex;gap:12px;align-items:center}
+.perf-change-big{font-size:18px;font-weight:700;display:flex;align-items:center;gap:4px}
+.perf-change-big.positive{color:#10b981}
+.perf-change-big.negative{color:#ef4444}
+.perf-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:12px;border-top:1px solid rgba(59,130,246,0.1)}
+.perf-metric{display:flex;flex-direction:column;gap:2px}
+.perf-metric-label{font-size:9px;color:rgba(226,232,240,0.5);text-transform:uppercase;letter-spacing:0.5px}
+.perf-metric-value{font-size:13px;font-weight:600;color:#e2e8f0}
+.perf-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+.perf-badge.success{background:rgba(16,185,129,0.15);color:#10b981;border-color:rgba(16,185,129,0.3)}
+.perf-badge.danger{background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3)}
+.perf-badge.warning{background:rgba(251,191,36,0.15);color:#fbbf24;border-color:rgba(251,191,36,0.3)}
 .risk-bar{width:100%;height:8px;background:rgba(15,23,42,0.6);border-radius:4px;overflow:hidden;margin-top:8px}
 .risk-bar-fill{height:100%;background:linear-gradient(90deg,#10b981,#fbbf24,#ef4444);transition:width 0.3s}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(59,130,246,0.1)}
@@ -474,7 +494,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.8</div>
+<div class="login-title">🔐 Metal Tracker v3.9</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -488,7 +508,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.8</div>
+<div class="version">v3.9</div>
 </div>
 </div>
 <div class="header-center">
@@ -581,31 +601,111 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 </div>
 <div class="statistics-container" id="statisticsContainer">
-<div class="stat-card">
-<div class="stat-card-title">📊 Genel Durum</div>
-<div class="stat-grid">
-<div class="stat-item-box">
-<div class="stat-label">Bugün</div>
-<div class="stat-value-large" id="statTodayValue">--</div>
-<div class="stat-change" id="statTodayChange">--</div>
+<div class="performance-card">
+<div class="perf-header">
+<div class="perf-icon">📈</div>
+<div class="perf-period">BUGÜN</div>
 </div>
-<div class="stat-item-box">
-<div class="stat-label">Bu Hafta</div>
-<div class="stat-value-large" id="statWeekValue">--</div>
-<div class="stat-change" id="statWeekChange">--</div>
+<div class="perf-main">
+<div class="perf-label">Altın Fiyatı (Peak)</div>
+<div class="perf-value" id="perfTodayValue">--</div>
+<div class="perf-change-row">
+<div class="perf-change-big" id="perfTodayChange">
+<span>--</span>
 </div>
-<div class="stat-item-box">
-<div class="stat-label">Bu Ay</div>
-<div class="stat-value-large" id="statMonthValue">--</div>
-<div class="stat-change" id="statMonthChange">--</div>
-</div>
-<div class="stat-item-box">
-<div class="stat-label">Portföy Ortalaması</div>
-<div class="stat-value-large" id="statPortfolioAvg">--</div>
-<div class="stat-change neutral" id="statDataPoints">-- veri</div>
+<div id="perfTodayBadge"></div>
 </div>
 </div>
+<div class="perf-metrics">
+<div class="perf-metric">
+<div class="perf-metric-label">En Yüksek</div>
+<div class="perf-metric-value" id="perfTodayHigh">--</div>
 </div>
+<div class="perf-metric">
+<div class="perf-metric-label">En Düşük</div>
+<div class="perf-metric-value" id="perfTodayLow">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Gümüş Değişim</div>
+<div class="perf-metric-value" id="perfTodaySilverChange">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Veri Sayısı</div>
+<div class="perf-metric-value" id="perfTodayDataPoints">--</div>
+</div>
+</div>
+</div>
+
+<div class="performance-card">
+<div class="perf-header">
+<div class="perf-icon">📅</div>
+<div class="perf-period">BU HAFTA (7 GÜN)</div>
+</div>
+<div class="perf-main">
+<div class="perf-label">Ortalama Altın Fiyatı</div>
+<div class="perf-value" id="perfWeekValue">--</div>
+<div class="perf-change-row">
+<div class="perf-change-big" id="perfWeekChange">
+<span>--</span>
+</div>
+<div id="perfWeekBadge"></div>
+</div>
+</div>
+<div class="perf-metrics">
+<div class="perf-metric">
+<div class="perf-metric-label">Altın Ort.</div>
+<div class="perf-metric-value" id="perfWeekGoldAvg">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Gümüş Ort.</div>
+<div class="perf-metric-value" id="perfWeekSilverAvg">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Gümüş Değişim</div>
+<div class="perf-metric-value" id="perfWeekSilverChange">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Volatilite</div>
+<div class="perf-metric-value" id="perfWeekVolatility">--</div>
+</div>
+</div>
+</div>
+
+<div class="performance-card">
+<div class="perf-header">
+<div class="perf-icon">📆</div>
+<div class="perf-period">BU AY (30 GÜN)</div>
+</div>
+<div class="perf-main">
+<div class="perf-label">Ortalama Portföy Değeri</div>
+<div class="perf-value" id="perfMonthValue">--</div>
+<div class="perf-change-row">
+<div class="perf-change-big" id="perfMonthChange">
+<span>--</span>
+</div>
+<div id="perfMonthBadge"></div>
+</div>
+</div>
+<div class="perf-metrics">
+<div class="perf-metric">
+<div class="perf-metric-label">Altın Ort.</div>
+<div class="perf-metric-value" id="perfMonthGoldAvg">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Gümüş Ort.</div>
+<div class="perf-metric-value" id="perfMonthSilverAvg">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Altın Değişim</div>
+<div class="perf-metric-value" id="perfMonthGoldChange">--</div>
+</div>
+<div class="perf-metric">
+<div class="perf-metric-label">Gümüş Değişim</div>
+<div class="perf-metric-value" id="perfMonthSilverChange">--</div>
+</div>
+</div>
+</div>
+
 <div class="stat-card">
 <div class="stat-card-title">🏆 Tüm Zamanlar Peak</div>
 <div class="stat-row">
@@ -1144,40 +1244,121 @@ function updateStatistics() {
     
     const data = statisticsData;
     
-    // Bugün
+    // ===== BUGÜN PERFORMANS KARTI =====
     if (data.today && data.today.gold_change !== undefined) {
         const todayChange = data.today.gold_change;
-        document.getElementById('statTodayValue').textContent = formatPrice(data.today.gold_high);
-        const changeEl = document.getElementById('statTodayChange');
-        changeEl.textContent = `${todayChange >= 0 ? '↑' : '↓'} ${todayChange >= 0 ? '+' : ''}${todayChange.toFixed(2)}%`;
-        changeEl.className = 'stat-change ' + (todayChange >= 0 ? 'positive' : 'negative');
+        const isPositive = todayChange >= 0;
+        
+        document.getElementById('perfTodayValue').textContent = formatPrice(data.today.gold_high);
+        
+        const changeEl = document.getElementById('perfTodayChange');
+        changeEl.innerHTML = `<span>${isPositive ? '↑' : '↓'} ${isPositive ? '+' : ''}${todayChange.toFixed(2)}%</span>`;
+        changeEl.className = 'perf-change-big ' + (isPositive ? 'positive' : 'negative');
+        
+        // Badge
+        let badge = '';
+        if (Math.abs(todayChange) < 1) {
+            badge = '<span class="perf-badge">Stabil</span>';
+        } else if (isPositive && todayChange > 2) {
+            badge = '<span class="perf-badge success">Güçlü Yükseliş</span>';
+        } else if (isPositive) {
+            badge = '<span class="perf-badge success">Yükseliş</span>';
+        } else if (todayChange < -2) {
+            badge = '<span class="perf-badge danger">Sert Düşüş</span>';
+        } else {
+            badge = '<span class="perf-badge danger">Düşüş</span>';
+        }
+        document.getElementById('perfTodayBadge').innerHTML = badge;
+        
+        // Metrikler
+        document.getElementById('perfTodayHigh').textContent = formatPrice(data.today.gold_high);
+        document.getElementById('perfTodayLow').textContent = formatPrice(data.today.gold_low);
+        
+        const silverChange = data.today.silver_change || 0;
+        document.getElementById('perfTodaySilverChange').textContent = 
+            `${silverChange >= 0 ? '+' : ''}${silverChange.toFixed(2)}%`;
+        
+        document.getElementById('perfTodayDataPoints').textContent = data.today.data_points || '--';
     }
     
-    // Bu Hafta
+    // ===== BU HAFTA PERFORMANS KARTI =====
     if (data.week && data.week.gold_change !== undefined) {
         const weekChange = data.week.gold_change;
-        document.getElementById('statWeekValue').textContent = formatPrice(data.week.gold_avg);
-        const changeEl = document.getElementById('statWeekChange');
-        changeEl.textContent = `${weekChange >= 0 ? '↑' : '↓'} ${weekChange >= 0 ? '+' : ''}${weekChange.toFixed(2)}%`;
-        changeEl.className = 'stat-change ' + (weekChange >= 0 ? 'positive' : 'negative');
+        const isPositive = weekChange >= 0;
+        
+        document.getElementById('perfWeekValue').textContent = formatPrice(data.week.gold_avg);
+        
+        const changeEl = document.getElementById('perfWeekChange');
+        changeEl.innerHTML = `<span>${isPositive ? '↑' : '↓'} ${isPositive ? '+' : ''}${weekChange.toFixed(2)}%</span>`;
+        changeEl.className = 'perf-change-big ' + (isPositive ? 'positive' : 'negative');
+        
+        // Badge
+        let badge = '';
+        if (Math.abs(weekChange) < 2) {
+            badge = '<span class="perf-badge">Dengeli</span>';
+        } else if (isPositive && weekChange > 5) {
+            badge = '<span class="perf-badge success">Çok İyi</span>';
+        } else if (isPositive) {
+            badge = '<span class="perf-badge success">İyi Trend</span>';
+        } else if (weekChange < -5) {
+            badge = '<span class="perf-badge danger">Kötü Trend</span>';
+        } else {
+            badge = '<span class="perf-badge warning">Dikkat</span>';
+        }
+        document.getElementById('perfWeekBadge').innerHTML = badge;
+        
+        // Metrikler
+        document.getElementById('perfWeekGoldAvg').textContent = formatPrice(data.week.gold_avg);
+        document.getElementById('perfWeekSilverAvg').textContent = formatPrice(data.week.silver_avg);
+        
+        const silverChange = data.week.silver_change || 0;
+        document.getElementById('perfWeekSilverChange').textContent = 
+            `${silverChange >= 0 ? '+' : ''}${silverChange.toFixed(2)}%`;
+        
+        document.getElementById('perfWeekVolatility').textContent = 
+            `${data.week.volatility.toFixed(2)}%`;
     }
     
-    // Bu Ay
+    // ===== BU AY PERFORMANS KARTI =====
     if (data.month && data.month.portfolio_change !== undefined) {
         const monthChange = data.month.portfolio_change;
-        document.getElementById('statMonthValue').textContent = formatCurrency(data.month.portfolio_avg);
-        const changeEl = document.getElementById('statMonthChange');
-        changeEl.textContent = `${monthChange >= 0 ? '↑' : '↓'} ${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(2)}%`;
-        changeEl.className = 'stat-change ' + (monthChange >= 0 ? 'positive' : 'negative');
+        const isPositive = monthChange >= 0;
+        
+        document.getElementById('perfMonthValue').textContent = formatCurrency(data.month.portfolio_avg);
+        
+        const changeEl = document.getElementById('perfMonthChange');
+        changeEl.innerHTML = `<span>${isPositive ? '↑' : '↓'} ${isPositive ? '+' : ''}${monthChange.toFixed(2)}%</span>`;
+        changeEl.className = 'perf-change-big ' + (isPositive ? 'positive' : 'negative');
+        
+        // Badge
+        let badge = '';
+        if (Math.abs(monthChange) < 3) {
+            badge = '<span class="perf-badge">Sabit</span>';
+        } else if (isPositive && monthChange > 10) {
+            badge = '<span class="perf-badge success">Mükemmel</span>';
+        } else if (isPositive) {
+            badge = '<span class="perf-badge success">Karlı</span>';
+        } else if (monthChange < -10) {
+            badge = '<span class="perf-badge danger">Riskli</span>';
+        } else {
+            badge = '<span class="perf-badge warning">Zayıf</span>';
+        }
+        document.getElementById('perfMonthBadge').innerHTML = badge;
+        
+        // Metrikler
+        document.getElementById('perfMonthGoldAvg').textContent = formatPrice(data.month.gold_avg);
+        document.getElementById('perfMonthSilverAvg').textContent = formatPrice(data.month.silver_avg);
+        
+        const goldChange = data.month.gold_change || 0;
+        document.getElementById('perfMonthGoldChange').textContent = 
+            `${goldChange >= 0 ? '+' : ''}${goldChange.toFixed(2)}%`;
+        
+        const silverChange = data.month.silver_change || 0;
+        document.getElementById('perfMonthSilverChange').textContent = 
+            `${silverChange >= 0 ? '+' : ''}${silverChange.toFixed(2)}%`;
     }
     
-    // Portföy Ortalaması
-    if (data.month && data.month.portfolio_avg) {
-        document.getElementById('statPortfolioAvg').textContent = formatCurrency(data.month.portfolio_avg);
-    }
-    if (data.today && data.today.data_points) {
-        document.getElementById('statDataPoints').textContent = `${data.today.data_points} veri`;
-    }
+    // ===== DİĞER İSTATİSTİKLER (ESKİ KARTLAR) =====
     
     // Peak değerler
     if (data.all_time_peak) {
