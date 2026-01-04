@@ -47,17 +47,19 @@ def get_hourly_data():
         if not records:
             return []
         
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
         hourly_data = []
         
-        # TÜM saatlik kayıtları al (optimized olmayan)
-        hourly_records = [r for r in records if not r.get("optimized", False) and r.get("gold_price") and r.get("silver_price")]
+        # SADECE BUGÜNKÜ saatlik kayıtları al
+        today_records = [r for r in records if r.get("date") == today and not r.get("optimized", False) and r.get("gold_price") and r.get("silver_price")]
         
-        if hourly_records:
-            sorted_records = sorted(hourly_records, key=lambda x: x.get("timestamp", 0))
+        if today_records:
+            sorted_records = sorted(today_records, key=lambda x: x.get("timestamp", 0))
             for i, record in enumerate(sorted_records):
                 timestamp = record.get("timestamp", 0)
                 local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
-                time_label = local_time.strftime("%d.%m %H:%M")
+                time_label = local_time.strftime("%H:%M")
                 change_percent = 0
                 if i > 0:
                     prev_record = sorted_records[i - 1]
@@ -206,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.0</title>
+<title>Metal Tracker v3.1</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -247,9 +249,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;display:flex;flex-direction:column}
-.chart-content{display:flex;gap:0;flex-direction:row-reverse}
+.chart-content{display:flex;gap:0}
 .chart-y-axis{width:60px;flex-shrink:0;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
-.y-axis-label{text-align:left;white-space:nowrap}
+.y-axis-label{text-align:right;white-space:nowrap}
 .chart-scroll-container{flex:1;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
 .chart-canvas-wrapper{width:200%;min-width:200%;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
@@ -276,9 +278,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-y-axis{width:40px;font-size:8px;padding:5px 2px}
-.chart-canvas-wrapper{height:180px;overflow:hidden}
-.chart-canvas{height:180px!important;display:block}
+.chart-y-axis{width:50px;font-size:8px;padding:5px 3px}
+.chart-canvas-wrapper{height:180px}
+.chart-canvas{height:180px!important}
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 2px}
 }
@@ -288,7 +290,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker</div>
+<div class="login-title">🔐 Metal Tracker v3.1</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -302,7 +304,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.0</div>
+<div class="version">v3.1</div>
 </div>
 </div>
 <div class="header-center">
@@ -589,25 +591,15 @@ function createCustomYAxis(yAxisId, data, isPortfolio) {
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min;
-    const step = range / 5;
+    const step = range / 5; // 5 adet label
     
     const labels = [];
     for (let i = 5; i >= 0; i--) {
         const value = min + (step * i);
         if (isPortfolio) {
-            // Portföy için kısaltılmış format (130k, 125k)
-            if (value >= 1000) {
-                labels.push(Math.round(value / 1000) + 'k₺');
-            } else {
-                labels.push(formatCurrency(value));
-            }
+            labels.push(formatCurrency(value));
         } else {
-            // Altın/Gümüş için kısaltılmış format
-            if (value >= 1000) {
-                labels.push((value / 1000).toFixed(1) + 'k₺');
-            } else {
-                labels.push(Math.round(value) + '₺');
-            }
+            labels.push(formatPrice(value));
         }
     }
     
@@ -620,55 +612,13 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Canvas boyutlarını kesin ayarla
+    // Scroll kaldırıldı - canvas wrapper dinamik genişlik kaldırıldı
     const canvasWrapper = canvas.parentElement;
-    const wrapperWidth = canvasWrapper.offsetWidth;
-    const wrapperHeight = canvasWrapper.offsetHeight;
-    
-    canvas.width = wrapperWidth;
-    canvas.height = wrapperHeight;
-    canvas.style.width = wrapperWidth + 'px';
-    canvas.style.height = wrapperHeight + 'px';
+    canvasWrapper.style.width = '100%';
+    canvasWrapper.style.minWidth = '100%';
     
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
-    
-    // X ekseni için 5 eşit aralık hesapla
-    const totalData = labels.length;
-    const interval = Math.floor((totalData - 1) / 4);
-    const displayIndices = [
-        0,
-        interval,
-        interval * 2,
-        interval * 3,
-        totalData - 1
-    ];
-    
-    // Saat bilgisini ayıkla (son kısım)
-    const extractTime = (timeString) => {
-        if (!timeString) return '';
-        // "04.01 14:30" → "14:30"
-        // "28.12.2024" → "28.12.24"
-        // "Ocak 2025" → "Oca'25"
-        const parts = timeString.split(' ');
-        if (parts.length > 1) {
-            return parts[parts.length - 1]; // Son kısım (saat)
-        }
-        // Tarih formatı ise kısalt
-        if (timeString.includes('.')) {
-            const dateParts = timeString.split('.');
-            if (dateParts.length === 3) {
-                return `${dateParts[0]}.${dateParts[1]}`; // "28.12"
-            }
-        }
-        // Ay formatı ise kısalt
-        if (timeString.includes('2024') || timeString.includes('2025') || timeString.includes('2026')) {
-            const year = timeString.match(/\d{4}/);
-            const month = timeString.replace(/\s*\d{4}/, '').substring(0, 3);
-            return `${month}'${year ? year[0].substring(2) : ''}`;
-        }
-        return timeString;
-    };
     
     // Eski grafiği temizle
     if (canvasId === 'goldChart' && goldChart) {
@@ -686,9 +636,9 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     
     // Gradient oluştur
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
-    gradient.addColorStop(0, color + '80');
-    gradient.addColorStop(1, color + '10');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, color + 'AA');  // Üst: %67 opacity
+    gradient.addColorStop(1, color + '10');  // Alt: %6 opacity
     
     const chart = new Chart(canvas, {
         type: 'line',
@@ -700,27 +650,19 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 borderColor: color,
                 backgroundColor: gradient,
                 borderWidth: 2,
-                fill: true,
+                fill: true,  // Alan grafiği
                 tension: 0.4,
-                pointRadius: 0,
+                pointRadius: 0,  // Noktaları gizle
                 pointHoverRadius: 6,
-                pointHitRadius: 20,
+                pointHitRadius: 15,
                 pointBackgroundColor: color,
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2
             }]
         },
         options: {
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
-            layout: {
-                padding: {
-                    left: 0,
-                    right: 0,
-                    top: 5,
-                    bottom: 0
-                }
-            },
             plugins: {
                 legend: {
                     display: false
@@ -755,23 +697,17 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 x: {
                     grid: {
                         color: 'rgba(59, 130, 246, 0.1)',
-                        drawBorder: false,
-                        display: false
+                        drawBorder: false
                     },
                     ticks: {
                         color: 'rgba(226, 232, 240, 0.7)',
                         font: {
-                            size: 9
+                            size: 10
                         },
                         maxRotation: 0,
-                        minRotation: 0,
-                        autoSkip: false,
-                        callback: function(value, index) {
-                            if (displayIndices.includes(index)) {
-                                return extractTime(labels[index]);
-                            }
-                            return '';
-                        }
+                        autoSkip: true,
+                        autoSkipPadding: 20,
+                        maxTicksLimit: 8
                     }
                 },
                 y: {
