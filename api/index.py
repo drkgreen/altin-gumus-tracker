@@ -621,155 +621,158 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Canvas boyutlarını kesin ayarla
+    // Canvas wrapper'dan KESIN boyutları al
     const canvasWrapper = canvas.parentElement;
-    const wrapperWidth = canvasWrapper.offsetWidth;
-    const wrapperHeight = canvasWrapper.offsetHeight;
     
-    canvas.width = wrapperWidth;
-    canvas.height = wrapperHeight;
-    canvas.style.width = wrapperWidth + 'px';
-    canvas.style.height = wrapperHeight + 'px';
-    
-    // X ekseni için eşit dağılımlı label seçimi
-    const totalLabels = labels.length;
-    const targetLabelCount = 8; // Hedef label sayısı
-    const step = Math.floor(totalLabels / targetLabelCount);
-    
-    // Eşit aralıklarla label'ları seç
-    const selectedIndices = [];
-    for (let i = 0; i < totalLabels; i += step) {
-        selectedIndices.push(i);
-    }
-    // Son label'ı da ekle
-    if (selectedIndices[selectedIndices.length - 1] !== totalLabels - 1) {
-        selectedIndices.push(totalLabels - 1);
-    }
-    
-    // Custom Y ekseni oluştur
-    createCustomYAxis(yAxisId, data, isPortfolio);
-    
-    // Eski grafiği temizle
-    if (canvasId === 'goldChart' && goldChart) {
-        goldChart.destroy();
-        goldChart = null;
-    }
-    if (canvasId === 'silverChart' && silverChart) {
-        silverChart.destroy();
-        silverChart = null;
-    }
-    if (canvasId === 'portfolioChart' && portfolioChart) {
-        portfolioChart.destroy();
-        portfolioChart = null;
-    }
-    
-    // Gradient oluştur
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
-    gradient.addColorStop(0, color + '80');
-    gradient.addColorStop(1, color + '10');
-    
-    const chart = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderColor: color,
-                backgroundColor: gradient,
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                pointHitRadius: 20,
-                pointBackgroundColor: color,
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            layout: {
-                padding: {
-                    left: 0,
-                    right: 10,
-                    top: 5,
-                    bottom: 0
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    titleColor: '#60a5fa',
-                    bodyColor: '#e2e8f0',
-                    borderColor: 'rgba(59, 130, 246, 0.3)',
-                    borderWidth: 1,
-                    padding: 12,
-                    displayColors: false,
-                    callbacks: {
-                        title: ctx => ctx[0].label,
-                        label: ctx => {
-                            const value = ctx.parsed.y;
-                            let formatted;
-                            if (isPortfolio) {
-                                formatted = formatCurrency(value);
-                            } else {
-                                formatted = formatPrice(value);
-                            }
-                            return `${label}: ${formatted}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: 'rgba(226, 232, 240, 0.7)',
-                        font: {
-                            size: 9
-                        },
-                        maxRotation: 0,
-                        minRotation: 0,
-                        callback: function(value, index) {
-                            // Sadece seçili index'lerde label göster
-                            if (selectedIndices.includes(index)) {
-                                return labels[index];
-                            }
-                            return '';
-                        }
-                    }
-                },
-                y: {
-                    display: false,
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false
-            }
+    // Wrapper boyutunu hesapla
+    setTimeout(() => {
+        const wrapperWidth = canvasWrapper.clientWidth;
+        const wrapperHeight = canvasWrapper.clientHeight;
+        
+        // Canvas'a KESIN boyutları ata
+        canvas.setAttribute('width', wrapperWidth);
+        canvas.setAttribute('height', wrapperHeight);
+        canvas.style.width = wrapperWidth + 'px';
+        canvas.style.height = wrapperHeight + 'px';
+        
+        // Custom Y ekseni oluştur
+        createCustomYAxis(yAxisId, data, isPortfolio);
+        
+        // Eski grafiği temizle
+        if (canvasId === 'goldChart' && goldChart) {
+            goldChart.destroy();
+            goldChart = null;
         }
-    });
-    
-    // Chart referansını sakla
-    if (canvasId === 'goldChart') goldChart = chart;
-    if (canvasId === 'silverChart') silverChart = chart;
-    if (canvasId === 'portfolioChart') portfolioChart = chart;
+        if (canvasId === 'silverChart' && silverChart) {
+            silverChart.destroy();
+            silverChart = null;
+        }
+        if (canvasId === 'portfolioChart' && portfolioChart) {
+            portfolioChart.destroy();
+            portfolioChart = null;
+        }
+        
+        // X ekseni için eşit dağılımlı label seçimi
+        const totalLabels = labels.length;
+        const targetLabelCount = 8;
+        const step = Math.max(1, Math.floor(totalLabels / targetLabelCount));
+        
+        const selectedIndices = [];
+        for (let i = 0; i < totalLabels; i += step) {
+            selectedIndices.push(i);
+        }
+        if (selectedIndices[selectedIndices.length - 1] !== totalLabels - 1) {
+            selectedIndices.push(totalLabels - 1);
+        }
+        
+        // Gradient oluştur
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
+        gradient.addColorStop(0, color + '80');
+        gradient.addColorStop(1, color + '10');
+        
+        const chart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHitRadius: 20,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 5,
+                        right: 5,
+                        top: 10,
+                        bottom: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#60a5fa',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: ctx => ctx[0].label,
+                            label: ctx => {
+                                const value = ctx.parsed.y;
+                                let formatted;
+                                if (isPortfolio) {
+                                    formatted = formatCurrency(value);
+                                } else {
+                                    formatted = formatPrice(value);
+                                }
+                                return `${label}: ${formatted}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(226, 232, 240, 0.7)',
+                            font: {
+                                size: 9
+                            },
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: false,
+                            callback: function(value, index) {
+                                if (selectedIndices.includes(index)) {
+                                    return labels[index];
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }
+        });
+        
+        // Chart referansını sakla
+        if (canvasId === 'goldChart') goldChart = chart;
+        if (canvasId === 'silverChart') silverChart = chart;
+        if (canvasId === 'portfolioChart') portfolioChart = chart;
+    }, 100);
 }
 
 function updateStatistics() {
