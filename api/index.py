@@ -276,8 +276,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .update-time{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:11px;padding:4px 8px}
 .history-header{flex-direction:column;gap:8px}
 .period-tabs{justify-content:center}
-.chart-y-axis{width:38px;font-size:7px;padding:5px 2px}
-.y-axis-label{font-size:7px}
+.chart-y-axis{width:40px;font-size:8px;padding:5px 2px}
 .chart-canvas-wrapper{height:180px;overflow:hidden}
 .chart-canvas{height:180px!important;display:block}
 .portfolio-summary{padding:16px 2px}
@@ -621,158 +620,175 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Canvas wrapper'dan KESIN boyutları al
+    // Canvas boyutlarını kesin ayarla
     const canvasWrapper = canvas.parentElement;
+    const wrapperWidth = canvasWrapper.offsetWidth;
+    const wrapperHeight = canvasWrapper.offsetHeight;
     
-    // Wrapper boyutunu hesapla
-    setTimeout(() => {
-        const wrapperWidth = canvasWrapper.clientWidth;
-        const wrapperHeight = canvasWrapper.clientHeight;
-        
-        // Canvas'a KESIN boyutları ata
-        canvas.setAttribute('width', wrapperWidth);
-        canvas.setAttribute('height', wrapperHeight);
-        canvas.style.width = wrapperWidth + 'px';
-        canvas.style.height = wrapperHeight + 'px';
-        
-        // Custom Y ekseni oluştur
-        createCustomYAxis(yAxisId, data, isPortfolio);
-        
-        // Eski grafiği temizle
-        if (canvasId === 'goldChart' && goldChart) {
-            goldChart.destroy();
-            goldChart = null;
+    canvas.width = wrapperWidth;
+    canvas.height = wrapperHeight;
+    canvas.style.width = wrapperWidth + 'px';
+    canvas.style.height = wrapperHeight + 'px';
+    
+    // Custom Y ekseni oluştur
+    createCustomYAxis(yAxisId, data, isPortfolio);
+    
+    // X ekseni için 5 eşit aralık hesapla
+    const totalData = labels.length;
+    const interval = Math.floor((totalData - 1) / 4);
+    const displayIndices = [
+        0,
+        interval,
+        interval * 2,
+        interval * 3,
+        totalData - 1
+    ];
+    
+    // Saat bilgisini ayıkla (son kısım)
+    const extractTime = (timeString) => {
+        if (!timeString) return '';
+        // "04.01 14:30" → "14:30"
+        // "28.12.2024" → "28.12.24"
+        // "Ocak 2025" → "Oca'25"
+        const parts = timeString.split(' ');
+        if (parts.length > 1) {
+            return parts[parts.length - 1]; // Son kısım (saat)
         }
-        if (canvasId === 'silverChart' && silverChart) {
-            silverChart.destroy();
-            silverChart = null;
+        // Tarih formatı ise kısalt
+        if (timeString.includes('.')) {
+            const dateParts = timeString.split('.');
+            if (dateParts.length === 3) {
+                return `${dateParts[0]}.${dateParts[1]}`; // "28.12"
+            }
         }
-        if (canvasId === 'portfolioChart' && portfolioChart) {
-            portfolioChart.destroy();
-            portfolioChart = null;
+        // Ay formatı ise kısalt
+        if (timeString.includes('2024') || timeString.includes('2025') || timeString.includes('2026')) {
+            const year = timeString.match(/\d{4}/);
+            const month = timeString.replace(/\s*\d{4}/, '').substring(0, 3);
+            return `${month}'${year ? year[0].substring(2) : ''}`;
         }
-        
-        // X ekseni için eşit dağılımlı label seçimi
-        const totalLabels = labels.length;
-        const targetLabelCount = 8;
-        const step = Math.max(1, Math.floor(totalLabels / targetLabelCount));
-        
-        const selectedIndices = [];
-        for (let i = 0; i < totalLabels; i += step) {
-            selectedIndices.push(i);
-        }
-        if (selectedIndices[selectedIndices.length - 1] !== totalLabels - 1) {
-            selectedIndices.push(totalLabels - 1);
-        }
-        
-        // Gradient oluştur
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
-        gradient.addColorStop(0, color + '80');
-        gradient.addColorStop(1, color + '10');
-        
-        const chart = new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    borderColor: color,
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    pointHitRadius: 20,
-                    pointBackgroundColor: color,
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2
-                }]
+        return timeString;
+    };
+    
+    // Eski grafiği temizle
+    if (canvasId === 'goldChart' && goldChart) {
+        goldChart.destroy();
+        goldChart = null;
+    }
+    if (canvasId === 'silverChart' && silverChart) {
+        silverChart.destroy();
+        silverChart = null;
+    }
+    if (canvasId === 'portfolioChart' && portfolioChart) {
+        portfolioChart.destroy();
+        portfolioChart = null;
+    }
+    
+    // Gradient oluştur
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, wrapperHeight);
+    gradient.addColorStop(0, color + '80');
+    gradient.addColorStop(1, color + '10');
+    
+    const chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: color,
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHitRadius: 20,
+                pointBackgroundColor: color,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 0,
+                    right: 0,
+                    top: 5,
+                    bottom: 0
+                }
             },
-            options: {
-                responsive: false,
-                maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        left: 5,
-                        right: 5,
-                        top: 10,
-                        bottom: 5
-                    }
+            plugins: {
+                legend: {
+                    display: false
                 },
-                plugins: {
-                    legend: {
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleColor: '#60a5fa',
+                    bodyColor: '#e2e8f0',
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: ctx => ctx[0].label,
+                        label: ctx => {
+                            const value = ctx.parsed.y;
+                            let formatted;
+                            if (isPortfolio) {
+                                formatted = formatCurrency(value);
+                            } else {
+                                formatted = formatPrice(value);
+                            }
+                            return `${label}: ${formatted}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(59, 130, 246, 0.1)',
+                        drawBorder: false,
                         display: false
                     },
-                    tooltip: {
-                        enabled: true,
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#60a5fa',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        displayColors: false,
-                        callbacks: {
-                            title: ctx => ctx[0].label,
-                            label: ctx => {
-                                const value = ctx.parsed.y;
-                                let formatted;
-                                if (isPortfolio) {
-                                    formatted = formatCurrency(value);
-                                } else {
-                                    formatted = formatPrice(value);
-                                }
-                                return `${label}: ${formatted}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false,
-                            drawBorder: false
+                    ticks: {
+                        color: 'rgba(226, 232, 240, 0.7)',
+                        font: {
+                            size: 9
                         },
-                        ticks: {
-                            color: 'rgba(226, 232, 240, 0.7)',
-                            font: {
-                                size: 9
-                            },
-                            maxRotation: 0,
-                            minRotation: 0,
-                            autoSkip: false,
-                            callback: function(value, index) {
-                                if (selectedIndices.includes(index)) {
-                                    return labels[index];
-                                }
-                                return '';
+                        maxRotation: 0,
+                        minRotation: 0,
+                        autoSkip: false,
+                        callback: function(value, index) {
+                            if (displayIndices.includes(index)) {
+                                return extractTime(labels[index]);
                             }
-                        }
-                    },
-                    y: {
-                        display: false,
-                        grid: {
-                            display: false
+                            return '';
                         }
                     }
                 },
-                interaction: {
-                    mode: 'index',
-                    intersect: false
+                y: {
+                    display: false
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
-        });
-        
-        // Chart referansını sakla
-        if (canvasId === 'goldChart') goldChart = chart;
-        if (canvasId === 'silverChart') silverChart = chart;
-        if (canvasId === 'portfolioChart') portfolioChart = chart;
-    }, 100);
+        }
+    });
+    
+    // Chart referansını sakla
+    if (canvasId === 'goldChart') goldChart = chart;
+    if (canvasId === 'silverChart') silverChart = chart;
+    if (canvasId === 'portfolioChart') portfolioChart = chart;
 }
 
 function updateStatistics() {
