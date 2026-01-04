@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.9 - Genel Performans Kartları
+Metal Price Tracker Web App v4.0 - Tamamen Günlük Peak Tabanlı İstatistikler
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -176,7 +176,7 @@ def get_table_data():
         return {"hourly": [], "daily": [], "monthly": []}
 
 def calculate_statistics():
-    """Gelişmiş istatistik hesaplamaları"""
+    """Tamamen günlük peak verilerine dayalı istatistik hesaplamaları"""
     try:
         history = load_price_history()
         records = history.get("records", [])
@@ -190,69 +190,142 @@ def calculate_statistics():
         now = datetime.now(timezone.utc)
         today = now.strftime("%Y-%m-%d")
         
-        # Bugünkü veriler
-        today_records = [r for r in records if r.get("date") == today and r.get("gold_price") and r.get("silver_price")]
+        # SADECE GÜNLÜK PEAK'LERİ AL
+        daily_peaks = [r for r in records if r.get("daily_peak") == True]
+        
+        if not daily_peaks:
+            return {"success": False, "error": "No daily peak data"}
+        
+        # Son 1 gün (bugün)
+        today_peak = next((r for r in daily_peaks if r.get("date") == today), None)
         
         # Son 7 gün
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
-        week_records = [r for r in records if r.get("date") >= week_ago and r.get("gold_price") and r.get("silver_price")]
+        week_peaks = [r for r in daily_peaks if r.get("date") >= week_ago]
+        week_peaks.sort(key=lambda x: x.get("date", ""))
         
         # Son 30 gün
         month_ago = (now - timedelta(days=30)).strftime("%Y-%m-%d")
-        month_records = [r for r in records if r.get("date") >= month_ago and r.get("gold_price") and r.get("silver_price")]
+        month_peaks = [r for r in daily_peaks if r.get("date") >= month_ago]
+        month_peaks.sort(key=lambda x: x.get("date", ""))
         
-        # Tüm peak değerleri
-        all_peaks = [r for r in records if r.get("daily_peak") == True]
+        # Tüm günlük peak'ler (sıralı)
+        all_peaks_sorted = sorted(daily_peaks, key=lambda x: x.get("date", ""))
         
-        # Bugün istatistikleri
+        # ===== BUGÜN İSTATİSTİKLERİ (Tek günlük peak) =====
         today_stats = {}
-        if today_records:
-            gold_prices = [r["gold_price"] for r in today_records]
-            silver_prices = [r["silver_price"] for r in today_records]
+        if today_peak:
+            gold_price = today_peak.get("gold_price", 0)
+            silver_price = today_peak.get("silver_price", 0)
+            
+            # Dünün peak'i ile karşılaştır
+            yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+            yesterday_peak = next((r for r in daily_peaks if r.get("date") == yesterday), None)
+            
+            gold_change = 0
+            silver_change = 0
+            if yesterday_peak:
+                yesterday_gold = yesterday_peak.get("gold_price", 0)
+                yesterday_silver = yesterday_peak.get("silver_price", 0)
+                
+                if yesterday_gold > 0:
+                    gold_change = ((gold_price - yesterday_gold) / yesterday_gold * 100)
+                if yesterday_silver > 0:
+                    silver_change = ((silver_price - yesterday_silver) / yesterday_silver * 100)
+            
             today_stats = {
-                "gold_high": max(gold_prices),
-                "gold_low": min(gold_prices),
-                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
-                "silver_high": max(silver_prices),
-                "silver_low": min(silver_prices),
-                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
-                "data_points": len(today_records)
+                "gold_peak": gold_price,
+                "silver_peak": silver_price,
+                "gold_change": gold_change,
+                "silver_change": silver_change,
+                "peak_time": today_peak.get("peak_time", "unknown"),
+                "portfolio_value": today_peak.get("portfolio_value", 0)
             }
         
-        # Haftalık istatistikler
+        # ===== HAFTALIK İSTATİSTİKLER (7 günlük peak'ler) =====
         week_stats = {}
-        if week_records:
-            gold_prices = [r["gold_price"] for r in week_records]
-            silver_prices = [r["silver_price"] for r in week_records]
+        if week_peaks and len(week_peaks) >= 2:
+            gold_prices = [r["gold_price"] for r in week_peaks]
+            silver_prices = [r["silver_price"] for r in week_peaks]
+            portfolio_values = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in week_peaks]
+            
+            # Ortalamalar
+            gold_avg = sum(gold_prices) / len(gold_prices)
+            silver_avg = sum(silver_prices) / len(silver_prices)
+            
+            # Değişim (ilk gün vs son gün)
+            gold_change = ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100)
+            silver_change = ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100)
+            
+            # Volatilite (günler arası standart sapma)
+            gold_std = (sum([(p - gold_avg)**2 for p in gold_prices]) / len(gold_prices)) ** 0.5
+            volatility = (gold_std / gold_avg) * 100
+            
+            # En iyi/kötü gün
+            best_day_idx = gold_prices.index(max(gold_prices))
+            worst_day_idx = gold_prices.index(min(gold_prices))
+            
             week_stats = {
-                "gold_avg": sum(gold_prices) / len(gold_prices),
-                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
-                "silver_avg": sum(silver_prices) / len(silver_prices),
-                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
-                "volatility": (max(gold_prices) - min(gold_prices)) / min(gold_prices) * 100 if gold_prices else 0
+                "gold_avg": gold_avg,
+                "silver_avg": silver_avg,
+                "gold_change": gold_change,
+                "silver_change": silver_change,
+                "volatility": volatility,
+                "best_day": week_peaks[best_day_idx].get("date"),
+                "best_day_price": gold_prices[best_day_idx],
+                "worst_day": week_peaks[worst_day_idx].get("date"),
+                "worst_day_price": gold_prices[worst_day_idx],
+                "positive_days": sum(1 for i in range(1, len(gold_prices)) if gold_prices[i] > gold_prices[i-1]),
+                "negative_days": sum(1 for i in range(1, len(gold_prices)) if gold_prices[i] < gold_prices[i-1])
             }
         
-        # Aylık istatistikler
+        # ===== AYLIK İSTATİSTİKLER (30 günlük peak'ler) =====
         month_stats = {}
-        if month_records:
-            gold_prices = [r["gold_price"] for r in month_records]
-            silver_prices = [r["silver_price"] for r in month_records]
-            portfolio_values = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in month_records]
+        if month_peaks and len(month_peaks) >= 2:
+            gold_prices = [r["gold_price"] for r in month_peaks]
+            silver_prices = [r["silver_price"] for r in month_peaks]
+            portfolio_values = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in month_peaks]
+            
+            # Ortalamalar
+            gold_avg = sum(gold_prices) / len(gold_prices)
+            silver_avg = sum(silver_prices) / len(silver_prices)
+            portfolio_avg = sum(portfolio_values) / len(portfolio_values)
+            
+            # Değişim
+            gold_change = ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100)
+            silver_change = ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100)
+            portfolio_change = ((portfolio_values[-1] - portfolio_values[0]) / portfolio_values[0] * 100)
+            
+            # Volatilite
+            gold_std = (sum([(p - gold_avg)**2 for p in gold_prices]) / len(gold_prices)) ** 0.5
+            volatility = (gold_std / gold_avg) * 100
+            
+            # En iyi/kötü gün
+            best_day_idx = portfolio_values.index(max(portfolio_values))
+            worst_day_idx = portfolio_values.index(min(portfolio_values))
+            
             month_stats = {
-                "gold_avg": sum(gold_prices) / len(gold_prices),
-                "gold_change": ((gold_prices[-1] - gold_prices[0]) / gold_prices[0] * 100) if len(gold_prices) > 1 else 0,
-                "silver_avg": sum(silver_prices) / len(silver_prices),
-                "silver_change": ((silver_prices[-1] - silver_prices[0]) / silver_prices[0] * 100) if len(silver_prices) > 1 else 0,
-                "portfolio_avg": sum(portfolio_values) / len(portfolio_values),
-                "portfolio_change": ((portfolio_values[-1] - portfolio_values[0]) / portfolio_values[0] * 100) if len(portfolio_values) > 1 else 0
+                "gold_avg": gold_avg,
+                "silver_avg": silver_avg,
+                "portfolio_avg": portfolio_avg,
+                "gold_change": gold_change,
+                "silver_change": silver_change,
+                "portfolio_change": portfolio_change,
+                "volatility": volatility,
+                "best_day": month_peaks[best_day_idx].get("date"),
+                "best_portfolio": portfolio_values[best_day_idx],
+                "worst_day": month_peaks[worst_day_idx].get("date"),
+                "worst_portfolio": portfolio_values[worst_day_idx],
+                "positive_days": sum(1 for i in range(1, len(gold_prices)) if gold_prices[i] > gold_prices[i-1]),
+                "negative_days": sum(1 for i in range(1, len(gold_prices)) if gold_prices[i] < gold_prices[i-1])
             }
         
-        # Tüm zamanlar peak
+        # ===== TÜM ZAMANLAR PEAK =====
         all_time_peak = {}
-        if all_peaks:
-            gold_peaks = [r["gold_price"] for r in all_peaks]
-            silver_peaks = [r["silver_price"] for r in all_peaks]
-            portfolio_peaks = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in all_peaks]
+        if all_peaks_sorted:
+            gold_peaks = [r["gold_price"] for r in all_peaks_sorted]
+            silver_peaks = [r["silver_price"] for r in all_peaks_sorted]
+            portfolio_peaks = [(r["gold_price"] * gold_amount + r["silver_price"] * silver_amount) for r in all_peaks_sorted]
             
             max_gold_idx = gold_peaks.index(max(gold_peaks))
             max_silver_idx = silver_peaks.index(max(silver_peaks))
@@ -260,65 +333,63 @@ def calculate_statistics():
             
             all_time_peak = {
                 "gold_peak": max(gold_peaks),
-                "gold_peak_date": all_peaks[max_gold_idx].get("date"),
-                "gold_peak_time": all_peaks[max_gold_idx].get("peak_time", ""),
+                "gold_peak_date": all_peaks_sorted[max_gold_idx].get("date"),
+                "gold_peak_time": all_peaks_sorted[max_gold_idx].get("peak_time", ""),
                 "silver_peak": max(silver_peaks),
-                "silver_peak_date": all_peaks[max_silver_idx].get("date"),
-                "silver_peak_time": all_peaks[max_silver_idx].get("peak_time", ""),
+                "silver_peak_date": all_peaks_sorted[max_silver_idx].get("date"),
+                "silver_peak_time": all_peaks_sorted[max_silver_idx].get("peak_time", ""),
                 "portfolio_peak": max(portfolio_peaks),
-                "portfolio_peak_date": all_peaks[max_portfolio_idx].get("date"),
-                "portfolio_peak_time": all_peaks[max_portfolio_idx].get("peak_time", "")
+                "portfolio_peak_date": all_peaks_sorted[max_portfolio_idx].get("date"),
+                "portfolio_peak_time": all_peaks_sorted[max_portfolio_idx].get("peak_time", "")
             }
         
-        # Volatilite & Risk skoru
-        volatility_score = 0
+        # ===== VOLATİLİTE & RİSK =====
+        volatility_score = week_stats.get("volatility", 0) if week_stats else 0
         risk_score = 5.0
-        if week_records:
-            gold_prices = [r["gold_price"] for r in week_records]
-            std_dev = (sum([(p - week_stats["gold_avg"])**2 for p in gold_prices]) / len(gold_prices)) ** 0.5
-            volatility_score = (std_dev / week_stats["gold_avg"]) * 100
-            
-            # Risk skoru (0-10): Volatilite bazlı
-            if volatility_score < 1:
-                risk_score = 2.0
-            elif volatility_score < 2:
-                risk_score = 4.0
-            elif volatility_score < 3:
-                risk_score = 6.0
-            elif volatility_score < 4:
-                risk_score = 8.0
-            else:
-                risk_score = 9.5
+        if volatility_score < 1:
+            risk_score = 2.0
+        elif volatility_score < 2:
+            risk_score = 4.0
+        elif volatility_score < 3:
+            risk_score = 6.0
+        elif volatility_score < 4:
+            risk_score = 8.0
+        else:
+            risk_score = 9.5
         
-        # Altın vs Gümüş
+        # ===== ALTIN VS GÜMÜŞ =====
         gold_vs_silver = {}
-        if month_records:
-            gold_first = month_records[0]["gold_price"]
-            gold_last = month_records[-1]["gold_price"]
-            silver_first = month_records[0]["silver_price"]
-            silver_last = month_records[-1]["silver_price"]
-            
-            gold_perf = ((gold_last - gold_first) / gold_first * 100)
-            silver_perf = ((silver_last - silver_first) / silver_first * 100)
-            
+        if month_stats:
             gold_vs_silver = {
-                "gold_performance": gold_perf,
-                "silver_performance": silver_perf,
-                "winner": "gold" if gold_perf > silver_perf else "silver",
-                "difference": abs(gold_perf - silver_perf),
-                "ratio": gold_last / silver_last if silver_last > 0 else 0
+                "gold_performance": month_stats["gold_change"],
+                "silver_performance": month_stats["silver_change"],
+                "winner": "gold" if month_stats["gold_change"] > month_stats["silver_change"] else "silver",
+                "difference": abs(month_stats["gold_change"] - month_stats["silver_change"]),
+                "ratio": month_stats["gold_avg"] / month_stats["silver_avg"] if month_stats["silver_avg"] > 0 else 0
             }
         
-        # Saatlik analiz
-        hourly_analysis = {}
-        if today_records and len(today_records) > 2:
-            gold_prices_with_time = [(r["gold_price"], r.get("time", "")) for r in today_records]
-            sorted_by_price = sorted(gold_prices_with_time, key=lambda x: x[0])
+        # ===== GÜNLÜK TREND ANALİZİ =====
+        daily_trend = {}
+        if month_peaks and len(month_peaks) >= 7:
+            # Son 7 günün trendi
+            last_7_gold = [r["gold_price"] for r in month_peaks[-7:]]
             
-            hourly_analysis = {
-                "best_buy_time": sorted_by_price[0][1],
-                "best_sell_time": sorted_by_price[-1][1],
-                "price_difference": sorted_by_price[-1][0] - sorted_by_price[0][0]
+            # Basit trend: yükseliş sayısı
+            up_days = sum(1 for i in range(1, len(last_7_gold)) if last_7_gold[i] > last_7_gold[i-1])
+            
+            if up_days >= 5:
+                trend = "strong_up"
+            elif up_days >= 3:
+                trend = "up"
+            elif up_days <= 1:
+                trend = "down"
+            else:
+                trend = "neutral"
+            
+            daily_trend = {
+                "trend": trend,
+                "up_days": up_days,
+                "down_days": 6 - up_days
             }
         
         return {
@@ -336,7 +407,7 @@ def calculate_statistics():
                 "level": "Düşük" if risk_score < 4 else ("Orta" if risk_score < 7 else "Yüksek")
             },
             "gold_vs_silver": gold_vs_silver,
-            "hourly_analysis": hourly_analysis
+            "daily_trend": daily_trend
         }
     except Exception as e:
         print(f"Statistics error: {e}")
@@ -375,7 +446,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.9</title>
+<title>Metal Tracker v4.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -494,7 +565,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.9</div>
+<div class="login-title">🔐 Metal Tracker v4.0</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -508,7 +579,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.9</div>
+<div class="version">v4.0</div>
 </div>
 </div>
 <div class="header-center">
@@ -604,10 +675,10 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 <div class="performance-card">
 <div class="perf-header">
 <div class="perf-icon">📈</div>
-<div class="perf-period">BUGÜN</div>
+<div class="perf-period">BUGÜN (GÜN PEAK)</div>
 </div>
 <div class="perf-main">
-<div class="perf-label">Altın Fiyatı (Peak)</div>
+<div class="perf-label">Günün En Yüksek Altın Fiyatı</div>
 <div class="perf-value" id="perfTodayValue">--</div>
 <div class="perf-change-row">
 <div class="perf-change-big" id="perfTodayChange">
@@ -618,20 +689,20 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 <div class="perf-metrics">
 <div class="perf-metric">
-<div class="perf-metric-label">En Yüksek</div>
-<div class="perf-metric-value" id="perfTodayHigh">--</div>
+<div class="perf-metric-label">Peak Saati</div>
+<div class="perf-metric-value" id="perfTodayPeakTime">--</div>
 </div>
 <div class="perf-metric">
-<div class="perf-metric-label">En Düşük</div>
-<div class="perf-metric-value" id="perfTodayLow">--</div>
+<div class="perf-metric-label">Gümüş Peak</div>
+<div class="perf-metric-value" id="perfTodaySilverPeak">--</div>
 </div>
 <div class="perf-metric">
 <div class="perf-metric-label">Gümüş Değişim</div>
 <div class="perf-metric-value" id="perfTodaySilverChange">--</div>
 </div>
 <div class="perf-metric">
-<div class="perf-metric-label">Veri Sayısı</div>
-<div class="perf-metric-value" id="perfTodayDataPoints">--</div>
+<div class="perf-metric-label">Portföy Değeri</div>
+<div class="perf-metric-value" id="perfTodayPortfolio">--</div>
 </div>
 </div>
 </div>
@@ -736,6 +807,29 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 </div>
 <div class="stat-card">
+<div class="stat-card-title">📊 Günlük Trend Analizi</div>
+<div class="stat-row">
+<div class="stat-row-label">Son 7 Gün Trendi</div>
+<div class="stat-row-value" id="statDailyTrend">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Yükseliş Günleri (7 gün)</div>
+<div class="stat-row-value" id="statUpDays">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Düşüş Günleri (7 gün)</div>
+<div class="stat-row-value" id="statDownDays">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Pozitif Günler (30 gün)</div>
+<div class="stat-row-value" id="statMonthPositive">--</div>
+</div>
+<div class="stat-row">
+<div class="stat-row-label">Negatif Günler (30 gün)</div>
+<div class="stat-row-value" id="statMonthNegative">--</div>
+</div>
+</div>
+<div class="stat-card">
 <div class="stat-card-title">⚖️ Altın vs Gümüş</div>
 <div class="stat-row">
 <div class="stat-row-label">Altın Performans (30 gün)</div>
@@ -752,21 +846,6 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 <div class="stat-row">
 <div class="stat-row-label">Gümüş/Altın Oranı</div>
 <div class="stat-row-value" id="statRatio">--</div>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-card-title">⏰ Saatlik Analiz</div>
-<div class="stat-row">
-<div class="stat-row-label">En İyi Alım Saati (Bugün)</div>
-<div class="stat-row-value" id="statBestBuy">--</div>
-</div>
-<div class="stat-row">
-<div class="stat-row-label">En İyi Satış Saati (Bugün)</div>
-<div class="stat-row-value" id="statBestSell">--</div>
-</div>
-<div class="stat-row">
-<div class="stat-row-label">Fiyat Farkı</div>
-<div class="stat-row-value" id="statPriceDiff">--</div>
 </div>
 </div>
 </div>
@@ -1244,12 +1323,12 @@ function updateStatistics() {
     
     const data = statisticsData;
     
-    // ===== BUGÜN PERFORMANS KARTI =====
+    // ===== BUGÜN PERFORMANS KARTI (Günlük Peak) =====
     if (data.today && data.today.gold_change !== undefined) {
         const todayChange = data.today.gold_change;
         const isPositive = todayChange >= 0;
         
-        document.getElementById('perfTodayValue').textContent = formatPrice(data.today.gold_high);
+        document.getElementById('perfTodayValue').textContent = formatPrice(data.today.gold_peak);
         
         const changeEl = document.getElementById('perfTodayChange');
         changeEl.innerHTML = `<span>${isPositive ? '↑' : '↓'} ${isPositive ? '+' : ''}${todayChange.toFixed(2)}%</span>`;
@@ -1271,14 +1350,14 @@ function updateStatistics() {
         document.getElementById('perfTodayBadge').innerHTML = badge;
         
         // Metrikler
-        document.getElementById('perfTodayHigh').textContent = formatPrice(data.today.gold_high);
-        document.getElementById('perfTodayLow').textContent = formatPrice(data.today.gold_low);
+        document.getElementById('perfTodayPeakTime').textContent = data.today.peak_time || '--';
+        document.getElementById('perfTodaySilverPeak').textContent = formatPrice(data.today.silver_peak);
         
         const silverChange = data.today.silver_change || 0;
         document.getElementById('perfTodaySilverChange').textContent = 
             `${silverChange >= 0 ? '+' : ''}${silverChange.toFixed(2)}%`;
         
-        document.getElementById('perfTodayDataPoints').textContent = data.today.data_points || '--';
+        document.getElementById('perfTodayPortfolio').textContent = formatCurrency(data.today.portfolio_value);
     }
     
     // ===== BU HAFTA PERFORMANS KARTI =====
@@ -1358,7 +1437,7 @@ function updateStatistics() {
             `${silverChange >= 0 ? '+' : ''}${silverChange.toFixed(2)}%`;
     }
     
-    // ===== DİĞER İSTATİSTİKLER (ESKİ KARTLAR) =====
+    // ===== DİĞER İSTATİSTİKLER =====
     
     // Peak değerler
     if (data.all_time_peak) {
@@ -1388,6 +1467,35 @@ function updateStatistics() {
         document.getElementById('riskBarFill').style.width = `${data.risk.score * 10}%`;
     }
     
+    // Günlük Trend Analizi
+    if (data.daily_trend) {
+        const dt = data.daily_trend;
+        let trendText = '';
+        switch(dt.trend) {
+            case 'strong_up':
+                trendText = '🚀 Güçlü Yükseliş';
+                break;
+            case 'up':
+                trendText = '↗ Yükseliş';
+                break;
+            case 'down':
+                trendText = '↘ Düşüş';
+                break;
+            default:
+                trendText = '→ Yatay';
+        }
+        document.getElementById('statDailyTrend').textContent = trendText;
+        document.getElementById('statUpDays').textContent = `${dt.up_days} gün`;
+        document.getElementById('statDownDays').textContent = `${dt.down_days} gün`;
+    }
+    
+    if (data.month) {
+        document.getElementById('statMonthPositive').textContent = 
+            `${data.month.positive_days || 0} gün`;
+        document.getElementById('statMonthNegative').textContent = 
+            `${data.month.negative_days || 0} gün`;
+    }
+    
     // Altın vs Gümüş
     if (data.gold_vs_silver) {
         const gvs = data.gold_vs_silver;
@@ -1402,20 +1510,6 @@ function updateStatistics() {
         
         if (gvs.ratio) {
             document.getElementById('statRatio').textContent = `1:${gvs.ratio.toFixed(2)}`;
-        }
-    }
-    
-    // Saatlik analiz
-    if (data.hourly_analysis) {
-        const ha = data.hourly_analysis;
-        if (ha.best_buy_time) {
-            document.getElementById('statBestBuy').textContent = ha.best_buy_time;
-        }
-        if (ha.best_sell_time) {
-            document.getElementById('statBestSell').textContent = ha.best_sell_time;
-        }
-        if (ha.price_difference) {
-            document.getElementById('statPriceDiff').textContent = formatPrice(ha.price_difference);
         }
     }
 }
