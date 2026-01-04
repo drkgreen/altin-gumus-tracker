@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.0 - Grafik Versiyonu
+Metal Price Tracker Web App v3.1 - Scroll Kaldırıldı
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -248,20 +248,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab{padding:6px 10px;border:none;border-radius:6px;background:transparent;color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;cursor:pointer;transition:all 0.3s;white-space:nowrap}
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
-.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative;display:flex;flex-direction:column}
-.chart-content{display:flex;gap:0}
-.chart-y-axis{width:60px;flex-shrink:0;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
+.chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
+.chart-content{display:flex;gap:8px;align-items:stretch}
+.chart-y-axis{width:60px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
 .y-axis-label{text-align:right;white-space:nowrap}
-.chart-scroll-container{flex:1;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
-.chart-canvas-wrapper{width:200%;min-width:200%;height:200px;position:relative}
+.chart-canvas-wrapper{flex:1;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
 .chart-title-value{color:#ef4444;font-weight:700}
-.chart-wrapper::-webkit-scrollbar{height:6px}
-.chart-wrapper::-webkit-scrollbar-track{background:rgba(15,23,42,0.4);border-radius:3px}
-.chart-wrapper::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.4);border-radius:3px}
-.chart-wrapper::-webkit-scrollbar-thumb:hover{background:rgba(59,130,246,0.6)}
-.chart-canvas{width:100%!important;height:180px!important}
 .login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-box{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:32px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 .login-title{font-size:24px;font-weight:800;color:#60a5fa;text-align:center;margin-bottom:24px}
@@ -367,10 +361,8 @@ Altın: <span class="chart-title-value" id="goldChartValue">--</span>
 </div>
 <div class="chart-content">
 <div class="chart-y-axis" id="goldYAxis"></div>
-<div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="goldChart" class="chart-canvas"></canvas>
-</div>
 </div>
 </div>
 </div>
@@ -380,10 +372,8 @@ Gümüş: <span class="chart-title-value" id="silverChartValue">--</span>
 </div>
 <div class="chart-content">
 <div class="chart-y-axis" id="silverYAxis"></div>
-<div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="silverChart" class="chart-canvas"></canvas>
-</div>
 </div>
 </div>
 </div>
@@ -393,10 +383,8 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 <div class="chart-content">
 <div class="chart-y-axis" id="portfolioYAxis"></div>
-<div class="chart-scroll-container">
 <div class="chart-canvas-wrapper">
 <canvas id="portfolioChart" class="chart-canvas"></canvas>
-</div>
 </div>
 </div>
 </div>
@@ -578,7 +566,7 @@ function updateCharts() {
     document.getElementById('silverChartValue').textContent = formatPrice(maxSilver);
     document.getElementById('portfolioChartValue').textContent = formatCurrency(maxPortfolio);
     
-    // 3 ayrı grafik oluştur (gerçek değerlerle)
+    // 3 ayrı grafik oluştur (scroll kaldırıldı)
     createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
     createSingleChart('silverChart', 'silverYAxis', 'Gümüş', labels, silverPrices, '#94a3b8', false);
     createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
@@ -591,7 +579,7 @@ function createCustomYAxis(yAxisId, data, isPortfolio) {
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min;
-    const step = range / 5; // 5 adet label
+    const step = range / 5;
     
     const labels = [];
     for (let i = 5; i >= 0; i--) {
@@ -611,11 +599,6 @@ function createCustomYAxis(yAxisId, data, isPortfolio) {
 function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPortfolio) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-    
-    // Scroll kaldırıldı - canvas wrapper dinamik genişlik kaldırıldı
-    const canvasWrapper = canvas.parentElement;
-    canvasWrapper.style.width = '100%';
-    canvasWrapper.style.minWidth = '100%';
     
     // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
@@ -637,8 +620,8 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     // Gradient oluştur
     const ctx = canvas.getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, color + 'AA');  // Üst: %67 opacity
-    gradient.addColorStop(1, color + '10');  // Alt: %6 opacity
+    gradient.addColorStop(0, color + 'AA');
+    gradient.addColorStop(1, color + '10');
     
     const chart = new Chart(canvas, {
         type: 'line',
@@ -650,9 +633,9 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                 borderColor: color,
                 backgroundColor: gradient,
                 borderWidth: 2,
-                fill: true,  // Alan grafiği
+                fill: true,
                 tension: 0.4,
-                pointRadius: 0,  // Noktaları gizle
+                pointRadius: 0,
                 pointHoverRadius: 6,
                 pointHitRadius: 15,
                 pointBackgroundColor: color,
@@ -725,11 +708,6 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     if (canvasId === 'goldChart') goldChart = chart;
     if (canvasId === 'silverChart') silverChart = chart;
     if (canvasId === 'portfolioChart') portfolioChart = chart;
-}
-
-function updateStatistics() {
-    // Bu fonksiyon artık kullanılmıyor
-    return;
 }
 
 function updatePortfolio() {
