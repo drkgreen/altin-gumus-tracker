@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.1 - Scroll Kaldırıldı
+Metal Price Tracker Web App v3.2 - Y Ekseni Sağda + X Ekseni Optimizasyonu
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -208,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.1</title>
+<title>Metal Tracker v3.2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -249,9 +249,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .period-tab.active{background:rgba(59,130,246,0.3);color:#60a5fa}
 .charts-container{display:flex;flex-direction:column;gap:16px}
 .chart-wrapper{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;position:relative}
-.chart-content{display:flex;gap:8px;align-items:stretch}
+.chart-content{display:flex;gap:8px;align-items:stretch;flex-direction:row-reverse}
 .chart-y-axis{width:60px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px 5px;font-size:9px;color:rgba(226,232,240,0.7)}
-.y-axis-label{text-align:right;white-space:nowrap}
+.y-axis-label{text-align:left;white-space:nowrap}
 .chart-canvas-wrapper{flex:1;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
 .chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
@@ -284,7 +284,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.1</div>
+<div class="login-title">🔐 Metal Tracker v3.2</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -298,7 +298,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.1</div>
+<div class="version">v3.2</div>
 </div>
 </div>
 <div class="header-center">
@@ -690,7 +690,7 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
                         maxRotation: 0,
                         autoSkip: true,
                         autoSkipPadding: 20,
-                        maxTicksLimit: 8
+                        maxTicksLimit: 5
                     }
                 },
                 y: {
