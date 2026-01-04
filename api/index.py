@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.2 - Y Ekseni Sağda + X Ekseni Optimizasyonu
+Metal Price Tracker Web App v3.3 - Grafik Başlıklarında Zaman + Değişim %
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -208,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.2</title>
+<title>Metal Tracker v3.3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -254,8 +254,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .y-axis-label{text-align:left;white-space:nowrap}
 .chart-canvas-wrapper{flex:1;height:200px;position:relative}
 .chart-canvas{width:100%!important;height:200px!important}
-.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left}
+.chart-title{font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chart-title-value{color:#ef4444;font-weight:700}
+.chart-period{color:rgba(226,232,240,0.6);font-size:10px;font-weight:500;margin-left:8px}
+.chart-change{font-size:11px;font-weight:700;margin-left:8px}
+.chart-change.positive{color:#10b981}
+.chart-change.negative{color:#ef4444}
 .login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-box{background:rgba(15,23,42,0.8);backdrop-filter:blur(20px);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:32px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 .login-title{font-size:24px;font-weight:800;color:#60a5fa;text-align:center;margin-bottom:24px}
@@ -284,7 +288,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.2</div>
+<div class="login-title">🔐 Metal Tracker v3.3</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -298,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.2</div>
+<div class="version">v3.3</div>
 </div>
 </div>
 <div class="header-center">
@@ -356,7 +360,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="charts-container">
 <div class="chart-wrapper">
-<div class="chart-title">
+<div class="chart-title" id="goldChartTitle">
 Altın: <span class="chart-title-value" id="goldChartValue">--</span>
 </div>
 <div class="chart-content">
@@ -367,7 +371,7 @@ Altın: <span class="chart-title-value" id="goldChartValue">--</span>
 </div>
 </div>
 <div class="chart-wrapper">
-<div class="chart-title">
+<div class="chart-title" id="silverChartTitle">
 Gümüş: <span class="chart-title-value" id="silverChartValue">--</span>
 </div>
 <div class="chart-content">
@@ -378,7 +382,7 @@ Gümüş: <span class="chart-title-value" id="silverChartValue">--</span>
 </div>
 </div>
 <div class="chart-wrapper">
-<div class="chart-title">
+<div class="chart-title" id="portfolioChartTitle">
 Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 </div>
 <div class="chart-content">
@@ -561,15 +565,55 @@ function updateCharts() {
     const maxSilver = Math.max(...silverPrices);
     const maxPortfolio = Math.max(...portfolioValues);
     
-    // Başlıkları güncelle
-    document.getElementById('goldChartValue').textContent = formatPrice(maxGold);
-    document.getElementById('silverChartValue').textContent = formatPrice(maxSilver);
-    document.getElementById('portfolioChartValue').textContent = formatCurrency(maxPortfolio);
+    // Zaman aralığı ve değişim hesapla
+    const timeRange = getTimeRange(data);
+    const goldChange = calculateChange(goldPrices);
+    const silverChange = calculateChange(silverPrices);
+    const portfolioChange = calculateChange(portfolioValues);
     
-    // 3 ayrı grafik oluştur (scroll kaldırıldı)
+    // Başlıkları güncelle
+    updateChartTitle('goldChartTitle', 'Altın', maxGold, timeRange, goldChange, false);
+    updateChartTitle('silverChartTitle', 'Gümüş', maxSilver, timeRange, silverChange, false);
+    updateChartTitle('portfolioChartTitle', 'Portföy', maxPortfolio, timeRange, portfolioChange, true);
+    
+    // Grafikleri oluştur
     createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
     createSingleChart('silverChart', 'silverYAxis', 'Gümüş', labels, silverPrices, '#94a3b8', false);
     createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
+}
+
+function getTimeRange(data) {
+    if (data.length === 0) return '';
+    const first = data[0].time;
+    const last = data[data.length - 1].time;
+    return `${first} - ${last}`;
+}
+
+function calculateChange(values) {
+    if (values.length < 2) return { percent: 0, isPositive: true };
+    const first = values[0];
+    const last = values[values.length - 1];
+    const percent = ((last - first) / first) * 100;
+    return {
+        percent: percent,
+        isPositive: percent >= 0
+    };
+}
+
+function updateChartTitle(titleId, label, maxValue, timeRange, change, isPortfolio) {
+    const titleElement = document.getElementById(titleId);
+    if (!titleElement) return;
+    
+    const formattedValue = isPortfolio ? formatCurrency(maxValue) : formatPrice(maxValue);
+    const arrow = change.isPositive ? '↑' : '↓';
+    const sign = change.isPositive ? '+' : '';
+    const changeClass = change.isPositive ? 'positive' : 'negative';
+    
+    titleElement.innerHTML = `
+        ${label}: <span class="chart-title-value">${formattedValue}</span>
+        <span class="chart-period">${timeRange}</span>
+        <span class="chart-change ${changeClass}">${arrow} ${sign}${change.percent.toFixed(1)}%</span>
+    `;
 }
 
 function createCustomYAxis(yAxisId, data, isPortfolio) {
