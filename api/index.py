@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.3 - Grafik Başlıklarında Zaman + Değişim %
+Metal Price Tracker Web App v3.4 - Peak Bilgisi Başlıklarda
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -208,7 +208,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.3</title>
+<title>Metal Tracker v3.4</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -288,7 +288,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.3</div>
+<div class="login-title">🔐 Metal Tracker v3.4</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -302,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.3</div>
+<div class="version">v3.4</div>
 </div>
 </div>
 <div class="header-center">
@@ -560,21 +560,18 @@ function updateCharts() {
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // En yüksek değerleri bul
-    const maxGold = Math.max(...goldPrices);
-    const maxSilver = Math.max(...silverPrices);
-    const maxPortfolio = Math.max(...portfolioValues);
+    // Peak bilgisini bul
+    const peakInfo = getPeakInfo(data, goldPrices, silverPrices, portfolioValues);
     
-    // Zaman aralığı ve değişim hesapla
-    const timeRange = getTimeRange(data);
+    // Değişim hesapla
     const goldChange = calculateChange(goldPrices);
     const silverChange = calculateChange(silverPrices);
     const portfolioChange = calculateChange(portfolioValues);
     
     // Başlıkları güncelle
-    updateChartTitle('goldChartTitle', 'Altın', maxGold, timeRange, goldChange, false);
-    updateChartTitle('silverChartTitle', 'Gümüş', maxSilver, timeRange, silverChange, false);
-    updateChartTitle('portfolioChartTitle', 'Portföy', maxPortfolio, timeRange, portfolioChange, true);
+    updateChartTitle('goldChartTitle', 'Altın', peakInfo.gold.value, peakInfo.gold.time, goldChange, false);
+    updateChartTitle('silverChartTitle', 'Gümüş', peakInfo.silver.value, peakInfo.silver.time, silverChange, false);
+    updateChartTitle('portfolioChartTitle', 'Portföy', peakInfo.portfolio.value, peakInfo.portfolio.time, portfolioChange, true);
     
     // Grafikleri oluştur
     createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
@@ -582,11 +579,51 @@ function updateCharts() {
     createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
 }
 
-function getTimeRange(data) {
-    if (data.length === 0) return '';
-    const first = data[0].time;
-    const last = data[data.length - 1].time;
-    return `${first} - ${last}`;
+function getPeakInfo(data, goldPrices, silverPrices, portfolioValues) {
+    // En yüksek değerlerin index'lerini bul
+    const maxGoldIndex = goldPrices.indexOf(Math.max(...goldPrices));
+    const maxSilverIndex = silverPrices.indexOf(Math.max(...silverPrices));
+    const maxPortfolioIndex = portfolioValues.indexOf(Math.max(...portfolioValues));
+    
+    // Peak zamanını formatla
+    const formatPeakTime = (index) => {
+        const item = data[index];
+        
+        if (currentPeriod === 'hourly') {
+            // Saatlik: sadece saat (09:00)
+            return item.time;
+        } else if (currentPeriod === 'daily') {
+            // Günlük: gün.ay formatı (11.10 yerine 11 Eki)
+            const dateStr = item.time; // "11.10.2024" formatında
+            const parts = dateStr.split('.');
+            if (parts.length >= 2) {
+                const day = parts[0];
+                const month = parts[1];
+                const monthNames = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+                return `${day} ${monthNames[parseInt(month) - 1]}`;
+            }
+            return item.time;
+        } else if (currentPeriod === 'monthly') {
+            // Aylık: ay adı (Ocak 2025)
+            return item.time;
+        }
+        return item.time;
+    };
+    
+    return {
+        gold: {
+            value: goldPrices[maxGoldIndex],
+            time: formatPeakTime(maxGoldIndex)
+        },
+        silver: {
+            value: silverPrices[maxSilverIndex],
+            time: formatPeakTime(maxSilverIndex)
+        },
+        portfolio: {
+            value: portfolioValues[maxPortfolioIndex],
+            time: formatPeakTime(maxPortfolioIndex)
+        }
+    };
 }
 
 function calculateChange(values) {
@@ -600,7 +637,7 @@ function calculateChange(values) {
     };
 }
 
-function updateChartTitle(titleId, label, maxValue, timeRange, change, isPortfolio) {
+function updateChartTitle(titleId, label, maxValue, peakTime, change, isPortfolio) {
     const titleElement = document.getElementById(titleId);
     if (!titleElement) return;
     
@@ -611,7 +648,7 @@ function updateChartTitle(titleId, label, maxValue, timeRange, change, isPortfol
     
     titleElement.innerHTML = `
         ${label}: <span class="chart-title-value">${formattedValue}</span>
-        <span class="chart-period">${timeRange}</span>
+        <span class="chart-period">${peakTime}</span>
         <span class="chart-change ${changeClass}">${arrow} ${sign}${change.percent.toFixed(1)}%</span>
     `;
 }
