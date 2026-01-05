@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.9 - Bloomberg Temizleme
+Metal Price Tracker Web App v3.7 - Y Ekseni Padding Optimizasyonu
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -203,74 +203,12 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
-def get_bloomberg_gold_ounce():
-    """Bloomberg HT altın ons fiyatı + ok durumu"""
-    try:
-        url = "https://www.bloomberght.com/altin/altin-ons"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Fiyat
-        price_element = soup.find('span', class_='lastPrice')
-        price = price_element.get_text(strip=True) if price_element else None
-        
-        # Değişim %
-        change_element = soup.find('span', class_='percentChange')
-        change = change_element.get_text(strip=True) if change_element else None
-        
-        # Ok ikonu ve renk tespiti
-        icon_element = soup.find('span', class_='setIcon')
-        
-        is_up = None
-        arrow = None
-        color = None
-        
-        if icon_element:
-            classes = ' '.join(icon_element.get('class', []))
-            
-            # Ok yönü
-            if 'icon-graphic-up' in classes:
-                is_up = True
-                arrow = '↑'
-            elif 'icon-graphic-down' in classes:
-                is_up = False
-                arrow = '↓'
-            
-            # Renk
-            if 'text-green' in classes:
-                color = 'green'
-            elif 'text-red' in classes:
-                color = 'red'
-        
-        return {
-            'price': price,
-            'change': change,
-            'is_up': is_up,
-            'arrow': arrow,
-            'color': color
-        }
-        
-    except Exception as e:
-        print(f"Bloomberg error: {e}")
-        return {
-            'price': None,
-            'change': None,
-            'is_up': None,
-            'arrow': None,
-            'color': None
-        }
-
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.9</title>
+<title>Metal Tracker v3.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -288,16 +226,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .portfolio-summary{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,0.2);padding:20px 2px;box-shadow:0 4px 20px rgba(0,0,0,0.3);text-align:center}
 .portfolio-amount{font-size:33px;font-weight:800;margin-bottom:20px;color:#60a5fa;white-space:nowrap}
 .portfolio-metals{display:flex;gap:0;margin-top:16px}
-.metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 8px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
+.metal-item{flex:1;background:transparent;border:none;border-radius:0;padding:18px 12px;min-height:120px;text-align:center;transition:all 0.3s;position:relative}
 .metal-item:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
 .metal-item:hover{background:rgba(59,130,246,0.05);transform:none}
 .metal-name{font-size:20px;font-weight:600;color:#60a5fa;margin-bottom:8px;white-space:nowrap}
 .metal-amount{font-size:17px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:17px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:21px;font-weight:700;color:#e2e8f0;white-space:nowrap}
-.ounce-change{font-size:14px;font-weight:600;margin-top:4px;white-space:nowrap}
-.ounce-change.positive{color:#10b981}
-.ounce-change.negative{color:#ef4444}
 .statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
@@ -354,7 +289,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.9</div>
+<div class="login-title">🔐 Metal Tracker v3.7</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -368,7 +303,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.9</div>
+<div class="version">v3.7</div>
 </div>
 </div>
 <div class="header-center">
@@ -393,12 +328,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="metal-amount" id="silverAmount">0 gr</div>
 <div class="metal-price" id="silverCurrentPrice">0,00 ₺/gr</div>
 <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
-</div>
-<div class="metal-item">
-<div class="metal-name">Altın Ons</div>
-<div class="metal-amount">USD</div>
-<div class="metal-price" id="ounceCurrentPrice">$ 0,00</div>
-<div class="ounce-change" id="ounceChange">--</div>
 </div>
 </div>
 <div class="statistics-section">
@@ -470,8 +399,6 @@ Portföy: <span class="chart-title-value" id="portfolioChartValue">--</span>
 <script>
 let currentGoldPrice = 0;
 let currentSilverPrice = 0;
-let currentOuncePrice = 0;
-let ounceData = {};
 let tableData = {};
 let currentPeriod = 'hourly';
 let goldAmount = 0;
@@ -578,16 +505,14 @@ async function fetchPrice() {
     try {
         refreshBtn.style.transform = 'rotate(360deg)';
         
-        const [goldResponse, silverResponse, ounceResponse, tableResponse] = await Promise.all([
+        const [goldResponse, silverResponse, tableResponse] = await Promise.all([
             fetch('/api/gold-price'),
             fetch('/api/silver-price'),
-            fetch('/api/bloomberg-gold'),
             fetch('/api/table-data')
         ]);
         
         const goldData = await goldResponse.json();
         const silverData = await silverResponse.json();
-        const ounceDataResult = await ounceResponse.json();
         const tableDataResult = await tableResponse.json();
         
         if (goldData.success) {
@@ -598,11 +523,6 @@ async function fetchPrice() {
         if (silverData.success) {
             let cleaned = silverData.price.replace(/[^\d,]/g, '');
             currentSilverPrice = parseFloat(cleaned.replace(',', '.'));
-        }
-        
-        if (ounceDataResult.success) {
-            ounceData = ounceDataResult;
-            updateOunceDisplay();
         }
         
         if (tableDataResult.success) {
@@ -620,29 +540,6 @@ async function fetchPrice() {
         console.error('Fetch price error:', error);
     } finally {
         setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
-    }
-}
-
-function updateOunceDisplay() {
-    if (!ounceData || !ounceData.price) return;
-    
-    // Fiyat göster
-    document.getElementById('ounceCurrentPrice').textContent = '$ ' + ounceData.price;
-    
-    // Değişim göster
-    const changeElement = document.getElementById('ounceChange');
-    if (ounceData.arrow && ounceData.change) {
-        changeElement.textContent = ounceData.arrow + ' ' + ounceData.change;
-        
-        // Renk ayarla
-        if (ounceData.color === 'green') {
-            changeElement.className = 'ounce-change positive';
-        } else if (ounceData.color === 'red') {
-            changeElement.className = 'ounce-change negative';
-        }
-    } else {
-        changeElement.textContent = '--';
-        changeElement.className = 'ounce-change';
     }
 }
 
@@ -1009,21 +906,6 @@ def api_table_data():
     try:
         data = get_table_data()
         return jsonify({'success': bool(data), 'data': data or {}})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/bloomberg-gold')
-def api_bloomberg_gold():
-    try:
-        data = get_bloomberg_gold_ounce()
-        return jsonify({
-            'success': data['price'] is not None,
-            'price': data['price'],
-            'change': data['change'],
-            'arrow': data['arrow'],
-            'color': data['color'],
-            'is_up': data['is_up']
-        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
