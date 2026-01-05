@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.8 - Bloomberg Altın Ons Entegrasyonu
+Metal Price Tracker Web App v3.9 - Bloomberg Temizleme
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -270,7 +270,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.8</title>
+<title>Metal Tracker v3.9</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -298,7 +298,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .ounce-change{font-size:14px;font-weight:600;margin-top:4px;white-space:nowrap}
 .ounce-change.positive{color:#10b981}
 .ounce-change.negative{color:#ef4444}
-.ounce-info{font-size:11px;color:rgba(226,232,240,0.5);margin-top:4px}
 .statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
@@ -355,7 +354,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.8</div>
+<div class="login-title">🔐 Metal Tracker v3.9</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -369,7 +368,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.8</div>
+<div class="version">v3.9</div>
 </div>
 </div>
 <div class="header-center">
@@ -397,10 +396,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 <div class="metal-item">
 <div class="metal-name">Altın Ons</div>
-<div class="metal-amount">Bloomberg HT</div>
+<div class="metal-amount">USD</div>
 <div class="metal-price" id="ounceCurrentPrice">$ 0,00</div>
 <div class="ounce-change" id="ounceChange">--</div>
-<div class="ounce-info">Bilgi amaçlı</div>
 </div>
 </div>
 <div class="statistics-section">
