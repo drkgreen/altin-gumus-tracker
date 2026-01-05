@@ -1,93 +1,1350 @@
 {
   "records": [
     {
-      "timestamp": 1767598120.957966,
-      "date": "2026-01-05",
-      "time": "07:28:40",
-      "gold_price": 6057.2,
-      "silver_price": 103.68,
-      "portfolio_value": 6160.88,
+      "timestamp": 1759497779.565846,
+      "date": "2025-10-03",
+      "time": "13:22:59",
+      "gold_price": 5124.73,
+      "silver_price": 63.13,
+      "portfolio_value": 5187.86,
       "optimized": true,
-      "daily_peak": false,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:22:59"
+    },
+    {
+      "timestamp": 1759551035.702855,
+      "date": "2025-10-04",
+      "time": "04:10:35",
+      "gold_price": 5083.02,
+      "silver_price": 61.33,
+      "portfolio_value": 5144.35,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:35"
+    },
+    {
+      "timestamp": 1759637404.083838,
+      "date": "2025-10-05",
+      "time": "04:10:04",
+      "gold_price": 5088.84,
+      "silver_price": 61.33,
+      "portfolio_value": 5150.17,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:04"
+    },
+    {
+      "timestamp": 1759738386.950746,
+      "date": "2025-10-06",
+      "time": "08:13:06",
+      "gold_price": 5237.87,
+      "silver_price": 64.55,
+      "portfolio_value": 5302.42,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:13:06"
+    },
+    {
+      "timestamp": 1759848064.784222,
+      "date": "2025-10-07",
+      "time": "14:41:04",
+      "gold_price": 5284.13,
+      "silver_price": 63.71,
+      "portfolio_value": 5347.84,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:41:04"
+    },
+    {
+      "timestamp": 1759925883.776593,
+      "date": "2025-10-08",
+      "time": "12:18:03",
+      "gold_price": 5366.83,
+      "silver_price": 65.01,
+      "portfolio_value": 5431.84,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "12:18:03"
+    },
+    {
+      "timestamp": 1760014971.418681,
+      "date": "2025-10-09",
+      "time": "13:02:51",
+      "gold_price": 5368.17,
+      "silver_price": 67.16,
+      "portfolio_value": 5435.33,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:02:51"
+    },
+    {
+      "timestamp": 1760092779.51759,
+      "date": "2025-10-10",
+      "time": "10:39:39",
+      "gold_price": 5299.08,
+      "silver_price": 67.01,
+      "portfolio_value": 5366.09,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:39:39"
+    },
+    {
+      "timestamp": 1760155814.12488,
+      "date": "2025-10-11",
+      "time": "04:10:14",
+      "gold_price": 5276.29,
+      "silver_price": 64.99,
+      "portfolio_value": 5341.28,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:14"
+    },
+    {
+      "timestamp": 1760242226.185911,
+      "date": "2025-10-12",
+      "time": "04:10:26",
+      "gold_price": 5282.3,
+      "silver_price": 64.99,
+      "portfolio_value": 5347.29,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:26"
+    },
+    {
+      "timestamp": 1760366435.881006,
+      "date": "2025-10-13",
+      "time": "14:40:35",
+      "gold_price": 5444.49,
+      "silver_price": 69.01,
+      "portfolio_value": 5513.5,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:40:35"
+    },
+    {
+      "timestamp": 1760438437.593829,
+      "date": "2025-10-14",
+      "time": "10:40:37",
+      "gold_price": 5505.72,
+      "silver_price": 68.44,
+      "portfolio_value": 5574.16,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:40:37"
+    },
+    {
+      "timestamp": 1760517951.327059,
+      "date": "2025-10-15",
+      "time": "08:45:51",
+      "gold_price": 5605.9,
+      "silver_price": 70.22,
+      "portfolio_value": 5676.12,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:45:51"
+    },
+    {
+      "timestamp": 1760625704.785978,
+      "date": "2025-10-16",
+      "time": "14:41:44",
+      "gold_price": 5646.41,
+      "silver_price": 71.33,
+      "portfolio_value": 5717.74,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:41:44"
+    },
+    {
+      "timestamp": 1760681630.677145,
+      "date": "2025-10-17",
+      "time": "06:13:50",
+      "gold_price": 5811.89,
+      "silver_price": 72.59,
+      "portfolio_value": 5884.4800000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:13:50"
+    },
+    {
+      "timestamp": 1760760626.166706,
+      "date": "2025-10-18",
+      "time": "04:10:26",
+      "gold_price": 5558.54,
+      "silver_price": 66.13,
+      "portfolio_value": 5624.67,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:26"
+    },
+    {
+      "timestamp": 1760847198.684813,
+      "date": "2025-10-19",
+      "time": "04:13:18",
+      "gold_price": 5564.92,
+      "silver_price": 66.13,
+      "portfolio_value": 5631.05,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:13:18"
+    },
+    {
+      "timestamp": 1760971220.827189,
+      "date": "2025-10-20",
+      "time": "14:40:20",
+      "gold_price": 5765.42,
+      "silver_price": 69.35,
+      "portfolio_value": 5834.77,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:40:20"
+    },
+    {
+      "timestamp": 1761030619.170753,
+      "date": "2025-10-21",
+      "time": "07:10:19",
+      "gold_price": 5787.01,
+      "silver_price": 68.74,
+      "portfolio_value": 5855.75,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "07:10:19"
+    },
+    {
+      "timestamp": 1761115706.595596,
+      "date": "2025-10-22",
+      "time": "06:48:26",
+      "gold_price": 5534.86,
+      "silver_price": 65.64,
+      "portfolio_value": 5600.5,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:48:26"
+    },
+    {
+      "timestamp": 1761228568.128812,
+      "date": "2025-10-23",
+      "time": "14:09:28",
+      "gold_price": 5534.8,
+      "silver_price": 65.85,
+      "portfolio_value": 5600.650000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:09:28"
+    },
+    {
+      "timestamp": 1761316874.019182,
+      "date": "2025-10-24",
+      "time": "14:41:14",
+      "gold_price": 5471.52,
+      "silver_price": 64.82,
+      "portfolio_value": 5536.34,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:41:14"
+    },
+    {
+      "timestamp": 1761365439.141528,
+      "date": "2025-10-25",
+      "time": "04:10:39",
+      "gold_price": 5400.2,
+      "silver_price": 62.6,
+      "portfolio_value": 5462.8,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:39"
+    },
+    {
+      "timestamp": 1761451845.201862,
+      "date": "2025-10-26",
+      "time": "04:10:45",
+      "gold_price": 5406.27,
+      "silver_price": 62.6,
+      "portfolio_value": 5468.870000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:45"
+    },
+    {
+      "timestamp": 1761545761.165529,
+      "date": "2025-10-27",
+      "time": "06:16:01",
+      "gold_price": 5447.33,
+      "silver_price": 64.41,
+      "portfolio_value": 5511.74,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:16:01"
+    },
+    {
+      "timestamp": 1761632098.080012,
+      "date": "2025-10-28",
+      "time": "06:14:58",
+      "gold_price": 5263.85,
+      "silver_price": 62.01,
+      "portfolio_value": 5325.860000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:14:58"
+    },
+    {
+      "timestamp": 1761736108.81161,
+      "date": "2025-10-29",
+      "time": "11:08:28",
+      "gold_price": 5287.76,
+      "silver_price": 61.82,
+      "portfolio_value": 5349.58,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:08:28"
+    },
+    {
+      "timestamp": 1761817123.346773,
+      "date": "2025-10-30",
+      "time": "09:38:43",
+      "gold_price": 5339.46,
+      "silver_price": 64.27,
+      "portfolio_value": 5403.7300000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "09:38:43"
+    },
+    {
+      "timestamp": 1761898346.687506,
+      "date": "2025-10-31",
+      "time": "08:12:26",
+      "gold_price": 5371.55,
+      "silver_price": 65.59,
+      "portfolio_value": 5437.14,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:12:26"
+    },
+    {
+      "timestamp": 1761970227.843283,
+      "date": "2025-11-01",
+      "time": "04:10:27",
+      "gold_price": 5284.08,
+      "silver_price": 63.11,
+      "portfolio_value": 5347.19,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:27"
+    },
+    {
+      "timestamp": 1762056758.351474,
+      "date": "2025-11-02",
+      "time": "04:12:38",
+      "gold_price": 5290.02,
+      "silver_price": 63.11,
+      "portfolio_value": 5353.13,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:12:38"
+    },
+    {
+      "timestamp": 1762157655.095506,
+      "date": "2025-11-03",
+      "time": "08:14:15",
+      "gold_price": 5382.43,
+      "silver_price": 65.43,
+      "portfolio_value": 5447.860000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:14:15"
+    },
+    {
+      "timestamp": 1762245949.511311,
+      "date": "2025-11-04",
+      "time": "08:45:49",
+      "gold_price": 5347.16,
+      "silver_price": 64.23,
+      "portfolio_value": 5411.389999999999,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:45:49"
+    },
+    {
+      "timestamp": 1762330398.113754,
+      "date": "2025-11-05",
+      "time": "08:13:18",
+      "gold_price": 5336.04,
+      "silver_price": 63.97,
+      "portfolio_value": 5400.01,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:13:18"
+    },
+    {
+      "timestamp": 1762420271.301671,
+      "date": "2025-11-06",
+      "time": "09:11:11",
+      "gold_price": 5372.39,
+      "silver_price": 65.21,
+      "portfolio_value": 5437.6,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "09:11:11"
+    },
+    {
+      "timestamp": 1762513682.929308,
+      "date": "2025-11-07",
+      "time": "11:08:02",
+      "gold_price": 5369.61,
+      "silver_price": 65.38,
+      "portfolio_value": 5434.99,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:08:02"
+    },
+    {
+      "timestamp": 1762575029.836037,
+      "date": "2025-11-08",
+      "time": "04:10:29",
+      "gold_price": 5298.46,
+      "silver_price": 62.55,
+      "portfolio_value": 5361.01,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:29"
+    },
+    {
+      "timestamp": 1762661480.558232,
+      "date": "2025-11-09",
+      "time": "04:11:20",
+      "gold_price": 5304.43,
+      "silver_price": 62.55,
+      "portfolio_value": 5366.9800000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:11:20"
+    },
+    {
+      "timestamp": 1762779901.783752,
+      "date": "2025-11-10",
+      "time": "13:05:01",
+      "gold_price": 5496.87,
+      "silver_price": 67.01,
+      "portfolio_value": 5563.88,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:05:01"
+    },
+    {
+      "timestamp": 1762868724.32021,
+      "date": "2025-11-11",
+      "time": "13:45:24",
+      "gold_price": 5570.55,
+      "silver_price": 68.59,
+      "portfolio_value": 5639.14,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:45:24"
+    },
+    {
+      "timestamp": 1762967390.718057,
+      "date": "2025-11-12",
+      "time": "17:09:50",
+      "gold_price": 5568.25,
+      "silver_price": 68.06,
+      "portfolio_value": 5636.31,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "17:09:50"
+    },
+    {
+      "timestamp": 1763039165.540681,
+      "date": "2025-11-13",
+      "time": "13:06:05",
+      "gold_price": 5695.01,
+      "silver_price": 72.62,
+      "portfolio_value": 5767.63,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:06:05"
+    },
+    {
+      "timestamp": 1763100903.017685,
+      "date": "2025-11-14",
+      "time": "06:15:03",
+      "gold_price": 5628.29,
+      "silver_price": 71.33,
+      "portfolio_value": 5699.62,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:15:03"
+    },
+    {
+      "timestamp": 1763179848.700053,
+      "date": "2025-11-15",
+      "time": "04:10:48",
+      "gold_price": 5436.06,
+      "silver_price": 66.38,
+      "portfolio_value": 5502.4400000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:48"
+    },
+    {
+      "timestamp": 1763266558.641798,
+      "date": "2025-11-16",
+      "time": "04:15:58",
+      "gold_price": 5442.16,
+      "silver_price": 66.38,
+      "portfolio_value": 5508.54,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:15:58"
+    },
+    {
+      "timestamp": 1763367302.357893,
+      "date": "2025-11-17",
+      "time": "08:15:02",
+      "gold_price": 5508.96,
+      "silver_price": 68.97,
+      "portfolio_value": 5577.93,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:15:02"
+    },
+    {
+      "timestamp": 1763476900.631259,
+      "date": "2025-11-18",
+      "time": "14:41:40",
+      "gold_price": 5477.41,
+      "silver_price": 68.16,
+      "portfolio_value": 5545.57,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:41:40"
+    },
+    {
+      "timestamp": 1763554665.257336,
+      "date": "2025-11-19",
+      "time": "12:17:45",
+      "gold_price": 5543.07,
+      "silver_price": 70.33,
+      "portfolio_value": 5613.4,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "12:17:45"
+    },
+    {
+      "timestamp": 1763646259.021693,
+      "date": "2025-11-20",
+      "time": "13:44:19",
+      "gold_price": 5492.88,
+      "silver_price": 68.78,
+      "portfolio_value": 5561.66,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:44:19"
+    },
+    {
+      "timestamp": 1763734169.548652,
+      "date": "2025-11-21",
+      "time": "14:09:29",
+      "gold_price": 5483.48,
+      "silver_price": 66.89,
+      "portfolio_value": 5550.37,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:09:29"
+    },
+    {
+      "timestamp": 1763784626.819054,
+      "date": "2025-11-22",
+      "time": "04:10:26",
+      "gold_price": 5434.7,
+      "silver_price": 64.67,
+      "portfolio_value": 5499.37,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:26"
+    },
+    {
+      "timestamp": 1763871811.809386,
+      "date": "2025-11-23",
+      "time": "04:23:31",
+      "gold_price": 5440.82,
+      "silver_price": 64.67,
+      "portfolio_value": 5505.49,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:23:31"
+    },
+    {
+      "timestamp": 1763989558.036714,
+      "date": "2025-11-24",
+      "time": "13:05:58",
+      "gold_price": 5506.45,
+      "silver_price": 67.71,
+      "portfolio_value": 5574.16,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:05:58"
+    },
+    {
+      "timestamp": 1764051320.210792,
+      "date": "2025-11-25",
+      "time": "06:15:20",
+      "gold_price": 5597.96,
+      "silver_price": 69.09,
+      "portfolio_value": 5667.05,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:15:20"
+    },
+    {
+      "timestamp": 1764159538.030818,
+      "date": "2025-11-26",
+      "time": "12:18:58",
+      "gold_price": 5620.33,
+      "silver_price": 70.84,
+      "portfolio_value": 5691.17,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "12:18:58"
+    },
+    {
+      "timestamp": 1764233187.06515,
+      "date": "2025-11-27",
+      "time": "08:46:27",
+      "gold_price": 5616.88,
+      "silver_price": 72.72,
+      "portfolio_value": 5689.6,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:46:27"
+    },
+    {
+      "timestamp": 1764312585.865982,
+      "date": "2025-11-28",
+      "time": "06:49:45",
+      "gold_price": 5647.05,
+      "silver_price": 73.25,
+      "portfolio_value": 5720.3,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:49:45"
+    },
+    {
+      "timestamp": 1764389524.490729,
+      "date": "2025-11-29",
+      "time": "04:12:04",
+      "gold_price": 5597.71,
+      "silver_price": 72.37,
+      "portfolio_value": 5670.08,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:12:04"
+    },
+    {
+      "timestamp": 1764476650.938821,
+      "date": "2025-11-30",
+      "time": "04:24:10",
+      "gold_price": 5604.02,
+      "silver_price": 72.37,
+      "portfolio_value": 5676.39,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:24:10"
+    },
+    {
+      "timestamp": 1764583926.087075,
+      "date": "2025-12-01",
+      "time": "10:12:06",
+      "gold_price": 5746.17,
+      "silver_price": 78.07,
+      "portfolio_value": 5824.24,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:12:06",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1764656143.364811,
+      "date": "2025-12-02",
+      "time": "06:15:43",
+      "gold_price": 5698.29,
+      "silver_price": 77.77,
+      "portfolio_value": 5776.06,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:15:43",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1764771050.743743,
+      "date": "2025-12-03",
+      "time": "14:10:50",
+      "gold_price": 5706.13,
+      "silver_price": 79.72,
+      "portfolio_value": 5785.85,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:10:50",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1764843098.197775,
+      "date": "2025-12-04",
+      "time": "10:11:38",
+      "gold_price": 5661.35,
+      "silver_price": 77.6,
+      "portfolio_value": 5738.950000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:11:38",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1764939917.418037,
+      "date": "2025-12-05",
+      "time": "13:05:17",
+      "gold_price": 5696.35,
+      "silver_price": 78.7,
+      "portfolio_value": 5775.05,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:05:17",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1764994237.298453,
+      "date": "2025-12-06",
+      "time": "04:10:37",
+      "gold_price": 5598.57,
+      "silver_price": 76.98,
+      "portfolio_value": 5675.549999999999,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:10:37",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765081417.386576,
+      "date": "2025-12-07",
+      "time": "04:23:37",
+      "gold_price": 5604.88,
+      "silver_price": 76.98,
+      "portfolio_value": 5681.86,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:23:37",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765176836.414889,
+      "date": "2025-12-08",
+      "time": "06:53:56",
+      "gold_price": 5697.92,
+      "silver_price": 79.06,
+      "portfolio_value": 5776.9800000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:53:56",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765280211.76463,
+      "date": "2025-12-09",
+      "time": "11:36:51",
+      "gold_price": 5685.81,
+      "silver_price": 79.48,
+      "portfolio_value": 5765.29,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:36:51",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765350816.050386,
+      "date": "2025-12-10",
+      "time": "07:13:36",
+      "gold_price": 5692.52,
+      "silver_price": 83.7,
+      "portfolio_value": 5776.22,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "07:13:36",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765464117.373587,
+      "date": "2025-12-11",
+      "time": "14:41:57",
+      "gold_price": 5716.91,
+      "silver_price": 85.38,
+      "portfolio_value": 5802.29,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:41:57",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765539487.997106,
+      "date": "2025-12-12",
+      "time": "11:38:07",
+      "gold_price": 5861.37,
+      "silver_price": 87.81,
+      "portfolio_value": 5949.18,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:38:07",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765599356.383369,
+      "date": "2025-12-13",
+      "time": "04:15:56",
+      "gold_price": 5739.94,
+      "silver_price": 81.09,
+      "portfolio_value": 5821.03,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:15:56",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765686395.583847,
+      "date": "2025-12-14",
+      "time": "04:26:35",
+      "gold_price": 5746.16,
+      "silver_price": 81.09,
+      "portfolio_value": 5827.25,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:26:35",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765790379.347186,
+      "date": "2025-12-15",
+      "time": "09:19:39",
+      "gold_price": 5896.76,
+      "silver_price": 87.08,
+      "portfolio_value": 5983.84,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "09:19:39",
+      "monthly_peak": false,
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1765896439.285832,
+      "date": "2025-12-16",
+      "time": "14:47:19",
+      "gold_price": 5849.06,
+      "silver_price": 86.62,
+      "portfolio_value": 5935.68,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "14:47:19",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1765952170.681753,
+      "date": "2025-12-17",
+      "time": "06:16:10",
+      "gold_price": 5881.04,
+      "silver_price": 90.41,
+      "portfolio_value": 5971.45,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "06:16:10",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1766043538.490933,
+      "date": "2025-12-18",
+      "time": "07:38:58",
+      "gold_price": 5883.96,
+      "silver_price": 90.78,
+      "portfolio_value": 5974.74,
+      "optimized": true,
+      "daily_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "07:38:58",
+      "monthly_peak": false
+    },
+    {
+      "timestamp": 1766155368.135317,
+      "date": "2025-12-19",
+      "time": "14:42:48",
+      "gold_price": 5880.35,
+      "silver_price": 90.13,
+      "portfolio_value": 5970.4800000000005,
+      "optimized": true,
+      "daily_peak": true,
       "monthly_peak": false,
       "success": {
         "gold": true,
         "silver": true
       },
-      "peak_time": "07:28:40",
-      "peak_month": "2026-01"
+      "peak_time": "14:42:48"
     },
     {
-      "timestamp": 1767599276.360431,
-      "date": "2026-01-05",
-      "time": "07:47:56",
-      "gold_price": 6058.93,
-      "silver_price": 103.81,
-      "portfolio_value": 6162.740000000001,
+      "timestamp": 1766204123.414934,
+      "date": "2025-12-20",
+      "time": "04:15:23",
+      "gold_price": 5833.06,
+      "silver_price": 88.12,
+      "portfolio_value": 5921.18,
       "optimized": true,
-      "daily_peak": false,
+      "daily_peak": true,
       "monthly_peak": false,
       "success": {
         "gold": true,
         "silver": true
       },
-      "peak_time": "07:47:56",
-      "peak_month": "2026-01"
+      "peak_time": "04:15:23"
     },
     {
-      "timestamp": 1767601012.745392,
-      "date": "2026-01-05",
-      "time": "08:16:52",
-      "gold_price": 6057.17,
-      "silver_price": 103.82,
-      "portfolio_value": 6160.99,
-      "optimized": false,
-      "daily_peak": false,
-      "monthly_peak": false,
-      "success": {
-        "gold": true,
-        "silver": true
-      }
-    },
-    {
-      "timestamp": 1767603167.109323,
-      "date": "2026-01-05",
-      "time": "08:52:47",
-      "gold_price": null,
-      "silver_price": 103.82,
-      "portfolio_value": 0,
-      "optimized": false,
-      "daily_peak": false,
-      "monthly_peak": false,
-      "success": {
-        "gold": false,
-        "silver": true
-      }
-    },
-    {
-      "timestamp": 1767604799.567347,
-      "date": "2026-01-05",
-      "time": "09:19:59",
-      "gold_price": 6068.2,
-      "silver_price": 104.4,
-      "portfolio_value": 6172.599999999999,
+      "timestamp": 1766291264.934706,
+      "date": "2025-12-21",
+      "time": "04:27:44",
+      "gold_price": 5839.37,
+      "silver_price": 88.12,
+      "portfolio_value": 5927.49,
       "optimized": true,
-      "daily_peak": false,
+      "daily_peak": true,
       "monthly_peak": false,
       "success": {
         "gold": true,
         "silver": true
       },
-      "peak_time": "09:19:59",
-      "peak_month": "2026-01"
+      "peak_time": "04:27:44"
     },
     {
-      "timestamp": 1767606659.655545,
-      "date": "2026-01-05",
-      "time": "09:50:59",
-      "gold_price": 6076.71,
-      "silver_price": 104.74,
-      "portfolio_value": 6181.45,
+      "timestamp": 1766389227.209073,
+      "date": "2025-12-22",
+      "time": "07:40:27",
+      "gold_price": 6018.61,
+      "silver_price": 94.23,
+      "portfolio_value": 6112.839999999999,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "07:40:27",
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1766495295.447616,
+      "date": "2025-12-23",
+      "time": "13:08:15",
+      "gold_price": 6110.93,
+      "silver_price": 95.28,
+      "portfolio_value": 6206.21,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:08:15",
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1766571038.664288,
+      "date": "2025-12-24",
+      "time": "10:10:38",
+      "gold_price": 6117.51,
+      "silver_price": 98.68,
+      "portfolio_value": 6216.1900000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:10:38",
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1766652410.801658,
+      "date": "2025-12-25",
+      "time": "08:46:50",
+      "gold_price": 6084.95,
+      "silver_price": 98.47,
+      "portfolio_value": 6183.42,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "08:46:50"
+    },
+    {
+      "timestamp": 1766745778.292987,
+      "date": "2025-12-26",
+      "time": "10:42:58",
+      "gold_price": 6149.32,
+      "silver_price": 102.81,
+      "portfolio_value": 6252.13,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "10:42:58",
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1766809332.06461,
+      "date": "2025-12-27",
+      "time": "04:22:12",
+      "gold_price": 6086.14,
+      "silver_price": 104.35,
+      "portfolio_value": 6190.490000000001,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:22:12"
+    },
+    {
+      "timestamp": 1766896530.160861,
+      "date": "2025-12-28",
+      "time": "04:35:30",
+      "gold_price": 6092.73,
+      "silver_price": 104.35,
+      "portfolio_value": 6197.08,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:35:30"
+    },
+    {
+      "timestamp": 1766989107.019182,
+      "date": "2025-12-29",
+      "time": "06:18:27",
+      "gold_price": 6145.84,
+      "silver_price": 108.31,
+      "portfolio_value": 6254.150000000001,
       "optimized": true,
       "daily_peak": true,
       "monthly_peak": true,
@@ -95,16 +1352,114 @@
         "gold": true,
         "silver": true
       },
-      "peak_time": "09:50:59",
+      "peak_time": "06:18:27",
+      "peak_month": "2025-12"
+    },
+    {
+      "timestamp": 1767100106.388513,
+      "date": "2025-12-30",
+      "time": "13:08:26",
+      "gold_price": 6003.93,
+      "silver_price": 104.9,
+      "portfolio_value": 6108.83,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "13:08:26"
+    },
+    {
+      "timestamp": 1767193817.403778,
+      "date": "2025-12-31",
+      "time": "15:10:17",
+      "gold_price": 5918.24,
+      "silver_price": 101.22,
+      "portfolio_value": 6019.46,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "15:10:17"
+    },
+    {
+      "timestamp": 1767242326.879738,
+      "date": "2026-01-01",
+      "time": "04:38:46",
+      "gold_price": 5804.54,
+      "silver_price": 94.03,
+      "portfolio_value": 5898.57,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:38:46",
       "peak_month": "2026-01"
     },
     {
-      "timestamp": 1767607065.586453,
-      "date": "2026-01-05",
-      "time": "09:57:45",
-      "gold_price": 6076.48,
-      "silver_price": 104.74,
-      "portfolio_value": 6181.219999999999,
+      "timestamp": 1767352157.206621,
+      "date": "2026-01-02",
+      "time": "11:09:17",
+      "gold_price": 6008.8,
+      "silver_price": 102.16,
+      "portfolio_value": 6110.96,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": true,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "11:09:17",
+      "peak_month": "2026-01"
+    },
+    {
+      "timestamp": 1767414130.226914,
+      "date": "2026-01-03",
+      "time": "04:22:10",
+      "gold_price": 5834.39,
+      "silver_price": 94.55,
+      "portfolio_value": 5928.9400000000005,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:22:10"
+    },
+    {
+      "timestamp": 1767501561.107529,
+      "date": "2026-01-04",
+      "time": "04:39:21",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": true,
+      "daily_peak": true,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      },
+      "peak_time": "04:39:21"
+    },
+    {
+      "timestamp": 1767503816.324562,
+      "date": "2026-01-04",
+      "time": "05:16:56",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
       "optimized": false,
       "daily_peak": false,
       "monthly_peak": false,
@@ -114,12 +1469,357 @@
       }
     },
     {
-      "timestamp": 1767607566.664871,
-      "date": "2026-01-05",
-      "time": "10:06:06",
-      "gold_price": 6074.75,
-      "silver_price": 104.76,
-      "portfolio_value": 6179.51,
+      "timestamp": 1767505517.081477,
+      "date": "2026-01-04",
+      "time": "05:45:17",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767507304.626844,
+      "date": "2026-01-04",
+      "time": "06:15:04",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767509463.466188,
+      "date": "2026-01-04",
+      "time": "06:51:03",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767510748.148905,
+      "date": "2026-01-04",
+      "time": "07:12:28",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767512322.886404,
+      "date": "2026-01-04",
+      "time": "07:38:42",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767514396.227175,
+      "date": "2026-01-04",
+      "time": "08:13:16",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767516329.745796,
+      "date": "2026-01-04",
+      "time": "08:45:29",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767517767.669672,
+      "date": "2026-01-04",
+      "time": "09:09:27",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767519438.111702,
+      "date": "2026-01-04",
+      "time": "09:37:18",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767521350.371371,
+      "date": "2026-01-04",
+      "time": "10:09:10",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767523260.533315,
+      "date": "2026-01-04",
+      "time": "10:41:00",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767524869.664,
+      "date": "2026-01-04",
+      "time": "11:07:49",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767526377.781747,
+      "date": "2026-01-04",
+      "time": "11:32:57",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767529017.467396,
+      "date": "2026-01-04",
+      "time": "12:16:57",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767531837.774016,
+      "date": "2026-01-04",
+      "time": "13:03:57",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767534222.149008,
+      "date": "2026-01-04",
+      "time": "13:43:42",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767535730.400722,
+      "date": "2026-01-04",
+      "time": "14:08:50",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767537537.064874,
+      "date": "2026-01-04",
+      "time": "14:38:57",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767539314.525877,
+      "date": "2026-01-04",
+      "time": "15:08:34",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767541030.571147,
+      "date": "2026-01-04",
+      "time": "15:37:10",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767543030.356632,
+      "date": "2026-01-04",
+      "time": "16:10:30",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767545050.366446,
+      "date": "2026-01-04",
+      "time": "16:44:10",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767546472.795909,
+      "date": "2026-01-04",
+      "time": "17:07:52",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
+    },
+    {
+      "timestamp": 1767548291.713982,
+      "date": "2026-01-04",
+      "time": "17:38:11",
+      "gold_price": 5840.71,
+      "silver_price": 94.55,
+      "portfolio_value": 5935.26,
       "optimized": false,
       "daily_peak": false,
       "monthly_peak": false,
@@ -129,8 +1829,36 @@
       }
     }
   ],
-  "last_optimization": "2026-01-05T10:06:06.664910+00:00",
-  "last_update": "2026-01-05T10:06:06.664871+00:00",
-  "total_records": 8,
-  "bot_version": "3.0.0"
+  "last_update": "2026-01-04T17:38:11.713982+00:00",
+  "total_records": 145,
+  "bot_version": "3.0.0",
+  "last_optimization": "2026-01-04T17:38:11.714017+00:00",
+  "optimization_stats": {
+    "date": "2025-12-18",
+    "original_count": 27,
+    "peak_portfolio_value": 5974.74,
+    "peak_time": "07:38:58",
+    "removed_count": 26
+  },
+  "last_retroactive_optimization": "2025-10-05T06:37:02.512717+00:00",
+  "retroactive_optimization_stats": {
+    "days_processed": 1,
+    "total_removed": 27,
+    "results": [
+      {
+        "date": "2025-10-04",
+        "original_count": 28,
+        "peak_value": 5144.35,
+        "peak_time": "04:10:35",
+        "removed": 27
+      }
+    ]
+  },
+  "last_cleanup": "2026-01-04T23:15:33.409041+00:00",
+  "cleanup_stats": {
+    "date": "2026-01-04",
+    "initial_count": 145,
+    "final_count": 119,
+    "removed_count": 26
+  }
 }
