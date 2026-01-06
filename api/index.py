@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Metal Price Tracker Web App v3.6 - Grafik Genişliği Maksimize
+Metal Price Tracker Web App v3.7 - Altın Ons USD Eklendi
 Flask web uygulaması - Şifre korumalı
 """
 from flask import Flask, jsonify, render_template_string, request
@@ -203,12 +203,44 @@ def get_silver_price():
     except Exception as e:
         raise Exception(f"Silver price error: {str(e)}")
 
+def get_gold_ounce_usd():
+    """Bloomberg HT'den altın ons fiyatı (USD) + yön + değişim oranı"""
+    try:
+        url = "https://www.bloomberght.com/altin/altin-ons"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Fiyat
+        price_element = soup.find('span', class_='lastPrice')
+        price = price_element.get_text(strip=True) if price_element else None
+        
+        # Yön (ok)
+        direction = "neutral"
+        if soup.find('span', class_='bloomberght-icon-font-icon-graphic-up'):
+            direction = "up"
+        elif soup.find('span', class_='bloomberght-icon-font-icon-graphic-down'):
+            direction = "down"
+        
+        # Değişim oranı
+        percent_element = soup.find('span', class_='percentChange')
+        percent = percent_element.get_text(strip=True) if percent_element else None
+        
+        return {
+            "price": price,
+            "direction": direction,
+            "change_percent": percent
+        }
+    except Exception as e:
+        raise Exception(f"Gold ounce USD error: {str(e)}")
+
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.6</title>
+<title>Metal Tracker v3.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -233,6 +265,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .metal-amount{font-size:17px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:17px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:21px;font-weight:700;color:#e2e8f0;white-space:nowrap}
+.gold-ounce-section{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;margin:12px 16px;text-align:center}
+.ounce-title{font-size:14px;font-weight:600;color:#60a5fa;margin-bottom:12px}
+.ounce-data{display:flex;align-items:center;justify-content:center;gap:12px}
+.ounce-price{font-size:26px;font-weight:700;color:#fbbf24}
+.ounce-direction{font-size:24px}
+.ounce-direction.up{color:#10b981}
+.ounce-direction.down{color:#ef4444}
+.ounce-direction.neutral{color:#94a3b8}
+.ounce-change{font-size:16px;font-weight:600}
+.ounce-change.positive{color:#10b981}
+.ounce-change.negative{color:#ef4444}
 .statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
@@ -282,6 +325,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 0}
 .chart-wrapper{padding:10px}
+.gold-ounce-section{margin:12px 8px;padding:12px}
+.ounce-price{font-size:22px}
+.ounce-direction{font-size:20px}
+.ounce-change{font-size:14px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -289,7 +336,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <body>
 <div class="login-screen" id="loginScreen" style="display:none;">
 <div class="login-box">
-<div class="login-title">🔐 Metal Tracker v3.6</div>
+<div class="login-title">🔐 Metal Tracker v3.7</div>
 <input type="password" class="login-input" id="passwordInput" placeholder="Şifre" onkeypress="if(event.key==='Enter')login()">
 <button class="login-btn" onclick="login()">Giriş</button>
 <div class="login-error" id="loginError">Hatalı şifre!</div>
@@ -303,7 +350,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="header-left">
 <div style="display:flex;align-items:center;gap:8px">
 <div class="logo">Metal Tracker</div>
-<div class="version">v3.6</div>
+<div class="version">v3.7</div>
 </div>
 </div>
 <div class="header-center">
@@ -350,6 +397,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 </div>
 </div>
+
+<div class="gold-ounce-section">
+<div class="ounce-title">Altın Ons (USD)</div>
+<div class="ounce-data">
+<span class="ounce-price" id="ouncePrice">--</span>
+<span class="ounce-direction" id="ounceDirection">●</span>
+<span class="ounce-change" id="ounceChange">--</span>
+</div>
+</div>
+
 <div class="price-history">
 <div class="history-header">
 <div class="history-title">Fiyat Geçmişi</div>
@@ -505,15 +562,17 @@ async function fetchPrice() {
     try {
         refreshBtn.style.transform = 'rotate(360deg)';
         
-        const [goldResponse, silverResponse, tableResponse] = await Promise.all([
+        const [goldResponse, silverResponse, tableResponse, ounceResponse] = await Promise.all([
             fetch('/api/gold-price'),
             fetch('/api/silver-price'),
-            fetch('/api/table-data')
+            fetch('/api/table-data'),
+            fetch('/api/gold-ounce-usd')
         ]);
         
         const goldData = await goldResponse.json();
         const silverData = await silverResponse.json();
         const tableDataResult = await tableResponse.json();
+        const ounceData = await ounceResponse.json();
         
         if (goldData.success) {
             let cleaned = goldData.price.replace(/[^\d,]/g, '');
@@ -530,6 +589,10 @@ async function fetchPrice() {
             updateCharts();
         }
         
+        if (ounceData.success) {
+            updateGoldOunce(ounceData.data);
+        }
+        
         document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {
             hour: '2-digit',
             minute: '2-digit'
@@ -540,6 +603,36 @@ async function fetchPrice() {
         console.error('Fetch price error:', error);
     } finally {
         setTimeout(() => refreshBtn.style.transform = 'rotate(0deg)', 500);
+    }
+}
+
+function updateGoldOunce(data) {
+    const priceEl = document.getElementById('ouncePrice');
+    const directionEl = document.getElementById('ounceDirection');
+    const changeEl = document.getElementById('ounceChange');
+    
+    if (data.price) {
+        priceEl.textContent = data.price + ' $';
+    }
+    
+    if (data.direction === 'up') {
+        directionEl.textContent = '▲';
+        directionEl.className = 'ounce-direction up';
+    } else if (data.direction === 'down') {
+        directionEl.textContent = '▼';
+        directionEl.className = 'ounce-direction down';
+    } else {
+        directionEl.textContent = '●';
+        directionEl.className = 'ounce-direction neutral';
+    }
+    
+    if (data.change_percent) {
+        changeEl.textContent = data.change_percent;
+        if (data.change_percent.includes('-')) {
+            changeEl.className = 'ounce-change negative';
+        } else {
+            changeEl.className = 'ounce-change positive';
+        }
     }
 }
 
@@ -556,26 +649,20 @@ function updateCharts() {
     const data = tableData[currentPeriod];
     if (data.length === 0) return;
     
-    // X ekseni etiketlerini formatla
     const labels = data.map(item => formatXAxisLabel(item.time));
     const goldPrices = data.map(item => item.gold_price);
     const silverPrices = data.map(item => item.silver_price);
     const portfolioValues = data.map(item => (goldAmount * item.gold_price) + (silverAmount * item.silver_price));
     
-    // Peak bilgisini bul
     const peakInfo = getPeakInfo(data, goldPrices, silverPrices, portfolioValues);
-    
-    // Değişim hesapla
     const goldChange = calculateChange(goldPrices);
     const silverChange = calculateChange(silverPrices);
     const portfolioChange = calculateChange(portfolioValues);
     
-    // Başlıkları güncelle
     updateChartTitle('goldChartTitle', 'Altın', peakInfo.gold.value, peakInfo.gold.time, goldChange, false);
     updateChartTitle('silverChartTitle', 'Gümüş', peakInfo.silver.value, peakInfo.silver.time, silverChange, false);
     updateChartTitle('portfolioChartTitle', 'Portföy', peakInfo.portfolio.value, peakInfo.portfolio.time, portfolioChange, true);
     
-    // Grafikleri oluştur
     createSingleChart('goldChart', 'goldYAxis', 'Altın', labels, goldPrices, '#fbbf24', false);
     createSingleChart('silverChart', 'silverYAxis', 'Gümüş', labels, silverPrices, '#94a3b8', false);
     createSingleChart('portfolioChart', 'portfolioYAxis', 'Portföy', labels, portfolioValues, '#60a5fa', true);
@@ -583,38 +670,31 @@ function updateCharts() {
 
 function formatXAxisLabel(time) {
     if (currentPeriod === 'hourly') {
-        // Saatlik: saat formatı (09:00)
         return time;
     } else if (currentPeriod === 'daily') {
-        // Günlük: gün.ay formatı (10.11.2024 → 10.11)
         const parts = time.split('.');
         if (parts.length >= 3) {
             return `${parts[0]}.${parts[1]}`;
         }
         return time;
     } else if (currentPeriod === 'monthly') {
-        // Aylık: ay adı (Ocak 2025)
         return time;
     }
     return time;
 }
 
 function getPeakInfo(data, goldPrices, silverPrices, portfolioValues) {
-    // En yüksek değerlerin index'lerini bul
     const maxGoldIndex = goldPrices.indexOf(Math.max(...goldPrices));
     const maxSilverIndex = silverPrices.indexOf(Math.max(...silverPrices));
     const maxPortfolioIndex = portfolioValues.indexOf(Math.max(...portfolioValues));
     
-    // Peak zamanını formatla
     const formatPeakTime = (index) => {
         const item = data[index];
         
         if (currentPeriod === 'hourly') {
-            // Saatlik: sadece saat (09:00)
             return item.time;
         } else if (currentPeriod === 'daily') {
-            // Günlük: gün.ay formatı (11.10 yerine 11 Eki)
-            const dateStr = item.time; // "11.10.2024" formatında
+            const dateStr = item.time;
             const parts = dateStr.split('.');
             if (parts.length >= 2) {
                 const day = parts[0];
@@ -624,7 +704,6 @@ function getPeakInfo(data, goldPrices, silverPrices, portfolioValues) {
             }
             return item.time;
         } else if (currentPeriod === 'monthly') {
-            // Aylık: ay adı (Ocak 2025)
             return item.time;
         }
         return item.time;
@@ -701,10 +780,8 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
-    // Custom Y ekseni oluştur
     createCustomYAxis(yAxisId, data, isPortfolio);
     
-    // Eski grafiği temizle
     if (canvasId === 'goldChart' && goldChart) {
         goldChart.destroy();
         goldChart = null;
@@ -718,7 +795,6 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
         portfolioChart = null;
     }
     
-    // Gradient oluştur
     const ctx = canvas.getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
     gradient.addColorStop(0, color + 'AA');
@@ -806,7 +882,6 @@ function createSingleChart(canvasId, yAxisId, label, labels, data, color, isPort
         }
     });
     
-    // Chart referansını sakla
     if (canvasId === 'goldChart') goldChart = chart;
     if (canvasId === 'silverChart') silverChart = chart;
     if (canvasId === 'portfolioChart') portfolioChart = chart;
@@ -898,6 +973,14 @@ def api_silver_price():
     try:
         price = get_silver_price()
         return jsonify({'success': bool(price), 'price': price or ''})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/gold-ounce-usd')
+def api_gold_ounce_usd():
+    try:
+        data = get_gold_ounce_usd()
+        return jsonify({'success': True, 'data': data})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
