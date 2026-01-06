@@ -4,7 +4,7 @@ on:
   schedule:
     # Her gün sabah 7:00'den akşam 21:00'a kadar her 30 dakikada bir
     # 04:00-18:00 UTC = 07:00-21:00 Türkiye saati (UTC+3)
-    - cron: '0,30 4-18 * * *'
+    - cron: '0,15 4-18 * * *'
     
     # Gece temizlik işi - her gece 02:00 Türkiye saati
     # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
