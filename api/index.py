@@ -265,7 +265,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .metal-amount{font-size:17px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:17px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:21px;font-weight:700;color:#e2e8f0;white-space:nowrap}
-.gold-ounce-section{background:rgba(15,23,42,0.4);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:16px;margin:12px 16px;text-align:center}
+.gold-ounce-section{background:transparent;border-top:1px solid rgba(59,130,246,0.3);padding:20px 12px;margin-top:16px;text-align:center}
 .ounce-title{font-size:14px;font-weight:600;color:#60a5fa;margin-bottom:12px}
 .ounce-data{display:flex;align-items:center;justify-content:center;gap:12px}
 .ounce-price{font-size:26px;font-weight:700;color:#fbbf24}
@@ -325,7 +325,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 0}
 .chart-wrapper{padding:10px}
-.gold-ounce-section{margin:12px 8px;padding:12px}
+.gold-ounce-section{border-top:1px solid rgba(59,130,246,0.3);padding:16px 12px;margin-top:12px}
 .ounce-price{font-size:22px}
 .ounce-direction{font-size:20px}
 .ounce-change{font-size:14px}
@@ -377,6 +377,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="metal-value" id="silverPortfolioValue">0,00 ₺</div>
 </div>
 </div>
+
+<div class="gold-ounce-section">
+<div class="ounce-title">Altın Ons (USD)</div>
+<div class="ounce-data">
+<span class="ounce-price" id="ouncePrice">--</span>
+<span class="ounce-direction" id="ounceDirection">●</span>
+<span class="ounce-change" id="ounceChange">--</span>
+</div>
+</div>
+
 <div class="statistics-section">
 <div class="statistics-grid">
 <div class="stat-item">
@@ -395,15 +405,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 <div class="stat-time" id="highestPortfolioTime">--:--</div>
 </div>
 </div>
-</div>
-</div>
-
-<div class="gold-ounce-section">
-<div class="ounce-title">Altın Ons (USD)</div>
-<div class="ounce-data">
-<span class="ounce-price" id="ouncePrice">--</span>
-<span class="ounce-direction" id="ounceDirection">●</span>
-<span class="ounce-change" id="ounceChange">--</span>
 </div>
 </div>
 
