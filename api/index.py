@@ -272,7 +272,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.7</title>
+<title>Metal Tracker v3.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
