@@ -235,6 +235,38 @@ def get_gold_ounce_usd():
     except Exception as e:
         raise Exception(f"Gold ounce USD error: {str(e)}")
 
+def get_silver_ounce_usd():
+    """Bloomberg HT'den gümüş ons fiyatı (USD) + yön + değişim oranı"""
+    try:
+        url = "https://www.bloomberght.com/emtia/gumus-ons"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Fiyat
+        price_element = soup.find('span', class_='lastPrice')
+        price = price_element.get_text(strip=True) if price_element else None
+        
+        # Yön (ok)
+        direction = "neutral"
+        if soup.find('span', class_='bloomberght-icon-font-icon-graphic-up'):
+            direction = "up"
+        elif soup.find('span', class_='bloomberght-icon-font-icon-graphic-down'):
+            direction = "down"
+        
+        # Değişim oranı
+        percent_element = soup.find('span', class_='percentChange')
+        percent = percent_element.get_text(strip=True) if percent_element else None
+        
+        return {
+            "price": price,
+            "direction": direction,
+            "change_percent": percent
+        }
+    except Exception as e:
+        raise Exception(f"Silver ounce USD error: {str(e)}")
+
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -265,17 +297,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .metal-amount{font-size:17px;color:rgba(226,232,240,0.7);margin-bottom:6px;white-space:nowrap}
 .metal-price{font-size:17px;color:rgba(226,232,240,0.6);margin-bottom:8px;white-space:nowrap}
 .metal-value{font-size:21px;font-weight:700;color:#e2e8f0;white-space:nowrap}
-.gold-ounce-section{background:transparent;border-top:1px solid rgba(59,130,246,0.3);padding:20px 12px;margin-top:16px;text-align:center}
+.gold-ounce-section{background:transparent;border-top:1px solid rgba(59,130,246,0.3);padding:20px 2px;margin-top:16px;display:flex;gap:0}
+.ounce-card{flex:1;text-align:center;padding:0 12px;position:relative;cursor:pointer;transition:all 0.3s;text-decoration:none;display:block}
+.ounce-card:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(59,130,246,0.3)}
+.ounce-card:hover{background:rgba(59,130,246,0.05);transform:none}
 .ounce-title{font-size:14px;font-weight:600;color:#60a5fa;margin-bottom:12px}
-.ounce-data{display:flex;align-items:center;justify-content:center;gap:12px}
-.ounce-price{font-size:26px;font-weight:700;color:#fbbf24}
-.ounce-direction{font-size:24px}
+.ounce-data{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.ounce-price{font-size:22px;font-weight:700;color:#fbbf24}
+.ounce-direction{font-size:20px}
 .ounce-direction.up{color:#10b981}
 .ounce-direction.down{color:#ef4444}
 .ounce-direction.neutral{color:#94a3b8}
 .ounce-change{font-size:16px;font-weight:600}
 .ounce-change.positive{color:#10b981}
 .ounce-change.negative{color:#ef4444}
+.statistics-section{margin-top:12px;display:none}
 .statistics-section{margin-top:12px;display:none}
 .statistics-grid{display:flex;gap:0}
 .stat-item{flex:1;background:transparent;border:none;border-radius:0;padding:14px 8px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;transition:all 0.3s;position:relative}
@@ -325,10 +361,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 .portfolio-summary{padding:16px 2px}
 .price-history{padding:16px 0}
 .chart-wrapper{padding:10px}
-.gold-ounce-section{border-top:1px solid rgba(59,130,246,0.3);padding:16px 12px;margin-top:12px}
-.ounce-price{font-size:22px}
-.ounce-direction{font-size:20px}
-.ounce-change{font-size:14px}
+.gold-ounce-section{border-top:1px solid rgba(59,130,246,0.3);padding:16px 2px;margin-top:12px}
+.ounce-card{padding:0 8px}
+.ounce-data{gap:6px}
+.ounce-price{font-size:18px}
+.ounce-direction{font-size:16px}
+.ounce-change{font-size:13px}
 }
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
@@ -379,12 +417,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-g
 </div>
 
 <div class="gold-ounce-section">
+<a href="https://www.bloomberght.com/altin/altin-ons" target="_blank" class="ounce-card">
 <div class="ounce-title">Altın Ons (USD)</div>
 <div class="ounce-data">
-<span class="ounce-price" id="ouncePrice">--</span>
-<span class="ounce-direction" id="ounceDirection">●</span>
-<span class="ounce-change" id="ounceChange">--</span>
+<span class="ounce-price" id="goldOuncePrice">--</span>
+<span class="ounce-direction" id="goldOunceDirection">●</span>
+<span class="ounce-change" id="goldOunceChange">--</span>
 </div>
+</a>
+<a href="https://www.bloomberght.com/emtia/gumus-ons" target="_blank" class="ounce-card">
+<div class="ounce-title">Gümüş Ons (USD)</div>
+<div class="ounce-data">
+<span class="ounce-price" id="silverOuncePrice">--</span>
+<span class="ounce-direction" id="silverOunceDirection">●</span>
+<span class="ounce-change" id="silverOunceChange">--</span>
+</div>
+</a>
 </div>
 
 <div class="statistics-section">
@@ -563,17 +611,19 @@ async function fetchPrice() {
     try {
         refreshBtn.style.transform = 'rotate(360deg)';
         
-        const [goldResponse, silverResponse, tableResponse, ounceResponse] = await Promise.all([
+        const [goldResponse, silverResponse, tableResponse, goldOunceResponse, silverOunceResponse] = await Promise.all([
             fetch('/api/gold-price'),
             fetch('/api/silver-price'),
             fetch('/api/table-data'),
-            fetch('/api/gold-ounce-usd')
+            fetch('/api/gold-ounce-usd'),
+            fetch('/api/silver-ounce-usd')
         ]);
         
         const goldData = await goldResponse.json();
         const silverData = await silverResponse.json();
         const tableDataResult = await tableResponse.json();
-        const ounceData = await ounceResponse.json();
+        const goldOunceData = await goldOunceResponse.json();
+        const silverOunceData = await silverOunceResponse.json();
         
         if (goldData.success) {
             let cleaned = goldData.price.replace(/[^\d,]/g, '');
@@ -590,8 +640,12 @@ async function fetchPrice() {
             updateCharts();
         }
         
-        if (ounceData.success) {
-            updateGoldOunce(ounceData.data);
+        if (goldOunceData.success) {
+            updateOunceData('goldOunce', goldOunceData.data);
+        }
+        
+        if (silverOunceData.success) {
+            updateOunceData('silverOunce', silverOunceData.data);
         }
         
         document.getElementById('headerTime').textContent = new Date().toLocaleTimeString('tr-TR', {
@@ -607,10 +661,10 @@ async function fetchPrice() {
     }
 }
 
-function updateGoldOunce(data) {
-    const priceEl = document.getElementById('ouncePrice');
-    const directionEl = document.getElementById('ounceDirection');
-    const changeEl = document.getElementById('ounceChange');
+function updateOunceData(prefix, data) {
+    const priceEl = document.getElementById(prefix + 'Price');
+    const directionEl = document.getElementById(prefix + 'Direction');
+    const changeEl = document.getElementById(prefix + 'Change');
     
     if (data.price) {
         priceEl.textContent = data.price + ' $';
@@ -981,6 +1035,14 @@ def api_silver_price():
 def api_gold_ounce_usd():
     try:
         data = get_gold_ounce_usd()
+        return jsonify({'success': True, 'data': data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/silver-ounce-usd')
+def api_silver_ounce_usd():
+    try:
+        data = get_silver_ounce_usd()
         return jsonify({'success': True, 'data': data})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
