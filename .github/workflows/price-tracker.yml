@@ -2,18 +2,15 @@ name: Metal Price Tracker v3.0
 
 on:
   schedule:
-    # Her gün sabah 7:00'den akşam 21:00'a kadar her 15 dakikada bir
+    # Her gün sabah 7:00'den akşam 21:00'a kadar her 30 dakikada bir
     # 04:00-18:00 UTC = 07:00-21:00 Türkiye saati (UTC+3)
-    - cron: '0,15,30,45 4-18 * * *'
+    - cron: '0,30 4-18 * * *'
     
     # Gece temizlik işi - her gece 02:00 Türkiye saati
     # 23:00 UTC = 02:00 Türkiye saati (UTC+3)
     - cron: '0 23 * * *'
     
   workflow_dispatch: # Manuel tetikleme için
-
-permissions:
-  contents: write
 
 jobs:
   metal-tracker:
@@ -22,8 +19,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -53,14 +48,14 @@ jobs:
           echo "🌙 Gece temizliği zamanı - başlatılıyor..."
           python scripts/price_tracker.py --cleanup
           
-        # Veri toplama saatleri kontrolü (07:00-21:59 Türkiye saati)
-        elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -le 21 ]; then
+        # Veri toplama saatleri kontrolü (07:00-21:00 Türkiye saati)
+        elif [ $TURKEY_HOUR -ge 7 ] && [ $TURKEY_HOUR -lt 21 ]; then
           echo "📊 Veri toplama saatleri ($TURKEY_HOUR:$TURKEY_MINUTE) - başlatılıyor..."
           python scripts/price_tracker.py --collect
           
         else
           echo "⏰ Belirlenen saatler dışında ($TURKEY_HOUR:$TURKEY_MINUTE)"
-          echo "   📊 Veri toplama: 07:00-21:59 TR"
+          echo "   📊 Veri toplama: 07:00-21:00 TR"
           echo "   🌙 Temizlik: 02:00 TR"
           echo "   ❌ İşlem yapılmıyor"
           exit 0
@@ -68,7 +63,7 @@ jobs:
         
     - name: Commit and push changes
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.email "action@github.com"
         git config --local user.name "Metal Tracker Bot v3.0"
         
         # Değişiklik varsa commit et
@@ -122,14 +117,12 @@ jobs:
         elif [ $TURKEY_HOUR -ge 20 ]; then
           echo "   🌙 02:00 TR (Gece temizliği)"
         else
-          TURKEY_MINUTE=$(date -u -d '+3 hours' +%M)
-          NEXT_MIN=$((10#$TURKEY_MINUTE + 15))
-          NEXT_HOUR=$TURKEY_HOUR
-          if [ $NEXT_MIN -ge 60 ]; then
-            NEXT_MIN=$((NEXT_MIN - 60))
-            NEXT_HOUR=$((NEXT_HOUR + 1))
+          NEXT_HOUR=$((TURKEY_HOUR + 1))
+          if [ $TURKEY_MINUTE -lt 30 ]; then
+            echo "   📊 $TURKEY_HOUR:30 TR (Veri toplama devam)"
+          else
+            echo "   📊 $NEXT_HOUR:00 TR (Veri toplama devam)"
           fi
-          echo "   📊 $(printf '%02d:%02d' $NEXT_HOUR $NEXT_MIN) TR (Veri toplama devam)"
         fi
         
         echo ""
