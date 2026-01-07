@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Metal Price Tracker Bot v3.0
+- Çalışma sıklığı: Her 15 dakikada bir (07:00-00:59 TR) - */15 cron formatı
 - Anlık optimizasyon: Her veri eklemede peak güncelleme
-- Gece temizlik: Eski ham verileri silme
+- Gece temizlik: Eski ham verileri silme (02:00 TR)
 - 3 seviye: Ham veri / Günlük peak / Aylık peak
 """
 
@@ -117,10 +118,13 @@ def find_daily_peak(records, target_date):
     peak_record = None
     
     for record in day_records:
-        portfolio_value = calculate_portfolio_value(
-            record.get("gold_price"),
-            record.get("silver_price")
-        )
+        portfolio_value = record.get("portfolio_value", 0)
+        if portfolio_value == 0:
+            # Portfolio hesaplanmamışsa hesapla
+            portfolio_value = calculate_portfolio_value(
+                record.get("gold_price"),
+                record.get("silver_price")
+            )
         
         if portfolio_value > max_portfolio:
             max_portfolio = portfolio_value
@@ -175,8 +179,6 @@ def optimize_realtime(price_data):
             if (record.get("timestamp") == daily_peak.get("timestamp") and 
                 record.get("date") == today):
                 record["daily_peak"] = True
-                record["optimized"] = True
-                record["peak_time"] = record.get("time", "unknown")
                 print(f"✅ Günlük peak güncellendi: {record['time']} - {record['portfolio_value']:.2f} TL")
                 break
     
@@ -195,7 +197,6 @@ def optimize_realtime(price_data):
             if (record.get("timestamp") == monthly_peak.get("timestamp") and 
                 record.get("date") == monthly_peak.get("date")):
                 record["monthly_peak"] = True
-                record["peak_month"] = current_month
                 print(f"✅ Aylık peak güncellendi: {record['date']} {record['time']} - {record['portfolio_value']:.2f} TL")
                 break
     
@@ -256,7 +257,7 @@ def cleanup_old_raw_data():
     if save_price_history(price_data):
         print(f"✅ Temizlik tamamlandı!")
         print(f"   📊 Başlangıç kayıt: {initial_count}")
-        print(f"   🗑️  Silinen kayıt: {removed_count}")
+        print(f"   🗑️ Silinen kayıt: {removed_count}")
         print(f"   💾 Kalan kayıt: {len(cleaned_records)}")
     else:
         print("❌ Temizlik kaydetme başarısız!")
@@ -264,7 +265,9 @@ def cleanup_old_raw_data():
 def collect_price_data():
     """Normal fiyat verisi toplama işlemi + Anlık optimizasyon"""
     print("📊 Metal Fiyat Takip Botu v3.0 - Veri Toplama")
-    print(f"Zaman: {datetime.now(timezone.utc).isoformat()}")
+    print(f"⏱️  Çalışma Sıklığı: Her 15 dakikada bir (*/15 cron)")
+    print(f"🕐 Çalışma Saatleri: 07:00-00:59 TR")
+    print(f"⏰ Zaman: {datetime.now(timezone.utc).isoformat()}")
     
     # Fiyatları çek
     gold_price = get_gold_price()
@@ -285,21 +288,16 @@ def collect_price_data():
     
     now = datetime.now(timezone.utc)
     
-    # Yeni kaydı oluştur
+    # Basitleştirilmiş kayıt - Gereksiz alanlar kaldırıldı
     new_record = {
-        "timestamp": now.timestamp(),
+        "timestamp": int(now.timestamp()),
         "date": now.strftime("%Y-%m-%d"),
-        "time": now.strftime("%H:%M:%S"),
+        "time": now.strftime("%H:%M"),
         "gold_price": gold_price,
         "silver_price": silver_price,
         "portfolio_value": portfolio_value,
-        "optimized": False,
         "daily_peak": False,
-        "monthly_peak": False,
-        "success": {
-            "gold": gold_price is not None,
-            "silver": silver_price is not None
-        }
+        "monthly_peak": False
     }
     
     # Kayıtları güncelle
@@ -313,21 +311,25 @@ def collect_price_data():
     price_data["last_update"] = now.isoformat()
     price_data["total_records"] = len(price_data["records"])
     price_data["bot_version"] = "3.0.0"
+    price_data["format_version"] = "simplified"
+    price_data["cron_format"] = "*/15 4-21 * * * (Garantili 15 dakikalık periyot)"
     
     # Dosyaya kaydet
     if save_price_history(price_data):
         print(f"\n✅ Veri kaydedildi. Toplam kayıt: {len(price_data['records'])}")
+        print(f"📦 Format: Basitleştirilmiş (gereksiz alanlar kaldırıldı)")
         if portfolio_value > 0:
             print(f"💰 Portföy Değeri: {portfolio_value:.2f} TL (1gr altın + 1gr gümüş)")
+        print(f"🔄 Bir sonraki çalışma: 15 dakika sonra (*/15 cron)")
     else:
         print("\n❌ Veri kaydetme başarısız!")
 
 def main():
     parser = argparse.ArgumentParser(description='Metal Price Tracker Bot v3.0')
     parser.add_argument('--collect', action='store_true', 
-                       help='Collect current price data + realtime optimization')
+                       help='Collect current price data + realtime optimization (Her 15 dakika - */15 cron)')
     parser.add_argument('--cleanup', action='store_true', 
-                       help='Clean old raw data (keep only peaks)')
+                       help='Clean old raw data (keep only peaks) - Gece 02:00')
     
     args = parser.parse_args()
     
