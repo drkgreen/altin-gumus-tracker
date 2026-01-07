@@ -51,8 +51,12 @@ def get_hourly_data():
         today = now.strftime("%Y-%m-%d")
         hourly_data = []
         
-        # SADECE BUGÜNKÜ saatlik kayıtları al
-        today_records = [r for r in records if r.get("date") == today and not r.get("optimized", False) and r.get("gold_price") and r.get("silver_price")]
+        # SADECE BUGÜNKÜ saatlik kayıtları al (peak olmayanlar)
+        today_records = [r for r in records 
+                        if r.get("date") == today 
+                        and not r.get("daily_peak", False) 
+                        and r.get("gold_price") 
+                        and r.get("silver_price")]
         
         if today_records:
             sorted_records = sorted(today_records, key=lambda x: x.get("timestamp", 0))
@@ -60,12 +64,14 @@ def get_hourly_data():
                 timestamp = record.get("timestamp", 0)
                 local_time = datetime.fromtimestamp(timestamp, timezone.utc) + timedelta(hours=3)
                 time_label = local_time.strftime("%H:%M")
+                
                 change_percent = 0
                 if i > 0:
                     prev_record = sorted_records[i - 1]
                     if prev_record and prev_record.get("gold_price"):
                         price_diff = record["gold_price"] - prev_record["gold_price"]
                         change_percent = (price_diff / prev_record["gold_price"]) * 100
+                        
                 hourly_data.append({
                     "time": time_label,
                     "gold_price": record["gold_price"],
@@ -96,6 +102,11 @@ def get_daily_optimized_data():
             day_date = datetime.strptime(day_record["date"], "%Y-%m-%d")
             day_name = day_date.strftime("%d.%m.%Y")
             
+            # Time formatını kontrol et (HH:MM:SS ise HH:MM'e çevir)
+            peak_time = day_record.get("time", "unknown")
+            if len(peak_time) > 5:
+                peak_time = peak_time[:5]
+            
             change_percent = 0
             if i > 0:
                 prev_day = sorted_peaks[i-1]
@@ -109,7 +120,7 @@ def get_daily_optimized_data():
                 "silver_price": day_record["silver_price"],
                 "change_percent": change_percent,
                 "optimized": True,
-                "peak_time": day_record.get("peak_time", "unknown"),
+                "peak_time": peak_time,
                 "portfolio_value": day_record.get("portfolio_value", 0),
                 "is_peak": True
             })
@@ -124,41 +135,54 @@ def get_monthly_optimized_data():
         records = history.get("records", [])
         if not records:
             return []
+            
         monthly_peaks = [r for r in records if r.get("monthly_peak") == True]
         monthly_data = []
         monthly_temp = []
         now = datetime.now(timezone.utc)
+        
         for i in range(11, -1, -1):
             target_month = (now - timedelta(days=i*30)).strftime("%Y-%m")
-            month_record = next((r for r in monthly_peaks if r.get("date", "").startswith(target_month)), None)
+            month_record = next((r for r in monthly_peaks 
+                               if r.get("date", "").startswith(target_month)), None)
             if month_record:
                 month_date = datetime.strptime(month_record["date"], "%Y-%m-%d")
-                month_names = {1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"}
+                month_names = {1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 
+                             5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos", 
+                             9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"}
                 month_label = f"{month_names[month_date.month]} {month_date.year}"
+                
+                # Time formatını kontrol et (HH:MM:SS ise HH:MM'e çevir)
+                peak_time = month_record.get("time", "unknown")
+                if len(peak_time) > 5:
+                    peak_time = peak_time[:5]
+                
                 monthly_temp.append({
                     "time": month_label,
                     "gold_price": month_record["gold_price"],
                     "silver_price": month_record["silver_price"],
-                    "peak_time": month_record.get("peak_time", "unknown"),
+                    "peak_time": peak_time,
                     "peak_date": month_record.get("date", "unknown"),
                     "portfolio_value": month_record.get("portfolio_value", 0)
                 })
-        for i, month_data in enumerate(monthly_temp):
+                
+        for i, month_data_item in enumerate(monthly_temp):
             change_percent = 0
             if i > 0:
                 prev_month = monthly_temp[i-1]
                 if prev_month["gold_price"] > 0:
-                    price_diff = month_data["gold_price"] - prev_month["gold_price"]
+                    price_diff = month_data_item["gold_price"] - prev_month["gold_price"]
                     change_percent = (price_diff / prev_month["gold_price"]) * 100
+                    
             monthly_data.append({
-                "time": month_data['time'],
-                "gold_price": month_data["gold_price"],
-                "silver_price": month_data["silver_price"],
+                "time": month_data_item['time'],
+                "gold_price": month_data_item["gold_price"],
+                "silver_price": month_data_item["silver_price"],
                 "change_percent": change_percent,
                 "optimized": True,
-                "peak_time": month_data["peak_time"],
-                "peak_date": month_data["peak_date"],
-                "portfolio_value": month_data["portfolio_value"],
+                "peak_time": month_data_item["peak_time"],
+                "peak_date": month_data_item["peak_date"],
+                "portfolio_value": month_data_item["portfolio_value"],
                 "is_peak": True
             })
         return monthly_data
@@ -272,7 +296,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Tracker v3.8</title>
+<title>Metal Tracker v3.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
