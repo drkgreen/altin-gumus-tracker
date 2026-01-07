@@ -2103,12 +2103,22 @@
         "gold": true,
         "silver": true
       }
+    },
+    {
+      "timestamp": 1767779314,
+      "date": "2026-01-07",
+      "time": "09:48",
+      "gold_price": 6110.16,
+      "silver_price": 109.21,
+      "portfolio_value": 6219.37,
+      "daily_peak": false,
+      "monthly_peak": false
     }
   ],
-  "last_update": "2026-01-07T09:24:14.310404+00:00",
-  "total_records": 136,
+  "last_update": "2026-01-07T09:48:34.059339+00:00",
+  "total_records": 137,
   "bot_version": "3.0.0",
-  "last_optimization": "2026-01-07T09:24:14.310446+00:00",
+  "last_optimization": "2026-01-07T09:48:34.059375+00:00",
   "optimization_stats": {
     "date": "2025-12-18",
     "original_count": 27,
@@ -2136,5 +2146,7 @@
     "initial_count": 141,
     "final_count": 125,
     "removed_count": 16
-  }
+  },
+  "format_version": "simplified",
+  "cron_format": "*/15 4-21 * * * (Garantili 15 dakikalık periyot)"
 }
