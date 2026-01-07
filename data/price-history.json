@@ -2010,12 +2010,27 @@
         "silver": true
       },
       "peak_time": "06:27:37"
+    },
+    {
+      "timestamp": 1767769058.918083,
+      "date": "2026-01-07",
+      "time": "06:57:38",
+      "gold_price": 6092.47,
+      "silver_price": 108.37,
+      "portfolio_value": 6200.84,
+      "optimized": false,
+      "daily_peak": false,
+      "monthly_peak": false,
+      "success": {
+        "gold": true,
+        "silver": true
+      }
     }
   ],
-  "last_update": "2026-01-07T06:27:37.682557+00:00",
-  "total_records": 130,
+  "last_update": "2026-01-07T06:57:38.918083+00:00",
+  "total_records": 131,
   "bot_version": "3.0.0",
-  "last_optimization": "2026-01-07T06:27:37.682611+00:00",
+  "last_optimization": "2026-01-07T06:57:38.918122+00:00",
   "optimization_stats": {
     "date": "2025-12-18",
     "original_count": 27,
