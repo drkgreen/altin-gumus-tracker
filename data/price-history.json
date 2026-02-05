@@ -1774,46 +1774,6 @@
       "monthly_peak": false
     },
     {
-      "timestamp": 1770181622,
-      "date": "2026-02-04",
-      "time": "05:07",
-      "gold_price": 6939.79,
-      "silver_price": 100.58,
-      "portfolio_value": 7040.37,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770185008,
-      "date": "2026-02-04",
-      "time": "06:03",
-      "gold_price": 7017.0,
-      "silver_price": 121.08,
-      "portfolio_value": 7138.08,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770188980,
-      "date": "2026-02-04",
-      "time": "07:09",
-      "gold_price": 7006.41,
-      "silver_price": 123.21,
-      "portfolio_value": 7129.62,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770191743,
-      "date": "2026-02-04",
-      "time": "07:55",
-      "gold_price": 7021.61,
-      "silver_price": 124.51,
-      "portfolio_value": 7146.12,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1770194198,
       "date": "2026-02-04",
       "time": "08:36",
@@ -1822,106 +1782,6 @@
       "portfolio_value": 7146.66,
       "daily_peak": true,
       "monthly_peak": true
-    },
-    {
-      "timestamp": 1770197181,
-      "date": "2026-02-04",
-      "time": "09:26",
-      "gold_price": 6995.49,
-      "silver_price": 123.68,
-      "portfolio_value": 7119.17,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770199683,
-      "date": "2026-02-04",
-      "time": "10:08",
-      "gold_price": 6981.85,
-      "silver_price": 123.37,
-      "portfolio_value": 7105.22,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770202809,
-      "date": "2026-02-04",
-      "time": "11:00",
-      "gold_price": 6980.02,
-      "silver_price": 124.33,
-      "portfolio_value": 7104.35,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770205210,
-      "date": "2026-02-04",
-      "time": "11:40",
-      "gold_price": 6946.14,
-      "silver_price": 123.2,
-      "portfolio_value": 7069.34,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770206440,
-      "date": "2026-02-04",
-      "time": "12:00",
-      "gold_price": 6974.28,
-      "silver_price": 123.46,
-      "portfolio_value": 7097.74,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770212108,
-      "date": "2026-02-04",
-      "time": "13:35",
-      "gold_price": 6975.18,
-      "silver_price": 125.33,
-      "portfolio_value": 7100.51,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770215270,
-      "date": "2026-02-04",
-      "time": "14:27",
-      "gold_price": 6959.93,
-      "silver_price": 126.32,
-      "portfolio_value": 7086.25,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770217755,
-      "date": "2026-02-04",
-      "time": "15:09",
-      "gold_price": 6836.43,
-      "silver_price": 124.29,
-      "portfolio_value": 6960.72,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770220800,
-      "date": "2026-02-04",
-      "time": "16:00",
-      "gold_price": 6759.47,
-      "silver_price": 102.64,
-      "portfolio_value": 6862.110000000001,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770224420,
-      "date": "2026-02-04",
-      "time": "17:00",
-      "gold_price": 6714.52,
-      "silver_price": 102.64,
-      "portfolio_value": 6817.160000000001,
-      "daily_peak": false,
-      "monthly_peak": false
     },
     {
       "timestamp": 1770268501,
@@ -2089,9 +1949,9 @@
       }
     ]
   },
-  "last_cleanup": "2026-02-04T23:22:25.523051+00:00",
+  "last_cleanup": "2026-02-05T23:19:04.192030+00:00",
   "cleanup_stats": {
-    "date": "2026-02-04",
+    "date": "2026-02-05",
     "initial_count": 153,
     "final_count": 139,
     "removed_count": 14
