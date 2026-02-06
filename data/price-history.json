@@ -1784,26 +1784,6 @@
       "monthly_peak": true
     },
     {
-      "timestamp": 1770268501,
-      "date": "2026-02-05",
-      "time": "05:15",
-      "gold_price": 6649.89,
-      "silver_price": 84.9,
-      "portfolio_value": 6734.79,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770271902,
-      "date": "2026-02-05",
-      "time": "06:11",
-      "gold_price": 6768.61,
-      "silver_price": 106.81,
-      "portfolio_value": 6875.42,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1770275771,
       "date": "2026-02-05",
       "time": "07:16",
@@ -1811,116 +1791,6 @@
       "silver_price": 109.17,
       "portfolio_value": 6924.6,
       "daily_peak": true,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770278531,
-      "date": "2026-02-05",
-      "time": "08:02",
-      "gold_price": 6807.23,
-      "silver_price": 110.37,
-      "portfolio_value": 6917.599999999999,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770282161,
-      "date": "2026-02-05",
-      "time": "09:02",
-      "gold_price": 6802.36,
-      "silver_price": 110.25,
-      "portfolio_value": 6912.61,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770285655,
-      "date": "2026-02-05",
-      "time": "10:00",
-      "gold_price": 6759.15,
-      "silver_price": 108.74,
-      "portfolio_value": 6867.889999999999,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770289297,
-      "date": "2026-02-05",
-      "time": "11:01",
-      "gold_price": 6745.91,
-      "silver_price": 108.38,
-      "portfolio_value": 6854.29,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770292165,
-      "date": "2026-02-05",
-      "time": "11:49",
-      "gold_price": 6750.26,
-      "silver_price": 108.15,
-      "portfolio_value": 6858.41,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770295953,
-      "date": "2026-02-05",
-      "time": "12:52",
-      "gold_price": 6734.81,
-      "silver_price": 105.17,
-      "portfolio_value": 6839.9800000000005,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770300182,
-      "date": "2026-02-05",
-      "time": "14:03",
-      "gold_price": 6693.08,
-      "silver_price": 104.67,
-      "portfolio_value": 6797.75,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770303705,
-      "date": "2026-02-05",
-      "time": "15:01",
-      "gold_price": 6711.63,
-      "silver_price": 105.88,
-      "portfolio_value": 6817.51,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770307024,
-      "date": "2026-02-05",
-      "time": "15:57",
-      "gold_price": 6607.07,
-      "silver_price": 84.79,
-      "portfolio_value": 6691.86,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770310249,
-      "date": "2026-02-05",
-      "time": "16:50",
-      "gold_price": 6679.95,
-      "silver_price": 84.69,
-      "portfolio_value": 6764.639999999999,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1770313421,
-      "date": "2026-02-05",
-      "time": "17:43",
-      "gold_price": 6682.54,
-      "silver_price": 84.69,
-      "portfolio_value": 6767.23,
-      "daily_peak": false,
       "monthly_peak": false
     },
     {
@@ -2109,12 +1979,12 @@
       }
     ]
   },
-  "last_cleanup": "2026-02-05T23:19:04.192030+00:00",
+  "last_cleanup": "2026-02-06T23:20:41.641900+00:00",
   "cleanup_stats": {
-    "date": "2026-02-05",
-    "initial_count": 153,
-    "final_count": 139,
-    "removed_count": 14
+    "date": "2026-02-06",
+    "initial_count": 155,
+    "final_count": 142,
+    "removed_count": 13
   },
   "format_version": "simplified",
   "cron_format": "*/15 4-21 * * * (Garantili 15 dakikalık periyot)"
