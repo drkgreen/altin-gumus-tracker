@@ -2374,36 +2374,6 @@
       "monthly_peak": false
     },
     {
-      "timestamp": 1775540669,
-      "date": "2026-04-07",
-      "time": "05:44",
-      "gold_price": 6507.08,
-      "silver_price": 75.34,
-      "portfolio_value": 6582.42,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775545148,
-      "date": "2026-04-07",
-      "time": "06:59",
-      "gold_price": 6565.3,
-      "silver_price": 102.59,
-      "portfolio_value": 6667.89,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775549766,
-      "date": "2026-04-07",
-      "time": "08:16",
-      "gold_price": 6576.39,
-      "silver_price": 103.14,
-      "portfolio_value": 6679.530000000001,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1775554926,
       "date": "2026-04-07",
       "time": "09:42",
@@ -2411,76 +2381,6 @@
       "silver_price": 103.38,
       "portfolio_value": 6709.18,
       "daily_peak": true,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775558463,
-      "date": "2026-04-07",
-      "time": "10:41",
-      "gold_price": 6584.49,
-      "silver_price": 102.69,
-      "portfolio_value": 6687.179999999999,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775561852,
-      "date": "2026-04-07",
-      "time": "11:37",
-      "gold_price": 6561.14,
-      "silver_price": 102.06,
-      "portfolio_value": 6663.200000000001,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775565716,
-      "date": "2026-04-07",
-      "time": "12:41",
-      "gold_price": 6577.86,
-      "silver_price": 102.5,
-      "portfolio_value": 6680.36,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775571257,
-      "date": "2026-04-07",
-      "time": "14:14",
-      "gold_price": 6501.82,
-      "silver_price": 99.92,
-      "portfolio_value": 6601.74,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775576704,
-      "date": "2026-04-07",
-      "time": "15:45",
-      "gold_price": 6508.4,
-      "silver_price": 72.27,
-      "portfolio_value": 6580.67,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775580021,
-      "date": "2026-04-07",
-      "time": "16:40",
-      "gold_price": 6534.84,
-      "silver_price": 72.27,
-      "portfolio_value": 6607.110000000001,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1775583610,
-      "date": "2026-04-07",
-      "time": "17:40",
-      "gold_price": 6571.94,
-      "silver_price": 72.27,
-      "portfolio_value": 6644.21,
-      "daily_peak": false,
       "monthly_peak": false
     },
     {
@@ -2609,9 +2509,9 @@
       }
     ]
   },
-  "last_cleanup": "2026-04-07T23:33:01.885725+00:00",
+  "last_cleanup": "2026-04-08T23:33:31.861352+00:00",
   "cleanup_stats": {
-    "date": "2026-04-07",
+    "date": "2026-04-08",
     "initial_count": 205,
     "final_count": 195,
     "removed_count": 10
