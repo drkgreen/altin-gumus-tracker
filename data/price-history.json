@@ -2672,12 +2672,22 @@
       "portfolio_value": 6724.139999999999,
       "daily_peak": false,
       "monthly_peak": false
+    },
+    {
+      "timestamp": 1776000822,
+      "date": "2026-04-12",
+      "time": "13:33",
+      "gold_price": 6643.53,
+      "silver_price": 80.61,
+      "portfolio_value": 6724.139999999999,
+      "daily_peak": false,
+      "monthly_peak": false
     }
   ],
-  "last_update": "2026-04-12T12:02:17.552941+00:00",
-  "total_records": 214,
+  "last_update": "2026-04-12T13:33:42.453654+00:00",
+  "total_records": 215,
   "bot_version": "3.0.0",
-  "last_optimization": "2026-04-12T12:02:17.552976+00:00",
+  "last_optimization": "2026-04-12T13:33:42.453691+00:00",
   "optimization_stats": {
     "date": "2025-12-18",
     "original_count": 27,
