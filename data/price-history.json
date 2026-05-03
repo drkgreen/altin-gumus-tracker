@@ -2634,106 +2634,6 @@
       "monthly_peak": false
     },
     {
-      "timestamp": 1777708709,
-      "date": "2026-05-02",
-      "time": "07:58",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777713084,
-      "date": "2026-05-02",
-      "time": "09:11",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777716601,
-      "date": "2026-05-02",
-      "time": "10:10",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777719957,
-      "date": "2026-05-02",
-      "time": "11:05",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777723050,
-      "date": "2026-05-02",
-      "time": "11:57",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777727731,
-      "date": "2026-05-02",
-      "time": "13:15",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777732075,
-      "date": "2026-05-02",
-      "time": "14:27",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777734689,
-      "date": "2026-05-02",
-      "time": "15:11",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777737633,
-      "date": "2026-05-02",
-      "time": "16:00",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1777741516,
-      "date": "2026-05-02",
-      "time": "17:05",
-      "gold_price": 6549.58,
-      "silver_price": 77.37,
-      "portfolio_value": 6626.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1777789388,
       "date": "2026-05-03",
       "time": "06:23",
@@ -2869,12 +2769,12 @@
       }
     ]
   },
-  "last_cleanup": "2026-05-02T23:37:40.779378+00:00",
+  "last_cleanup": "2026-05-03T23:38:53.220843+00:00",
   "cleanup_stats": {
-    "date": "2026-05-02",
-    "initial_count": 228,
-    "final_count": 220,
-    "removed_count": 8
+    "date": "2026-05-03",
+    "initial_count": 231,
+    "final_count": 221,
+    "removed_count": 10
   },
   "format_version": "simplified",
   "cron_format": "*/15 4-21 * * * (Garantili 15 dakikalık periyot)"
