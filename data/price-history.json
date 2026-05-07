@@ -2664,26 +2664,6 @@
       "monthly_peak": false
     },
     {
-      "timestamp": 1778048784,
-      "date": "2026-05-06",
-      "time": "06:26",
-      "gold_price": 6667.01,
-      "silver_price": 109.24,
-      "portfolio_value": 6776.25,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778057017,
-      "date": "2026-05-06",
-      "time": "08:43",
-      "gold_price": 6682.96,
-      "silver_price": 109.45,
-      "portfolio_value": 6792.41,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1778064647,
       "date": "2026-05-06",
       "time": "10:50",
@@ -2691,36 +2671,6 @@
       "silver_price": 111.73,
       "portfolio_value": 6849.0,
       "daily_peak": true,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778070297,
-      "date": "2026-05-06",
-      "time": "12:24",
-      "gold_price": 6670.08,
-      "silver_price": 109.87,
-      "portfolio_value": 6779.95,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778080160,
-      "date": "2026-05-06",
-      "time": "15:09",
-      "gold_price": 6679.98,
-      "silver_price": 83.67,
-      "portfolio_value": 6763.65,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778086398,
-      "date": "2026-05-06",
-      "time": "16:53",
-      "gold_price": 6658.46,
-      "silver_price": 83.67,
-      "portfolio_value": 6742.13,
-      "daily_peak": false,
       "monthly_peak": false
     },
     {
@@ -2809,12 +2759,12 @@
       }
     ]
   },
-  "last_cleanup": "2026-05-06T23:44:06.347715+00:00",
+  "last_cleanup": "2026-05-07T23:48:52.794361+00:00",
   "cleanup_stats": {
-    "date": "2026-05-06",
-    "initial_count": 223,
-    "final_count": 219,
-    "removed_count": 4
+    "date": "2026-05-07",
+    "initial_count": 225,
+    "final_count": 220,
+    "removed_count": 5
   },
   "format_version": "simplified",
   "cron_format": "*/15 4-21 * * * (Garantili 15 dakikalık periyot)"
