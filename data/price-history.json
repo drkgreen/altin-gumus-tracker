@@ -2764,56 +2764,6 @@
       "monthly_peak": false
     },
     {
-      "timestamp": 1778838167,
-      "date": "2026-05-15",
-      "time": "09:42",
-      "gold_price": 6511.81,
-      "silver_price": 112.96,
-      "portfolio_value": 6624.77,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778844989,
-      "date": "2026-05-15",
-      "time": "11:36",
-      "gold_price": 6531.83,
-      "silver_price": 113.83,
-      "portfolio_value": 6645.66,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778851043,
-      "date": "2026-05-15",
-      "time": "13:17",
-      "gold_price": 6505.58,
-      "silver_price": 111.08,
-      "portfolio_value": 6616.66,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778859315,
-      "date": "2026-05-15",
-      "time": "15:35",
-      "gold_price": 6471.06,
-      "silver_price": 83.48,
-      "portfolio_value": 6554.54,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
-      "timestamp": 1778865274,
-      "date": "2026-05-15",
-      "time": "17:14",
-      "gold_price": 6487.31,
-      "silver_price": 83.48,
-      "portfolio_value": 6570.79,
-      "daily_peak": false,
-      "monthly_peak": false
-    },
-    {
       "timestamp": 1778912264,
       "date": "2026-05-16",
       "time": "06:17",
@@ -2939,11 +2889,11 @@
       }
     ]
   },
-  "last_cleanup": "2026-05-15T23:51:30.752127+00:00",
+  "last_cleanup": "2026-05-16T23:46:50.040356+00:00",
   "cleanup_stats": {
-    "date": "2026-05-15",
-    "initial_count": 233,
-    "final_count": 228,
+    "date": "2026-05-16",
+    "initial_count": 238,
+    "final_count": 233,
     "removed_count": 5
   },
   "format_version": "simplified",
